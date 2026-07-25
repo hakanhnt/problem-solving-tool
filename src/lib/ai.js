@@ -48,9 +48,14 @@ async function streamBridge(opts) {
   const reader = r.body.getReader();
   const decoder = new TextDecoder();
   let buf = '';
-  let text = '';
+  let deltaText = '';   // delta.content parçalarının birleşimi
+  let wholeText = '';   // message.content ile gelen tam metin (son paket kazanır)
+  let sawDelta = false;
   let providerError = '';
 
+  // MiniMax delta'ların ardından son pakette tüm metni message.content olarak tekrar
+  // gönderir; ikisini toplarsak metin çiftlenir (JSON ayrıştırma patlar). Delta gördüysek
+  // yalnız delta'ları, hiç görmediysek tam metni kullanırız.
   const consume = chunk => {
     const payload = chunk.trim();
     if (!payload || payload === '[DONE]') return;
@@ -60,8 +65,10 @@ async function streamBridge(opts) {
     if (j.error && (j.error.message || j.error.type)) providerError = j.error.message || j.error.type;
     const ch = (j.choices && j.choices[0]) || null;
     if (!ch) return;
-    const piece = (ch.delta && ch.delta.content) || (ch.message && ch.message.content) || '';
-    if (piece) text += piece;
+    const dp = ch.delta && ch.delta.content;
+    if (dp) { sawDelta = true; deltaText += dp; return; }
+    const mp = ch.message && ch.message.content;
+    if (mp) wholeText = mp;
   };
 
   for (;;) {
@@ -77,7 +84,8 @@ async function streamBridge(opts) {
   }
   if (buf.startsWith('data:')) consume(buf.slice(5));
 
-  if (!text.trim()) throw new Error(providerError || 'Sağlayıcıdan boş yanıt geldi' + BRIDGE_HINT);
+  const text = sawDelta ? deltaText : wholeText;
+  if (!text.trim()) throw new Error(providerError || ('Sağlayıcıdan boş yanıt geldi' + BRIDGE_HINT));
   return text;
 }
 
@@ -151,12 +159,39 @@ export async function complete(settings, opts) {
   return text;
 }
 
-/** YZ yanıtından tek bir JSON nesnesi ayıklar (kod bloğu işaretlerini temizler). */
+/** Metindeki ilk dengeli { … } bloğunu bulur (dizge içindeki süslü parantezleri sayma). */
+function firstBalancedObject(s, from) {
+  let depth = 0, inStr = false, esc = false;
+  for (let i = from; i < s.length; i++) {
+    const ch = s[i];
+    if (inStr) {
+      if (esc) esc = false;
+      else if (ch === '\\') esc = true;
+      else if (ch === '"') inStr = false;
+      continue;
+    }
+    if (ch === '"') inStr = true;
+    else if (ch === '{') depth++;
+    else if (ch === '}' && --depth === 0) return s.slice(from, i + 1);
+  }
+  return null;
+}
+
+/**
+ * YZ yanıtından tek bir JSON nesnesi ayıklar (kod bloğu işaretlerini temizler).
+ * Model JSON'un ardına açıklama eklerse ya da metni tekrarlarsa ilk dengeli nesneye düşer.
+ */
 export function parseJsonReply(reply) {
   const clean = String(reply).replace(/```(json)?/gi, '');
   const a = clean.indexOf('{'), b = clean.lastIndexOf('}');
   if (a < 0 || b <= a) throw new Error('Yanıtta JSON bulunamadı');
-  return JSON.parse(clean.slice(a, b + 1));
+  try {
+    return JSON.parse(clean.slice(a, b + 1));
+  } catch (e) {
+    const first = firstBalancedObject(clean, a);
+    if (first) return JSON.parse(first);
+    throw e;
+  }
 }
 
 /** Vakanın referanslarını ~8.000 karakterlik bütçeyle sistem talimatına ekler. */
