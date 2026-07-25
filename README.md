@@ -36,8 +36,14 @@ Site ayarlarında tanımlanacak ortam değişkenleri:
 
 Fonksiyonlar:
 
-- `netlify/functions/ai.js` — YZ köprüsü (anahtar sunucuda kalır)
-- `netlify/functions/fetch-ref.js` — referans linki okuyucu (SSRF korumalı, 10 sn timeout, ilk 20.000 karakter)
+- `netlify/functions/ai.js` — YZ köprüsü (anahtar sunucuda kalır); sağlayıcıyı 9 sn'de keser
+  ki Netlify'ın 10 sn'lik senkron sınırına takılıp gövdesiz 502 dönmek yerine anlaşılır bir
+  hata üretsin
+- `netlify/functions/fetch-ref.js` — referans linki okuyucu (SSRF korumalı, 8 sn timeout, ilk 20.000 karakter)
+
+> Fonksiyonlar **ESM** yazılmalıdır (`export const handler = …`). Kökteki `package.json`
+> `"type": "module"` olduğu için `exports.handler` kullanan bir fonksiyon Netlify'da
+> `exports is not defined in ES module scope` ile çöker ve istemciye gövdesiz 502 döner.
 
 ## Mimari
 
