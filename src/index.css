@@ -1,0 +1,20 @@
+html,body{margin:0;padding:0;background:#efedea;font-family:Helvetica,Arial,sans-serif;color:#26241f}
+#root{height:100vh}
+a{color:#35506e}
+a:hover{color:#233b55}
+textarea,input,select,button{font-family:Helvetica,Arial,sans-serif}
+@keyframes pcxspin{to{transform:rotate(360deg)}}
+@keyframes pcxpulse{0%,100%{opacity:1}50%{opacity:.35}}
+::placeholder{color:#a9a49b}
+
+/* Prototipteki style-focus davranışının CSS karşılığı */
+.pcx-field:focus{border-color:#35506e;box-shadow:0 0 0 2px rgba(53,80,110,.12)}
+.pcx-field-sm:focus{border-color:#35506e}
+
+@media print{
+  html,body{background:#fff}
+  #root{height:auto}
+  [data-noprint]{display:none !important}
+  [data-app-root]{display:block !important;height:auto !important;overflow:visible !important}
+  [data-main]{overflow:visible !important}
+}

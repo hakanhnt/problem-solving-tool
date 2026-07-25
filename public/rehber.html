@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Problem Çözme Akışı · Kullanıcı Rehberi</title>
+<style>
+  html,body{margin:0;padding:0;background:#e8e6e1}
+  a{color:#35506e}a:hover{color:#233b55}
+  .sheet{
+    box-sizing:border-box;width:8.27in;min-height:11.69in;margin:32px auto;background:#fff;
+    padding:.85in;box-shadow:0 4px 18px rgba(38,36,31,.14);
+    display:flex;flex-direction:column;font-family:Helvetica,Arial,sans-serif;color:#26241f
+  }
+  .sheet-body{flex:1}
+  .doc-footer{
+    display:flex;justify-content:space-between;font:10px Helvetica,Arial,sans-serif;color:#8a857c;
+    border-top:1px solid #eceae5;padding-top:6px;margin-top:28px
+  }
+  h1,h2,h3{text-wrap:balance}
+  p,li{orphans:3;widows:3;text-wrap:pretty}
+  @media print{
+    @page{size:a4;margin:0}
+    html,body{background:#fff}
+    .sheet{width:auto;min-height:0;margin:0;box-shadow:none;padding:.85in}
+  }
+</style>
+</head>
+<body>
+<div class="sheet">
+<div class="sheet-body">
+
+  <div style="border-bottom:3px solid #35506e;padding-bottom:18px;margin-bottom:24px">
+    <div style="font:700 11px Helvetica,Arial,sans-serif;color:#5f7897;letter-spacing:1.4px">KULLANICI REHBERİ</div>
+    <h1 style="font:700 30px/1.2 Helvetica,Arial,sans-serif;color:#26241f;margin:10px 0 8px">Problem Çözme Akışı</h1>
+    <p style="font:14px/1.6 Helvetica,Arial,sans-serif;color:#6d6860;margin:0">YZ destekli, rehberli problem çözme ve karar verme çalışma aracı</p>
+  </div>
+
+  <h2 style="font:700 18px Helvetica,Arial,sans-serif;color:#35506e;margin:0 0 10px">1. Bu uygulama nedir, ne işe yarar?</h2>
+  <p style="font:13px/1.7 Helvetica,Arial,sans-serif;color:#26241f;margin:0 0 10px">Problem Çözme Akışı, bir iş problemini yapılandırılmış bir metodolojiyle uçtan uca çözmeniz için tasarlanmış interaktif bir çalışma aracıdır. Amaç yalnızca formu doldurmak değil; <strong>doğru düşünme tekniklerini kendi probleminize uygulayarak öğrenmenizdir</strong>. Araç alan bağımsızdır: lojistik, pazarlama, teknoloji, operasyon, İK, finans — her alandaki problem için çalışır.</p>
+  <p style="font:13px/1.7 Helvetica,Arial,sans-serif;color:#26241f;margin:0 0 10px">Uygulamanın temel ilkeleri:</p>
+  <ul style="font:13px/1.7 Helvetica,Arial,sans-serif;color:#26241f;margin:0 0 16px;padding-left:22px">
+    <li><strong>Problem ≠ bulgu ≠ kök neden.</strong> Problem ölçülmüş bir sapmadır; bulgu veriyle kanıtlanmış alt sapmadır; kök neden bunların altındaki sistemik sebeptir. Araç bu ayrımı her adımda korur.</li>
+    <li><strong>Önce tanım, sonra analiz, en son çözüm.</strong> 1–4. adımlarda çözüm konuşulmaz; alternatifler ancak kök neden bulunduktan sonra üretilir.</li>
+    <li><strong>Kök nedeni önce kendimizde ararız.</strong> Analiz, dış paydaşı suçlamak yerine kendi süreç, ölçüm ve yetkinlik boşluklarımıza odaklanır.</li>
+    <li><strong>YZ önerir, siz doğrularsınız.</strong> Rehberin tüm önerileri hipotezdir; işi yapanlarla ve veriyle doğrulanmalıdır.</li>
+  </ul>
+
+  <h2 style="font:700 18px Helvetica,Arial,sans-serif;color:#35506e;margin:0 0 10px">2. Ekran düzeni</h2>
+  <ul style="font:13px/1.7 Helvetica,Arial,sans-serif;color:#26241f;margin:0 0 16px;padding-left:22px">
+    <li><strong>Sol kenar çubuğu:</strong> Çalışma listesi (birden çok vaka açabilirsiniz), 7 adımlık akış navigasyonu, Ayarlar ve örnek çalışmayı sıfırlama.</li>
+    <li><strong>Ana alan:</strong> Seçili adımın formları, mavi <strong>Rehber paneli</strong> ve sayfa altında <strong>YZ Asistan</strong> sohbeti.</li>
+    <li><strong>Çalışmalar:</strong> "Örnek Çalışma" doldurulmuş bir ithalat vakasıdır — yöntemi görmek için gezin. Kendi probleminiz için "+ Yeni" ile çalışma açın. Silinen çalışma "Geri al" ile kurtarılabilir.</li>
+    <li><strong>Kayıt:</strong> Tüm girdileriniz otomatik olarak tarayıcınıza kaydedilir; sayfayı kapatıp açınca kaldığınız yerden devam edersiniz. Yedek almak ya da çalışmayı bir meslektaşınıza devretmek için Ayarlar'daki JSON dışa/içe aktarmayı kullanın.</li>
+  </ul>
+
+  <h2 style="font:700 18px Helvetica,Arial,sans-serif;color:#35506e;margin:0 0 10px">3. Yedi adımlık akış</h2>
+
+  <h3 style="font:700 14px Helvetica,Arial,sans-serif;color:#26241f;margin:0 0 6px">Adım 1 · Problem Tanımı</h3>
+  <p style="font:13px/1.7 Helvetica,Arial,sans-serif;color:#26241f;margin:0 0 10px">Problemi "ne oldu?" sorusunun cevabı olarak yazın: çözüm, neden ve suçlama içermeyen, ölçülebilir bir ifade. Boyutları (yer/birim, dönem, kırılım) ve KPI farkını (hedef vs gerçekleşen) girin. İfadenizin altındaki <strong>kalite kontrol çipleri</strong> anlık geri bildirim verir; "İfademi netleştir" düğmesi YZ'ye ifadenizi metodolojiye uygun yeniden yazdırır. <em>Problem ifadesi yazılmadan sonraki adımlara geçilemez.</em> Bu adımda ayrıca <strong>Referanslar</strong> kartından rapor, veri, link ya da dosya ekleyebilirsiniz — YZ tüm adımlarda bunlardan yararlanır ve R1, R2 biçiminde atıf yapar.</p>
+
+  <h3 style="font:700 14px Helvetica,Arial,sans-serif;color:#26241f;margin:0 0 6px">Adım 2 · Business Driver Haritalama</h3>
+  <p style="font:13px/1.7 Helvetica,Arial,sans-serif;color:#26241f;margin:0 0 10px">Sonucu sürükleyen ana etkenleri (driver) MECE — birbirini dışlayan, bütünü kapsayan — şekilde listeleyin. Rehber, probleminize göre aday driver'lar önerir; uyanları "Forma ekle" ile alın, kendi tespitlerinizle düzenleyin. Şüpheleri masa başında değil, işi yapanlarla ve yerinde gözlemle doğrulayın.</p>
+
+  <h3 style="font:700 14px Helvetica,Arial,sans-serif;color:#26241f;margin:0 0 6px">Adım 3 · Driver Analizi</h3>
+  <p style="font:13px/1.7 Helvetica,Arial,sans-serif;color:#26241f;margin:0 0 10px">Etkisi en büyük driver'ları alt bileşenlerine ayırın; hangi alt bileşende sorun olduğunu süreç metrikleriyle belirleyin. Sorunlu süreç adımları için <strong>SIPOC</strong> (Tedarikçi → Girdi → Süreç → Çıktı → Müşteri) satırları doldurun — özellikle girdi kalitesindeki bozukluklar burada görünür olur.</p>
+
+  <h3 style="font:700 14px Helvetica,Arial,sans-serif;color:#26241f;margin:0 0 6px">Adım 4 · Problem Bulguları</h3>
+  <p style="font:13px/1.7 Helvetica,Arial,sans-serif;color:#26241f;margin:0 0 10px">Varsayımları bırakın: her bulgu <strong>ölçülmüş, veriyle kanıtlanmış spesifik bir sapma</strong> olmalı ve kanıt kaynağı yazılmalıdır. Rehberin önerdiği "bulgu hipotezlerini" gerçek verilerinizle doğrulayıp sayıları kendiniz girin. Bu adımda çözüm önerilmez.</p>
+
+  <h3 style="font:700 14px Helvetica,Arial,sans-serif;color:#26241f;margin:0 0 6px">Adım 5 · Kök Neden Analizi</h3>
+  <p style="font:13px/1.7 Helvetica,Arial,sans-serif;color:#26241f;margin:0 0 10px">En kritik bulgudan başlayıp <strong>5 Neden</strong> zinciriyle belirti → sistemik neden yolculuğu yapın; <strong>balık kılçığı</strong> kategorileriyle (insan, metot, sistem, girdi, ölçüm, çevre) olası nedenleri yapılandırın. Her kök nedeni yazın, ilgili <strong>kurum prensipleriyle</strong> eşleştirin ve yetkinlik gelişim alanını belirtin. Zincir kişi suçlayarak değil; süreç, sistem ya da yetkinlik eksiğinde bitmelidir.</p>
+
+  <h3 style="font:700 14px Helvetica,Arial,sans-serif;color:#26241f;margin:0 0 6px">Adım 6 · Karşı Önlemler ve Karar</h3>
+  <p style="font:13px/1.7 Helvetica,Arial,sans-serif;color:#26241f;margin:0 0 10px">Farklı düşünme yöntemleriyle (ilk ilkeler, yanal, sistem, tasarım…) en az 3 alternatif üretin; karar kriterlerini ağırlıklandırın (toplam 100) ve <strong>karar matrisinde</strong> her alternatifi 0–5 puanlayın. Ağırlıklı toplam otomatik hesaplanır; ancak matris karar vermez — Karar kartında "Rehberden karar önerisi al" ile YZ değerlendirmesi alabilir, son kararı gerekçesiyle kendiniz yazarsınız. Gerekçe, kararın kök nedeni nasıl giderdiğini açıklamalıdır.</p>
+
+  <h3 style="font:700 14px Helvetica,Arial,sans-serif;color:#26241f;margin:0 0 6px">Adım 7 · Çalışma Raporu</h3>
+  <p style="font:13px/1.7 Helvetica,Arial,sans-serif;color:#26241f;margin:0 0 16px">Tüm girdileriniz tek bir paylaşılabilir raporda derlenir. "YZ ile yönetici özeti oluştur" kısa bir özet ekler; "RAPORA DAHİL" çipleriyle bölümleri seçer, şirket/birim adını girersiniz. "Yazdır / PDF olarak kaydet" ile yalnızca rapor çıktı alınır (menüler ve düğmeler yazdırılmaz).</p>
+
+  <h2 style="font:700 18px Helvetica,Arial,sans-serif;color:#35506e;margin:0 0 10px;break-before:page">4. YZ Rehber ve Asistan nasıl çalışır?</h2>
+  <ul style="font:13px/1.7 Helvetica,Arial,sans-serif;color:#26241f;margin:0 0 10px;padding-left:22px">
+    <li><strong>Rehber paneli (mavi kutu):</strong> Adıma girdiğinizde form boşsa otomatik çalışır ("Rehber çalışıyor…" göstergesi döner). Problem tanımınıza ve önceki adımlarınıza göre aday girdiler ve doğrulama soruları üretir. Her kart "Forma ekle" ile ilgili alana işlenir; "Yeniden öner" ile taze öneri alınır.</li>
+    <li><strong>YZ Asistan (sayfa altı):</strong> Her adımda o adımın uzmanı rolünde serbest sohbet. "Bu adımdaki girdilerimi değerlendir" ve "Öneri ve doğru sorular üret" hazır düğmeleri en sık kullanılan istekleri tek tıka indirir. Alanların yanındaki küçük <strong>YZ</strong> düğmeleri o alana özel yardım ister.</li>
+    <li><strong>Altın kural:</strong> YZ çıktıları hipotezdir. Eklediklerinizi kendi verinizle doğrulayın, uymayanları eklemeyin.</li>
+  </ul>
+
+  <h2 style="font:700 18px Helvetica,Arial,sans-serif;color:#35506e;margin:0 0 10px">5. Ayarlar (⚙)</h2>
+  <ul style="font:13px/1.7 Helvetica,Arial,sans-serif;color:#26241f;margin:0 0 16px;padding-left:22px">
+    <li><strong>YZ Sağlayıcı:</strong> "Otomatik" modda sistemin sağladığı YZ kullanılır. İsterseniz kendi MiniMax / OpenAI / Anthropic API anahtarınızı girin — anahtarınız yalnızca kendi tarayıcınızda saklanır.</li>
+    <li><strong>Rehberlik seviyesi:</strong> <em>Öğreten</em> (öneri vermez, Sokratik sorular sorar — öğrenme amaçlı), <em>Dengeli</em> (öneri + doğrulama soruları), <em>Hızlandıran</em> (eksiksiz taslaklar).</li>
+    <li><strong>Otomatik öneri:</strong> Kapatırsanız rehber yalnızca düğmeyle çalışır.</li>
+    <li><strong>Alan bağlamı:</strong> Sektörünüzü yazın (örn. "perakende lojistiği") — tüm YZ yanıtları örneklerini buna uyarlar.</li>
+    <li><strong>Üslup:</strong> yanıt uzunluğu (kısa/detaylı), ton (resmi/samimi), eleştirellik (nazik/sert denetçi).</li>
+    <li><strong>Kurum prensipleri:</strong> Varsayılan 20 prensibi düzenleyebilir, silebilir, kendi kurumunuzun değerlerini yazabilirsiniz — kök neden eşleştirme ve rehber buna göre çalışır.</li>
+    <li><strong>Veri yedekleme:</strong> "Dışa aktar" tüm çalışmaları JSON dosyası olarak indirir; "İçe aktar" yedeği ya da meslektaş dosyasını yükler.</li>
+  </ul>
+
+  <h2 style="font:700 18px Helvetica,Arial,sans-serif;color:#35506e;margin:0 0 10px">6. İpuçları ve sık sorulanlar</h2>
+  <ul style="font:13px/1.7 Helvetica,Arial,sans-serif;color:#26241f;margin:0 0 10px;padding-left:22px">
+    <li><strong>Nereden başlamalıyım?</strong> Önce Örnek Çalışma'yı adım adım gezin (5 dk), sonra "+ Yeni" ile kendi probleminizi açın.</li>
+    <li><strong>Rehber öneri üretmiyor.</strong> Adım 1'de problem ifadesinin dolu olduğundan emin olun; panelin "Tekrar dene" düğmesini kullanın. Hata sürerse Ayarlar'dan YZ sağlayıcı/anahtar ayarını kontrol edin.</li>
+    <li><strong>Verilerim kaybolur mu?</strong> Veriler bu tarayıcıya bağlıdır. Önemli çalışmaları düzenli olarak JSON dışa aktarın; tarayıcı verisi temizlenirse tek kurtarma yolu budur.</li>
+    <li><strong>Ekiple nasıl paylaşırım?</strong> Kısa yol: Adım 7 raporunu PDF alın. Çalışmanın kendisini devretmek için JSON dışa aktarıp karşı tarafın içe aktarmasını sağlayın.</li>
+    <li><strong>Uzun yazılar alana sığmıyor.</strong> Tüm metin alanları alt kenarından tutulup büyütülebilir.</li>
+  </ul>
+
+</div>
+<div class="doc-footer"><span>Problem Çözme Akışı · Kullanıcı Rehberi</span><span>v1 · Temmuz 2026</span></div>
+</div>
+</body>
+</html>

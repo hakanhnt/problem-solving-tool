@@ -1,25 +1,119 @@
-# CODING AGENTS: READ THIS FIRST
+# Problem Çözme Akışı
 
-This is a **handoff bundle** from Claude Design (claude.ai/design).
+YZ destekli, rehberli problem çözme ve karar verme çalışma aracı. Kullanıcıyı 8 adımlık bir
+metodolojiden geçirir: problem tanımı → driver haritalama → driver analizi → bulgular →
+kök neden → karşı önlemler ve karar → izleme/retrospektif → çalışma raporu.
 
-A user mocked up designs in HTML/CSS/JS using an AI design tool, then exported this bundle so a coding agent can implement the designs for real.
+Bu depo, Claude Design'da hazırlanan `Problem Çözme Akışı.dc.html` prototipinin React + Vite ile
+üretim uygulamasına taşınmış halidir. Prototip ve tasarım sohbetleri referans olarak
+`project/` ve `chats/` klasörlerinde durur.
 
-## What you should do — IMPORTANT
+## Çalıştırma
 
-**Read the chat transcripts first.** There are 2 chat transcript(s) in `chats/`. The transcripts show the full back-and-forth between the user and the design assistant — they tell you **what the user actually wants** and **where they landed** after iterating. Don't skip them. The final HTML files are the output, but the chat is where the intent lives.
+```bash
+npm install
+npm run dev        # http://localhost:5173
+npm run build      # dist/
+npm run preview    # üretim çıktısını yerelde dener
+```
 
-**Read `project/Problem Çözme Akışı.dc.html` in full.** The user had this file open when they triggered the handoff, so it's almost certainly the primary design they want built. Read it top to bottom — don't skim. Then **follow its imports**: open every file it pulls in (shared components, CSS, scripts) so you understand how the pieces fit together before you start implementing.
+> `npm run dev` ile yerelde YZ "Otomatik" modu çalışmaz (Netlify fonksiyonları yok).
+> Yerelde denemek için ya `netlify dev` kullanın ya da Ayarlar → YZ Sağlayıcı'dan
+> kendi API anahtarınızı girin.
 
-**If anything is ambiguous, ask the user to confirm before you start implementing.** It's much cheaper to clarify scope up front than to build the wrong thing.
+## Netlify yayını
 
-## About the design files
+`netlify.toml` hazırdır: `npm run build` → `dist` yayınlanır, `netlify/functions` sunucu
+fonksiyonu olarak kurulur.
 
-The design medium is **HTML/CSS/JS** — these are prototypes, not production code. Your job is to **recreate them pixel-perfectly** in whatever technology makes sense for the target codebase (React, Vue, native, whatever fits). Match the visual output; don't copy the prototype's internal structure unless it happens to fit.
+Site ayarlarında tanımlanacak ortam değişkenleri:
 
-**Don't render these files in a browser or take screenshots unless the user asks you to.** Everything you need — dimensions, colors, layout rules — is spelled out in the source. Read the HTML and CSS directly; a screenshot won't tell you anything they don't.
+| Değişken | Zorunlu | Açıklama |
+| --- | --- | --- |
+| `MINIMAX_API_KEY` | evet | "Otomatik" modda kullanılan anahtar; tarayıcıya hiç inmez |
+| `MINIMAX_MODEL` | hayır | varsayılan `MiniMax-Text-01` |
+| `MINIMAX_BASE_URL` | hayır | varsayılan MiniMax chat/completions ucu |
 
-## Bundle contents
+Fonksiyonlar:
 
-- `README.md` — this file
-- `chats/` — conversation transcripts (read these!)
-- `project/` — the `# Problem Çözme Akış Şablonu` project files (HTML prototypes, assets, components)
+- `netlify/functions/ai.js` — YZ köprüsü (anahtar sunucuda kalır)
+- `netlify/functions/fetch-ref.js` — referans linki okuyucu (SSRF korumalı, 10 sn timeout, ilk 20.000 karakter)
+
+## Mimari
+
+```
+src/
+  App.jsx                 sayfa iskeleti, adım geçişleri, doğrulama uyarıları
+  lib/
+    store.jsx             tek state ağacı + localStorage + tüm YZ akışları (Context)
+    ai.js                 sağlayıcı katmanı (complete) + sistem talimatı/görev şemaları
+    defaults.js           kurum prensipleri, boş/örnek çalışma, adım metinleri
+    derive.js             KPI farkı, ifade kalite kontrolü, karar matrisi, trend/harita
+  components/             Sidebar · CoachPanel · AssistantChat · SettingsModal
+  steps/                  Step1…Step8
+  ui/primitives.jsx       tasarım token'ları ve ortak öğeler (hover/focus davranışı dahil)
+public/rehber.html        kullanım rehberi (kenar çubuğundaki "📖 Kullanım Rehberi")
+```
+
+### Veri modeli
+
+Tüm durum tek bir ağaçta tutulur ve her değişimde `localStorage` anahtarı
+**`pcx_workbook_v1`** altına yazılır (prototiple aynı anahtar ve şema — mevcut kullanıcı
+verisi olduğu gibi açılır).
+
+```
+{ activeCase, step (1-8), trash{key,data,name}|null,
+  principles: string[],                       // düzenlenebilir kurum prensipleri
+  reportCfg: { company, sections{tanim,driver,analiz,bulgu,kok,karar,referans} },
+  aiSettings: { provider:'auto'|'minimax'|'openai'|'anthropic', apiKey, model, baseUrl,
+                level:'ogreten'|'dengeli'|'hizli', auto, context,
+                length:'kisa'|'detayli', tone:'resmi'|'samimi', critic:'nazik'|'sert' },
+  cases: { <id>: CASE } }
+
+CASE = { name, problem{statement,geo,time,brand,kpiName,target,actual},
+  drivers[{name,note,src?,verified?}], driverAnalysis[{driver,component,issue,…}],
+  sipoc[{s,i,p,o,c}], findings[{text,evidence,…}], whys[5],
+  fishbone{insan,metot,sistem,girdi,olcum,cevre},
+  rootCauses[{text,principles[int],competency,…}], alternatives[{name,method,note}],
+  criteria[{name,weight}], scores{'ai_ci':val}, decision{choice,rationale},
+  actions[{text,owner,due,etki,efor,status}], tracking[{label,value}],
+  retro{valid,worked,lessons}, references[{id,title,type,url,text,summary,…}],
+  ai{step:[msg]}, coach{step:{status,intro,items,questions,errMsg}},
+  decisionCoach{…}, actionCoach{…}, audit{…}, report{…} }
+```
+
+Kurallar: `ornek` vakası silinemez/yeniden adlandırılamaz ("sıfırla" ile ilk haline döner);
+silinen vaka `trash`e alınır ve kenar çubuğundaki "Geri al" şeridiyle kurtarılır;
+Adım 1'de problem ifadesi boşken sonraki adıma geçilemez; rehberden eklenen kayıtlar
+`src:'yz', verified:false` ile işaretlenir ve doğrulanmadan ilerlenirse uyarı çıkar.
+
+### YZ akışları
+
+Hepsi `buildSystem(step, case)` sistem talimatını paylaşır (adım odağı + tüm çalışma verisi
+JSON + ayarlardan seviye/üslup/bağlam ekleri + referans bloğu):
+
+1. **Rehber (coach)** — adım 1-6; adıma girişte form boşsa ve otomatik öneri açıksa kendiliğinden,
+   yoksa düğmeyle. Adım başına katı JSON şeması ister, "Forma ekle" kartlarına çevirir.
+   "Öğreten" seviyesinde öneri yerine yalnız Sokratik sorular üretir.
+2. **Karar önerisi** ve **aksiyon planı önerisi** (Adım 6), **tutarlılık denetimi** ve
+   **yönetici özeti** (Adım 8) — tek atımlık çağrılar.
+3. **Sohbet asistanı** — adım başına mesaj geçmişi vakada saklanır; alan yanındaki `YZ`
+   düğmeleri o alana özel yardım ister.
+4. **Referans özetleme** — 4.000 karakteri aşan referanslar bir kez özetlenir; hem ham metin
+   hem özet saklanır, sistem talimatına ~8.000 karakterlik bütçeyle girer.
+
+## Prototipe göre farklar
+
+- Prototipe özgü `window.claude` dalı kaldırıldı; "Otomatik" mod doğrudan
+  `/.netlify/functions/ai` köprüsünü kullanır (devir README'sinin önerisi).
+- Görsel editörden gelen sabit piksel ölçüler (Adım 6 Karar kartı 800×1357px, 807px genişlik
+  textarea'lar vb.) akışkan genişliğe çevrildi; karar/gerekçe alanlarının büyütülmüş
+  yükseklikleri korundu.
+- Tasarım aracına özgü `showGuidance` / `showExample` editör anahtarları kaldırıldı
+  (ikisi de varsayılan davranış: açık).
+
+## Referans dosyalar
+
+- `project/Problem Çözme Akışı.dc.html` — kaynak prototip
+- `project/design_handoff_problem_cozme/README.md` — tasarım devir notları
+- `chats/` — tasarım sohbet dökümleri
