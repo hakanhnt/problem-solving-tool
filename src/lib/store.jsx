@@ -5,12 +5,15 @@ import React, { createContext, useCallback, useContext, useEffect, useMemo, useR
 import { STORAGE_KEY, blankCase, exampleCase, defaultPrinciples } from './defaults.js';
 import {
   complete, buildSystem, buildCoachTask, coachItems, parseJsonReply,
-  COACH_JSON_RULE, COACH_TEACH_TASK, COACH_FAST_SUFFIX, ACTION_COACH_TASK,
+  COACH_JSON_RULE, COACH_TEACH_TASK, COACH_FAST_SUFFIX, COACH_DEPTH_SUFFIX, ACTION_COACH_TASK,
   DECISION_COACH_TASK, AUDIT_TASK, REPORT_SUMMARY_TASK, REF_SUMMARY_SYSTEM
 } from './ai.js';
 
 const Ctx = createContext(null);
 export const useStore = () => useContext(Ctx);
+
+/** Ayarlardaki analiz derinliğinin token bütçesi çarpanı. */
+const DEPTH_MULT = { standart: 1, genis: 1.6, derin: 2.5 };
 
 function normalize(state) {
   const s = state;
@@ -20,7 +23,12 @@ function normalize(state) {
   s.refForm = null;
   s.reportCfg = Object.assign({ company: '', sections: {} }, s.reportCfg || {});
   s.reportCfg.sections = Object.assign({ tanim: true, driver: true, analiz: true, bulgu: true, kok: true, karar: true, referans: true }, s.reportCfg.sections);
-  s.aiSettings = Object.assign({ provider: 'auto', apiKey: '', model: '', baseUrl: '', level: 'dengeli', auto: true, context: '', length: 'kisa', tone: 'resmi', critic: 'nazik' }, s.aiSettings || {});
+  s.aiSettings = Object.assign({
+    provider: 'auto', apiKey: '', model: '', baseUrl: '',
+    level: 'dengeli', auto: true, context: '',
+    length: 'kisa', tone: 'resmi', critic: 'nazik',
+    temperature: 0.6, topP: '', depth: 'standart'
+  }, s.aiSettings || {});
   if (!Array.isArray(s.principles) || !s.principles.length) s.principles = defaultPrinciples();
   Object.keys(s.cases).forEach(k => {
     const cc = s.cases[k];
@@ -101,7 +109,13 @@ export function StoreProvider({ children }) {
 
   const principlesOf = s => (Array.isArray(s.principles) && s.principles.length) ? s.principles : defaultPrinciples();
 
-  const callAi = useCallback(opts => complete(stateRef.current.aiSettings, opts), []);
+  // Analiz derinliği token bütçesini ölçekler; üst sınır köprünün kabul ettiği tavandır.
+  const callAi = useCallback(opts => {
+    const S = stateRef.current.aiSettings || {};
+    const mult = DEPTH_MULT[S.depth] || 1;
+    const max = Math.min(Math.round((opts.max_tokens || 2000) * mult), 16000);
+    return complete(S, { ...opts, max_tokens: max });
+  }, []);
 
   const systemFor = useCallback((step, c) => {
     const s = stateRef.current;
@@ -125,7 +139,9 @@ export function StoreProvider({ children }) {
         const level = (s.aiSettings || {}).level;
         const task = level === 'ogreten'
           ? COACH_TEACH_TASK
-          : buildCoachTask(step, principlesOf(s)) + (level === 'hizli' ? COACH_FAST_SUFFIX : '');
+          : buildCoachTask(step, principlesOf(s))
+            + (level === 'hizli' ? COACH_FAST_SUFFIX : '')
+            + (COACH_DEPTH_SUFFIX[(s.aiSettings || {}).depth] || '');
         const reply = await callAi({
           max_tokens: 4600,
           system: systemFor(step, c) + COACH_JSON_RULE + task,

@@ -16,6 +16,18 @@ const LEVELS = [
   { key: 'hizli', label: 'Hızlandıran', hint: 'Eksiksiz taslaklar üretir' }
 ];
 
+const DEPTHS = [
+  { key: 'standart', label: 'Standart', hint: 'Hızlı; şemadaki aday sayısı kadar' },
+  { key: 'genis', label: 'Geniş', hint: 'Aday sayısı üst sınırda + gerekçeli' },
+  { key: 'derin', label: 'Derin', hint: 'En kapsamlı: gerekçe, kanıt kaynağı, sınama soruları' }
+];
+
+const TEMPS = [
+  { v: 0.2, label: 'Tutarlı', hint: 'Aynı girdiye benzer, disiplinli çıktı' },
+  { v: 0.6, label: 'Dengeli', hint: 'Önerilen varsayılan' },
+  { v: 0.9, label: 'Yaratıcı', hint: 'Daha çeşitli, sıra dışı alternatifler' }
+];
+
 const STYLE_ROWS = [
   { label: 'Yanıt uzunluğu', key: 'length', opts: [{ k: 'kisa', l: 'Kısa madde' }, { k: 'detayli', l: 'Detaylı açıklamalı' }] },
   { label: 'Ton', key: 'tone', opts: [{ k: 'resmi', l: 'Resmi' }, { k: 'samimi', l: 'Samimi koç' }] },
@@ -145,7 +157,7 @@ export default function SettingsModal() {
               />
             </div>
             <div>
-              <label style={{ display: 'block', font: '600 12px Helvetica,Arial,sans-serif', color: '#57534b', margin: '0 0 4px' }}>Model <span style={{ fontWeight: 400, color: '#8a857c' }}>(isteğe bağlı)</span></label>
+              <label style={{ display: 'block', font: '600 12px Helvetica,Arial,sans-serif', color: '#57534b', margin: '0 0 4px' }}>Model <span style={{ fontWeight: 400, color: '#8a857c' }}>— boşsa sunucu varsayılanı</span></label>
               <input
                 className="pcx-field-sm" value={A.model || ''}
                 onChange={e => upd(n => { n.aiSettings.model = e.target.value; })}
@@ -164,7 +176,45 @@ export default function SettingsModal() {
               style={{ width: '100%', boxSizing: 'border-box', padding: '8px 11px', border: '1px solid #d6d3ce', borderRadius: 6, font: '12.5px/1.4 Helvetica,Arial,sans-serif', color: '#26241f', background: '#fff', outline: 'none' }}
             />
           </div>
-          <div style={{ font: '11px/1.5 Helvetica,Arial,sans-serif', color: '#8a857c', margin: '0 0 4px' }}>Anahtarınız yalnızca bu tarayıcıda saklanır ve doğrudan seçtiğiniz sağlayıcıya gönderilir; hiçbir sunucuda tutulmaz.</div>
+          <div style={{ font: '11px/1.5 Helvetica,Arial,sans-serif', color: '#8a857c', margin: '0 0 4px' }}>Anahtarınız yalnızca bu tarayıcıda saklanır ve doğrudan seçtiğiniz sağlayıcıya gönderilir; hiçbir sunucuda tutulmaz. Model alanı "Otomatik" modda da geçerlidir: boş bırakırsanız sunucudaki varsayılan model kullanılır.</div>
+
+          <div style={{ borderTop: '1px solid #eceae5', margin: '2px 0 4px' }} />
+          <div style={{ font: '700 10.5px Helvetica,Arial,sans-serif', color: '#8a857c', letterSpacing: '.8px' }}>MODEL ÜRETİM AYARLARI</div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6, margin: '0 0 4px' }}>
+            <label style={{ font: '600 12px Helvetica,Arial,sans-serif', color: '#57534b' }}>Analiz derinliği <span style={{ fontWeight: 400, color: '#8a857c' }}>— daha derin analiz daha uzun sürer</span></label>
+            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+              {DEPTHS.map(d => seg((A.depth || 'standart') === d.key, d.label, d.hint, () => upd(n => { n.aiSettings.depth = d.key; }), true))}
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', gap: 10, alignItems: 'center', margin: '0 0 4px' }}>
+            <label style={{ flex: 1, font: '600 12px Helvetica,Arial,sans-serif', color: '#57534b' }}>Yaratıcılık <span style={{ fontWeight: 400, color: '#8a857c' }}>(temperature)</span></label>
+            <div style={{ display: 'flex', gap: 6 }}>
+              {TEMPS.map(t => seg(Math.abs((parseFloat(A.temperature) || 0) - t.v) < 0.06, t.label, t.hint, () => upd(n => { n.aiSettings.temperature = t.v; }), false))}
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', gap: 10, alignItems: 'center', margin: '0 0 4px' }}>
+            <label style={{ flex: 1, font: '600 12px Helvetica,Arial,sans-serif', color: '#57534b' }}>İnce ayar <span style={{ fontWeight: 400, color: '#8a857c' }}>— boş bırakılabilir</span></label>
+            <input
+              className="pcx-field-sm" type="number" step="0.05" min="0" max="2"
+              value={A.temperature === '' || A.temperature === undefined ? '' : A.temperature}
+              onChange={e => upd(n => { n.aiSettings.temperature = e.target.value; })}
+              placeholder="temperature"
+              title="Sıcaklık: 0 = en tutarlı, 1+ = en yaratıcı"
+              style={{ flex: 'none', width: 116, boxSizing: 'border-box', padding: '7px 10px', border: '1px solid #d6d3ce', borderRadius: 6, font: '12.5px Helvetica,Arial,sans-serif', color: '#26241f', background: '#fff', outline: 'none' }}
+            />
+            <input
+              className="pcx-field-sm" type="number" step="0.05" min="0.01" max="1"
+              value={A.topP === '' || A.topP === undefined ? '' : A.topP}
+              onChange={e => upd(n => { n.aiSettings.topP = e.target.value; })}
+              placeholder="top_p"
+              title="top_p: sözcük çeşitliliği. Boşsa sağlayıcı varsayılanı kullanılır."
+              style={{ flex: 'none', width: 116, boxSizing: 'border-box', padding: '7px 10px', border: '1px solid #d6d3ce', borderRadius: 6, font: '12.5px Helvetica,Arial,sans-serif', color: '#26241f', background: '#fff', outline: 'none' }}
+            />
+          </div>
+          <div style={{ font: '11px/1.5 Helvetica,Arial,sans-serif', color: '#8a857c', margin: '0 0 4px' }}>Yapılandırılmış çıktı (rehber kartları, rapor) için 0,3–0,7 arası önerilir; 1'in üzerinde model şemadan sapabilir. Bu ayarlar hem "Otomatik" modda hem de kendi anahtarınızla geçerlidir.</div>
 
           <div style={{ borderTop: '1px solid #eceae5', margin: '2px 0 4px' }} />
           <div style={{ font: '700 10.5px Helvetica,Arial,sans-serif', color: '#8a857c', letterSpacing: '.8px' }}>YZ REHBER AYARLARI</div>

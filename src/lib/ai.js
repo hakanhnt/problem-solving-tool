@@ -12,6 +12,27 @@ import { AGENT_TITLES } from './defaults.js';
  */
 const BRIDGE_HINT = ' — Ayarlar > YZ Sağlayıcı bölümünden kendi API anahtarınızı girebilirsiniz';
 
+/** Ayarlardaki üretim parametrelerini (sıcaklık / top_p) istek gövdesine çevirir. */
+function genParams(S) {
+  const o = {};
+  const t = parseFloat(S.temperature);
+  const p = parseFloat(S.topP);
+  if (isFinite(t)) o.temperature = Math.max(0, Math.min(2, t));
+  if (isFinite(p)) o.top_p = Math.max(0.01, Math.min(1, p));
+  return o;
+}
+
+/** Köprülere gönderilen ortak gövde: mesajlar + model/üretim tercihleri. */
+function bridgeBody(S, opts) {
+  return JSON.stringify({
+    system: opts.system,
+    messages: opts.messages,
+    max_tokens: opts.max_tokens || 2000,
+    model: (S.model || '').trim() || undefined,
+    ...genParams(S)
+  });
+}
+
 /** Köprü uçları yoksa (yerel `vite dev`, eski deploy) bu işaretle fallback tetiklenir. */
 function missing(msg) {
   const e = new Error(msg);
@@ -24,13 +45,13 @@ function missing(msg) {
  * Serverless fonksiyonların 10 sn'lik senkron sınırına takılmamak için yanıt SSE olarak
  * akar; burada delta'lar birleştirilip tam metin döndürülür.
  */
-async function streamBridge(opts) {
+async function streamBridge(S, opts) {
   let r;
   try {
     r = await fetch('/api/ai', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ system: opts.system, messages: opts.messages, max_tokens: opts.max_tokens || 2000 })
+      body: bridgeBody(S, opts)
     });
   } catch (e) {
     throw missing('Akışlı köprüye ulaşılamadı');
@@ -90,11 +111,11 @@ async function streamBridge(opts) {
 }
 
 /** Akışsız köprü (/.netlify/functions/ai) — edge ucu yoksa yedek yol. */
-async function plainBridge(opts) {
+async function plainBridge(S, opts) {
   const r = await fetch('/.netlify/functions/ai', {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ system: opts.system, messages: opts.messages, max_tokens: opts.max_tokens || 2000 })
+    body: bridgeBody(S, opts)
   });
   let j = null;
   try { j = await r.json(); } catch (e) { /* gövde JSON değil */ }
@@ -110,10 +131,10 @@ export async function complete(settings, opts) {
 
   if (prov === 'auto') {
     try {
-      return await streamBridge(opts);
+      return await streamBridge(S, opts);
     } catch (e) {
       if (!(e && e.bridgeMissing)) throw e;
-      return await plainBridge(opts);
+      return await plainBridge(S, opts);
     }
   }
 
@@ -133,7 +154,8 @@ export async function complete(settings, opts) {
         model: (S.model || '').trim() || 'claude-sonnet-4-5',
         max_tokens: opts.max_tokens || 2000,
         system: opts.system,
-        messages: opts.messages
+        messages: opts.messages,
+        ...genParams(S)
       })
     });
     const j = await r.json();
@@ -149,7 +171,8 @@ export async function complete(settings, opts) {
     body: JSON.stringify({
       model,
       max_tokens: opts.max_tokens || 2000,
-      messages: [{ role: 'system', content: opts.system }].concat(opts.messages)
+      messages: [{ role: 'system', content: opts.system }].concat(opts.messages),
+      ...genParams(S)
     })
   });
   const j = await r.json();
@@ -245,6 +268,8 @@ export function buildSystem(step, c, aiSettings, principles) {
   extra += S.critic === 'sert'
     ? '\nEleştirellik: SERT DENETÇİ — zayıf, ölçüsüz veya varsayıma dayalı girdileri açıkça reddet ve nedenini söyle; nezaket için yumuşatma.'
     : '\nEleştirellik: yapıcı ve nazik — eksikleri belirt ama cesaret kırma.';
+  if (S.depth === 'genis') extra += '\nAnaliz derinliği: GENİŞ — aday sayısını üst sınırda tut, her maddeye kısa bir gerekçe ekle, gözden kaçan alanları da tara.';
+  if (S.depth === 'derin') extra += '\nAnaliz derinliği: DERİN — mümkün olan en kapsamlı analizi yap: her madde için gerekçe, hangi veriyle doğrulanacağı ve sınama sorusu ver; birbiriyle yarışan alternatif yorumları belirt; zayıf halkaları ve riskleri açıkça işaretle. Uzunluktan çekinme, ama dolgu cümlesi yazma — her cümle bilgi taşısın.';
   return 'Sen "' + AGENT_TITLES[step - 1] + '" rolünde, kabul görmüş problem çözme ve karar verme metodolojisinde uzman bir koçsun. Metodoloji alan bağımsızdır: kullanıcının problemi lojistik, tedarik, pazarlama, satış, e-ticaret, teknoloji/BT, operasyon, mağazacılık, İK, finans veya başka herhangi bir alanda olabilir — örneklerini ve sorularını kullanıcının kendi alanına uyarla, ürün/ithalat varsayımı yapma. Kullanıcı 6 adımlı akışta (1 Problem Tanımı, 2 Business Driver Haritalama, 3 Driver Analizi, 4 Problem Bulguları, 5 Kök Neden Analizi, 6 Karşı Önlemler ve Karar) kendi iş problemini çalışıyor; şu anda Adım ' + step + ' üzerinde.\n\nKurallar:\n- Türkçe, kısa, net ve madde işaretli yaz; başlık ve numaralı maddeler kullanabilirsin ama markdown yıldızı yerine sade metin tercih et.\n- Problem, problem bulgusu ve kök neden farklı şeylerdir; karışıklık görürsen açıkça düzelt.\n- 1-4. adımlarda çözüm önerme; doğru soruları sordurarak koçluk et.\n- Kök neden adımında nedeni dışarıda (paydaşta, üreticide) değil, önce kullanıcının kendi yetkinliklerinde ve kurum prensiplerindeki gelişim alanlarında aramasına yardım et.\n- Somut ol: kullanıcının verisindeki ifadelere atıf yap; eksik, zayıf veya çelişkili yerleri açıkça belirt.\n- Cevabının sonunda kullanıcının kendine veya paydaşlarına sorması gereken 2-3 doğru soruyu öner.\n\nBu adımın odağı: ' + FOCUS[step - 1] + '\n\nKullanıcının mevcut çalışma verisi (JSON):\n' + JSON.stringify(data) + extra + buildRefBlock(c);
 }
 
@@ -299,6 +324,12 @@ export const COACH_JSON_RULE = '\n\nŞimdi koçluk sohbeti DEĞİL, yapılandır
 export const COACH_TEACH_TASK = 'Görev (ÖĞRETEN modu): Bu adımda hazır öneri/taslak ÜRETME. Kullanıcının bu adımı kendisinin doğru doldurması için, problemine özgü 6-8 yönlendirici Sokratik soru yaz. JSON şeması: {"giris":"bu adımda nasıl düşünmesi gerektiğine dair 2-3 cümlelik yöntem açıklaması","sorular":["...", "..."]}';
 
 export const COACH_FAST_SUFFIX = ' Ek kural (HIZLANDIRAN modu): önerileri olabildiğince eksiksiz, spesifik ve doğrudan forma eklenebilir yaz; aday sayısını üst sınırda tut.';
+
+/** Analiz derinliği ayarının rehber görevine eklediği kural. */
+export const COACH_DEPTH_SUFFIX = {
+  genis: ' Ek kural (GENİŞ derinlik): şemadaki aday sayısını üst sınırında üret ve her adayın "not"/gerekçe alanını boş bırakma.',
+  derin: ' Ek kural (DERİN derinlik): şemadaki aday sayısını üst sınırının üzerine çıkarabilirsin (en fazla 8 madde). Her adayın gerekçesinde hangi veriyle doğrulanacağını da yaz ve "sorular" alanında en az 5 sınama sorusu üret. Şemayı yine de birebir koru.'
+};
 
 export const ACTION_COACH_TASK = '\n\nŞimdi koçluk sohbeti DEĞİL, uygulanabilir bir aksiyon planı üretiyorsun. Kullanıcının kararına, kök nedenlerine ve bulgularına dayanarak 4-7 somut aksiyon öner. Her aksiyon tek cümlelik, ölçülebilir çıktısı olan bir iş olsun; sorumlu için isim değil ROL öner; süre için kısa tahmin ver. Etki ve eforu 1-5 arası puanla (5 = en yüksek). SADECE geçerli tek bir JSON nesnesi döndür: {"aksiyonlar":[{"aksiyon":"...","sorumluRol":"...","sure":"örn. 2 hafta","etki":4,"efor":2,"gerekce":"hangi kök nedeni/bulguyu adresliyor (KN1, B2 gibi atıflarla)"}]}';
 

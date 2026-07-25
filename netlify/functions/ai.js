@@ -28,16 +28,24 @@ export const handler = async (event) => {
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), PROVIDER_TIMEOUT_MS);
   try {
-    const { system, messages, max_tokens } = JSON.parse(event.body || '{}');
+    const body = JSON.parse(event.body || '{}');
+    const { system, messages, max_tokens } = body;
+    const num = (v, lo, hi) => (isFinite(parseFloat(v)) ? Math.max(lo, Math.min(hi, parseFloat(v))) : undefined);
+    const payload = {
+      model: (typeof body.model === 'string' && body.model.trim().slice(0, 64)) || process.env.MINIMAX_MODEL || 'MiniMax-Text-01',
+      max_tokens: Math.min(max_tokens || 2000, 16000),
+      messages: [{ role: 'system', content: system || '' }].concat(Array.isArray(messages) ? messages : [])
+    };
+    const temperature = num(body.temperature, 0, 2);
+    const topP = num(body.top_p, 0.01, 1);
+    if (temperature !== undefined) payload.temperature = temperature;
+    if (topP !== undefined) payload.top_p = topP;
+
     const r = await fetch(process.env.MINIMAX_BASE_URL || 'https://api.minimax.io/v1/text/chatcompletion_v2', {
       method: 'POST',
       signal: ctrl.signal,
       headers: { 'content-type': 'application/json', authorization: 'Bearer ' + key },
-      body: JSON.stringify({
-        model: process.env.MINIMAX_MODEL || 'MiniMax-Text-01',
-        max_tokens: Math.min(max_tokens || 2000, 6000),
-        messages: [{ role: 'system', content: system || '' }].concat(Array.isArray(messages) ? messages : [])
-      })
+      body: JSON.stringify(payload)
     });
     const j = await r.json();
     if (!r.ok) return json(502, { error: (j.error && (j.error.message || j.error.type)) || ('Sağlayıcı hatası HTTP ' + r.status) });

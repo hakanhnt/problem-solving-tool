@@ -76,7 +76,8 @@ verisi olduğu gibi açılır).
   reportCfg: { company, sections{tanim,driver,analiz,bulgu,kok,karar,referans} },
   aiSettings: { provider:'auto'|'minimax'|'openai'|'anthropic', apiKey, model, baseUrl,
                 level:'ogreten'|'dengeli'|'hizli', auto, context,
-                length:'kisa'|'detayli', tone:'resmi'|'samimi', critic:'nazik'|'sert' },
+                length:'kisa'|'detayli', tone:'resmi'|'samimi', critic:'nazik'|'sert',
+                temperature, topP, depth:'standart'|'genis'|'derin' },
   cases: { <id>: CASE } }
 
 CASE = { name, problem{statement,geo,time,brand,kpiName,target,actual},
@@ -95,6 +96,16 @@ Kurallar: `ornek` vakası silinemez/yeniden adlandırılamaz ("sıfırla" ile il
 silinen vaka `trash`e alınır ve kenar çubuğundaki "Geri al" şeridiyle kurtarılır;
 Adım 1'de problem ifadesi boşken sonraki adıma geçilemez; rehberden eklenen kayıtlar
 `src:'yz', verified:false` ile işaretlenir ve doğrulanmadan ilerlenirse uyarı çıkar.
+
+### Model üretim ayarları
+
+`model`, `temperature`, `topP` her sağlayıcıda geçerlidir; "Otomatik" modda köprüye
+gönderilir ve köprü değerleri sınırlar (`temperature` 0–2, `top_p` 0,01–1, `model` ≤64 karakter,
+`max_tokens` ≤16.000). Model boş bırakılırsa sunucudaki `MINIMAX_MODEL` kullanılır.
+
+`depth` iki yerde etki eder: çağrı başına token bütçesini çarpar (standart ×1, geniş ×1,6,
+derin ×2,5) ve sistem talimatına derinlik kuralı, rehber görevine de aday sayısı/gerekçe
+kuralı ekler (`COACH_DEPTH_SUFFIX`).
 
 ### YZ akışları
 
