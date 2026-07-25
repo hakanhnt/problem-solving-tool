@@ -18,6 +18,13 @@ const BIAS_RULE = '\n\nDÜŞÜNME YANILGILARI FARKINDALIĞI — kurum dokümanı
  */
 const BRIDGE_HINT = ' — Ayarlar > YZ Sağlayıcı bölümünden kendi API anahtarınızı girebilirsiniz';
 
+/** Anahtar eksikken gösterilecek, hangi sağlayıcının seçili olduğunu söyleyen mesajlar. */
+const PROVIDER_LABELS = {
+  minimax: 'Ayarlar\'da "MiniMax" sağlayıcısı seçili ama API anahtarı girilmemiş — anahtarı girin ya da "Otomatik" moda dönün',
+  openai: 'Ayarlar\'da "OpenAI" sağlayıcısı seçili ama API anahtarı girilmemiş — anahtarı girin ya da "Otomatik" moda dönün',
+  anthropic: 'Ayarlar\'da "Anthropic" sağlayıcısı seçili ama API anahtarı girilmemiş — anahtarı girin ya da "Otomatik" moda dönün'
+};
+
 /** Ayarlardaki üretim parametrelerini (sıcaklık / top_p) istek gövdesine çevirir. */
 function genParams(S) {
   const o = {};
@@ -218,7 +225,7 @@ export async function complete(settings, opts) {
   }
 
   const key = (S.apiKey || '').trim();
-  if (!key) throw new Error('API anahtarı tanımlı değil — Ayarlar > YZ Sağlayıcı bölümünden anahtarınızı girin');
+  if (!key) throw new Error(PROVIDER_LABELS[prov] || prov + ' seçili, ama API anahtarı girilmemiş — Ayarlar > YZ Sağlayıcı bölümünden anahtarınızı girin ya da "Otomatik" moda dönün');
 
   if (prov === 'anthropic') {
     const r = await fetch((S.baseUrl || '').trim() || 'https://api.anthropic.com/v1/messages', {

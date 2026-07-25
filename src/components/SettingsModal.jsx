@@ -167,6 +167,27 @@ export default function SettingsModal() {
             })}
           </div>
 
+          {(() => {
+            const prov = A.provider || 'auto';
+            const noKey = !(A.apiKey || '').trim();
+            const noUrl = !(A.baseUrl || '').trim();
+            let warn = '';
+            if (prov !== 'auto' && prov !== 'ozel' && noKey) warn = 'Bu sağlayıcı kendi API anahtarınızla çalışır; anahtar girilmeden rehber ve asistan hata verir. Anahtarınız yoksa "Otomatik" moda dönün.';
+            else if (prov === 'ozel' && noUrl) warn = 'Özel sağlayıcı için aşağıya bir API adresi (OpenAI uyumlu sohbet uç noktası) girmeniz gerekir.';
+            if (!warn) return null;
+            return (
+              <div style={{ display: 'flex', gap: 9, alignItems: 'flex-start', background: '#faf3e3', border: '1px solid #eaddb8', borderRadius: 8, padding: '9px 12px' }}>
+                <div style={{ flex: 'none', width: 16, height: 16, borderRadius: '50%', background: '#8c6a35', color: '#fff', font: '700 11px/16px Helvetica,Arial,sans-serif', textAlign: 'center' }}>!</div>
+                <div style={{ flex: 1, font: '11.5px/1.5 Helvetica,Arial,sans-serif', color: '#7a6231' }}>{warn}</div>
+                <HButton
+                  onClick={() => upd(n => { n.aiSettings.provider = 'auto'; })}
+                  style={{ flex: 'none', padding: '5px 10px', border: '1px solid #35506e', borderRadius: 6, background: '#fff', color: '#35506e', font: '600 11px Helvetica,Arial,sans-serif', cursor: 'pointer' }}
+                  hover={{ background: '#eef2f7' }}
+                >Otomatik'e dön</HButton>
+              </div>
+            );
+          })()}
+
           <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: 8 }}>
             <div>
               <label style={{ display: 'block', font: '600 12px Helvetica,Arial,sans-serif', color: '#57534b', margin: '0 0 4px' }}>API anahtarı <span style={{ fontWeight: 400, color: '#8a857c' }}>— Otomatik modda gerekmez</span></label>

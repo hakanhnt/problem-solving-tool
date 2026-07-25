@@ -3,7 +3,7 @@ import { useStore } from '../lib/store.jsx';
 import { HButton, Spinner } from '../ui/primitives.jsx';
 
 export default function CoachPanel() {
-  const { c, step, goStep, ensureCoach, coachRefresh, applyCoachItem } = useStore();
+  const { c, step, upd, goStep, ensureCoach, coachRefresh, applyCoachItem } = useStore();
   const aiReady = (c.problem.statement || '').trim().length > 0;
 
   if (step >= 2 && step <= 6 && !aiReady) {
@@ -81,6 +81,13 @@ export default function CoachPanel() {
               style={{ flex: 'none', padding: '8px 14px', border: '1px solid #35506e', borderRadius: 8, background: '#fff', color: '#35506e', font: '600 12px Helvetica,Arial,sans-serif', cursor: 'pointer' }}
               hover={{ background: '#eef2f7' }}
             >Tekrar dene</HButton>
+            {/^Ayarlar|anahtar|API adresi/i.test(ck.errMsg || '') ? (
+              <HButton
+                onClick={() => upd(n => { n.showSettings = true; })}
+                style={{ flex: 'none', padding: '8px 14px', border: '1px solid #35506e', borderRadius: 8, background: '#35506e', color: '#fff', font: '600 12px Helvetica,Arial,sans-serif', cursor: 'pointer' }}
+                hover={{ background: '#2a4159' }}
+              >⚙ Ayarları aç</HButton>
+            ) : null}
           </div>
         ) : null}
 
