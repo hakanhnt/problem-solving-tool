@@ -22,6 +22,44 @@ function genParams(S) {
   return o;
 }
 
+/** "Ad: değer" satırlarını başlık nesnesine çevirir (özel sağlayıcı ek başlıkları). */
+function parseHeaderLines(raw) {
+  const out = {};
+  String(raw || '').split('\n').forEach(line => {
+    const i = line.indexOf(':');
+    if (i <= 0) return;
+    const name = line.slice(0, i).trim();
+    const value = line.slice(i + 1).trim();
+    if (name && value) out[name] = value;
+  });
+  return out;
+}
+
+/** Farklı uyumluluk katmanlarının yanıt biçimlerinden metni çıkarır. */
+function pickText(j) {
+  if (!j) return '';
+  const ch = j.choices && j.choices[0];
+  if (ch) {
+    if (ch.message && ch.message.content) return ch.message.content;   // OpenAI uyumlu
+    if (ch.text) return ch.text;                                        // eski completions
+  }
+  if (j.message && j.message.content) return j.message.content;         // Ollama yerel biçim
+  if (Array.isArray(j.content)) return j.content.map(b => b.text || '').join(''); // Anthropic biçimi
+  if (typeof j.response === 'string') return j.response;                // Ollama /api/generate
+  return '';
+}
+
+/** Yanıt gövdesindeki hata mesajını bulur (sağlayıcılar farklı alanlar kullanıyor). */
+function pickError(j) {
+  if (!j) return '';
+  if (typeof j.error === 'string') return j.error;
+  if (j.error && (j.error.message || j.error.type)) return j.error.message || j.error.type;
+  if (j.base_resp && j.base_resp.status_msg) return j.base_resp.status_msg;
+  if (typeof j.detail === 'string') return j.detail;
+  if (typeof j.message === 'string') return j.message;
+  return '';
+}
+
 /** Köprülere gönderilen ortak gövde: mesajlar + model/üretim tercihleri. */
 function bridgeBody(S, opts) {
   return JSON.stringify({
@@ -136,6 +174,41 @@ export async function complete(settings, opts) {
       if (!(e && e.bridgeMissing)) throw e;
       return await plainBridge(S, opts);
     }
+  }
+
+  // Özel (OpenAI uyumlu) uç nokta: OpenRouter, kurumsal ağ geçitleri, LiteLLM,
+  // Ollama / LM Studio gibi yerel sunucular. Kimlik doğrulama başlığı serbesttir:
+  // anahtarsız (yerel), Bearer (çoğu servis) ya da özel başlık (örn. Azure: api-key).
+  if (prov === 'ozel') {
+    const base = (S.baseUrl || '').trim();
+    if (!base) throw new Error('Özel sağlayıcı için API adresi gerekli — Ayarlar > YZ Sağlayıcı bölümüne uç nokta adresini girin');
+    const headers = { 'content-type': 'application/json', ...parseHeaderLines(S.extraHeaders) };
+    const k = (S.apiKey || '').trim();
+    if (k) {
+      const name = (S.headerName || '').trim() || 'Authorization';
+      const prefix = S.headerPrefix === undefined || S.headerPrefix === null ? 'Bearer ' : String(S.headerPrefix);
+      headers[name] = prefix + k;
+    }
+    const body = {
+      max_tokens: opts.max_tokens || 2000,
+      messages: [{ role: 'system', content: opts.system }].concat(opts.messages),
+      ...genParams(S)
+    };
+    const m = (S.model || '').trim();
+    if (m) body.model = m;
+
+    let r;
+    try {
+      r = await fetch(base, { method: 'POST', headers, body: JSON.stringify(body) });
+    } catch (e) {
+      throw new Error('Uç noktaya ulaşılamadı (' + base + '). Adresi ve sunucunun tarayıcıdan erişime izin verdiğini (CORS) kontrol edin.');
+    }
+    let j = null;
+    try { j = await r.json(); } catch (e) { /* gövde JSON değil */ }
+    if (!r.ok) throw new Error(pickError(j) || ('Uç nokta hatası HTTP ' + r.status));
+    const text = pickText(j);
+    if (!text) throw new Error(pickError(j) || 'Uç noktadan boş yanıt geldi');
+    return text;
   }
 
   const key = (S.apiKey || '').trim();

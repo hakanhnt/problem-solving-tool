@@ -74,7 +74,8 @@ verisi olduğu gibi açılır).
 { activeCase, step (1-8), trash{key,data,name}|null,
   principles: string[],                       // düzenlenebilir kurum prensipleri
   reportCfg: { company, sections{tanim,driver,analiz,bulgu,kok,karar,referans} },
-  aiSettings: { provider:'auto'|'minimax'|'openai'|'anthropic', apiKey, model, baseUrl,
+  aiSettings: { provider:'auto'|'minimax'|'openai'|'anthropic'|'ozel', apiKey, model, baseUrl,
+                headerName, headerPrefix, extraHeaders,   // yalnız 'ozel' sağlayıcıda
                 level:'ogreten'|'dengeli'|'hizli', auto, context,
                 length:'kisa'|'detayli', tone:'resmi'|'samimi', critic:'nazik'|'sert',
                 temperature, topP, depth:'standart'|'genis'|'derin' },
@@ -96,6 +97,20 @@ Kurallar: `ornek` vakası silinemez/yeniden adlandırılamaz ("sıfırla" ile il
 silinen vaka `trash`e alınır ve kenar çubuğundaki "Geri al" şeridiyle kurtarılır;
 Adım 1'de problem ifadesi boşken sonraki adıma geçilemez; rehberden eklenen kayıtlar
 `src:'yz', verified:false` ile işaretlenir ve doğrulanmadan ilerlenirse uyarı çıkar.
+
+### Özel (OpenAI uyumlu) sağlayıcı
+
+`provider: 'ozel'` seçilirse istek tarayıcıdan doğrudan `baseUrl`'e gider. Kimlik başlığı
+serbesttir: `headerName` (varsayılan `Authorization`) + `headerPrefix` (varsayılan `Bearer `),
+anahtar boşsa hiç başlık eklenmez (yerel sunucular). `extraHeaders` her satırı `Ad: değer`
+biçiminde ek başlığa çevirir. Yanıt ayrıştırıcı OpenAI (`choices[0].message.content`),
+Ollama (`message.content`, `response`) ve Anthropic (`content[]`) biçimlerini tanır.
+
+Ayarlar'daki hazır profiller: OpenRouter, Ollama, LM Studio, Azure OpenAI. Uç noktanın
+tarayıcı isteklerine CORS izni vermesi gerekir (Ollama için `OLLAMA_ORIGINS=*`).
+
+Abonelik hesapları (Claude Pro/Max, ChatGPT Plus) üçüncü taraf uygulamalara açılmadığı için
+desteklenmez; kredi/anahtar tabanlı servisler ya da kurumsal ağ geçitleri bu yolla kullanılır.
 
 ### Model üretim ayarları
 

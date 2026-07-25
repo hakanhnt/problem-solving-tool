@@ -4,10 +4,31 @@ import { defaultPrinciples } from '../lib/defaults.js';
 import { HButton } from '../ui/primitives.jsx';
 
 const PROVIDERS = [
-  { key: 'auto', label: 'Otomatik', hint: 'Yerleşik YZ varsa onu, yoksa site sahibinin sunucudaki demo anahtarını kullanır (anahtar tarayıcıya inmez)' },
+  { key: 'auto', label: 'Otomatik', hint: 'Site sahibinin sunucudaki anahtarını kullanır (anahtar tarayıcıya inmez)' },
   { key: 'minimax', label: 'MiniMax', hint: 'MiniMax hesabınızın API anahtarıyla' },
   { key: 'openai', label: 'OpenAI', hint: 'OpenAI (veya uyumlu) API anahtarıyla' },
-  { key: 'anthropic', label: 'Anthropic', hint: 'Claude API anahtarıyla' }
+  { key: 'anthropic', label: 'Anthropic', hint: 'Claude API anahtarıyla' },
+  { key: 'ozel', label: 'Özel / Yerel', hint: 'OpenAI uyumlu herhangi bir uç nokta: OpenRouter, kurumsal ağ geçidi, Ollama, LM Studio' }
+];
+
+// "Özel" sağlayıcı için hazır profiller — alanları tek tıkla doldurur.
+const CUSTOM_PRESETS = [
+  {
+    label: 'OpenRouter', hint: 'Tek hesapla Claude, GPT, Gemini ve açık modeller (kredi bazlı)',
+    fields: { baseUrl: 'https://openrouter.ai/api/v1/chat/completions', model: 'anthropic/claude-sonnet-4.5', headerName: 'Authorization', headerPrefix: 'Bearer ', extraHeaders: 'HTTP-Referer: ' + (typeof location !== 'undefined' ? location.origin : '') + '\nX-Title: Problem Cozme Akisi' }
+  },
+  {
+    label: 'Ollama (yerel)', hint: 'Bilgisayarınızda çalışan model — anahtar gerekmez',
+    fields: { baseUrl: 'http://localhost:11434/v1/chat/completions', model: 'llama3.1', apiKey: '', headerName: '', headerPrefix: 'Bearer ', extraHeaders: '' }
+  },
+  {
+    label: 'LM Studio (yerel)', hint: 'LM Studio yerel sunucusu (varsayılan port 1234)',
+    fields: { baseUrl: 'http://localhost:1234/v1/chat/completions', model: '', apiKey: '', headerName: '', headerPrefix: 'Bearer ', extraHeaders: '' }
+  },
+  {
+    label: 'Azure OpenAI', hint: 'api-key başlığı ile; adres dağıtımınıza özeldir',
+    fields: { baseUrl: 'https://KAYNAK.openai.azure.com/openai/deployments/DAGITIM/chat/completions?api-version=2024-08-01-preview', model: '', headerName: 'api-key', headerPrefix: '', extraHeaders: '' }
+  }
 ];
 
 const LEVELS = [
@@ -135,7 +156,7 @@ export default function SettingsModal() {
                   onClick={() => upd(n => { n.aiSettings.provider = p.key; })}
                   title={p.hint}
                   style={{
-                    flex: 1, minWidth: 110, padding: '8px 10px', borderRadius: 7,
+                    flex: 1, minWidth: 96, padding: '8px 10px', borderRadius: 7,
                     border: '1px solid ' + (act ? '#35506e' : '#d6d3ce'),
                     background: act ? '#35506e' : '#fff',
                     cursor: 'pointer', textAlign: 'center',
@@ -168,7 +189,7 @@ export default function SettingsModal() {
           </div>
 
           <div>
-            <label style={{ display: 'block', font: '600 12px Helvetica,Arial,sans-serif', color: '#57534b', margin: '0 0 4px' }}>API adresi <span style={{ fontWeight: 400, color: '#8a857c' }}>(isteğe bağlı — OpenAI uyumlu farklı bir uç nokta için)</span></label>
+            <label style={{ display: 'block', font: '600 12px Helvetica,Arial,sans-serif', color: '#57534b', margin: '0 0 4px' }}>API adresi <span style={{ fontWeight: 400, color: '#8a857c' }}>{A.provider === 'ozel' ? '— zorunlu: OpenAI uyumlu sohbet uç noktası' : '(isteğe bağlı — OpenAI uyumlu farklı bir uç nokta için)'}</span></label>
             <input
               className="pcx-field-sm" value={A.baseUrl || ''}
               onChange={e => upd(n => { n.aiSettings.baseUrl = e.target.value; })}
@@ -176,6 +197,57 @@ export default function SettingsModal() {
               style={{ width: '100%', boxSizing: 'border-box', padding: '8px 11px', border: '1px solid #d6d3ce', borderRadius: 6, font: '12.5px/1.4 Helvetica,Arial,sans-serif', color: '#26241f', background: '#fff', outline: 'none' }}
             />
           </div>
+          {A.provider === 'ozel' ? (
+            <div style={{ background: '#f2f6fb', border: '1px solid #d8e2ee', borderRadius: 8, padding: '12px 13px', display: 'flex', flexDirection: 'column', gap: 8, margin: '2px 0 4px' }}>
+              <div style={{ font: '700 10.5px Helvetica,Arial,sans-serif', color: '#5f7897', letterSpacing: '.8px' }}>HAZIR PROFİLLER</div>
+              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                {CUSTOM_PRESETS.map(p => (
+                  <HButton
+                    key={p.label} title={p.hint}
+                    onClick={() => upd(n => { Object.assign(n.aiSettings, p.fields); })}
+                    style={{ padding: '7px 12px', border: '1px solid #b9cbe0', borderRadius: 20, background: '#fff', color: '#35506e', font: '600 11.5px Helvetica,Arial,sans-serif', cursor: 'pointer' }}
+                    hover={{ background: '#e3ecf5' }}
+                  >{p.label}</HButton>
+                ))}
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                <div>
+                  <label style={{ display: 'block', font: '600 12px Helvetica,Arial,sans-serif', color: '#57534b', margin: '0 0 4px' }}>Kimlik başlığı adı</label>
+                  <input
+                    className="pcx-field-sm" value={A.headerName || ''}
+                    onChange={e => upd(n => { n.aiSettings.headerName = e.target.value; })}
+                    placeholder="Authorization"
+                    style={{ width: '100%', boxSizing: 'border-box', padding: '8px 11px', border: '1px solid #d6d3ce', borderRadius: 6, font: '12.5px/1.4 Helvetica,Arial,sans-serif', color: '#26241f', background: '#fff', outline: 'none' }}
+                  />
+                </div>
+                <div>
+                  <label style={{ display: 'block', font: '600 12px Helvetica,Arial,sans-serif', color: '#57534b', margin: '0 0 4px' }}>Ön ek <span style={{ fontWeight: 400, color: '#8a857c' }}>(Azure'da boş)</span></label>
+                  <input
+                    className="pcx-field-sm" value={A.headerPrefix === undefined ? 'Bearer ' : A.headerPrefix}
+                    onChange={e => upd(n => { n.aiSettings.headerPrefix = e.target.value; })}
+                    placeholder="Bearer "
+                    style={{ width: '100%', boxSizing: 'border-box', padding: '8px 11px', border: '1px solid #d6d3ce', borderRadius: 6, font: '12.5px/1.4 Helvetica,Arial,sans-serif', color: '#26241f', background: '#fff', outline: 'none' }}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label style={{ display: 'block', font: '600 12px Helvetica,Arial,sans-serif', color: '#57534b', margin: '0 0 4px' }}>Ek başlıklar <span style={{ fontWeight: 400, color: '#8a857c' }}>— her satıra "Ad: değer"</span></label>
+                <textarea
+                  className="pcx-field-sm" value={A.extraHeaders || ''}
+                  onChange={e => upd(n => { n.aiSettings.extraHeaders = e.target.value; })}
+                  placeholder={'HTTP-Referer: https://siteniz\nX-Title: Problem Cozme Akisi'}
+                  style={{ width: '100%', boxSizing: 'border-box', padding: '8px 11px', border: '1px solid #d6d3ce', borderRadius: 6, font: '12.5px/1.45 Helvetica,Arial,sans-serif', color: '#26241f', background: '#fff', outline: 'none', resize: 'vertical', minHeight: 52 }}
+                />
+              </div>
+
+              <div style={{ font: '11px/1.55 Helvetica,Arial,sans-serif', color: '#5f7897' }}>
+                İstek tarayıcınızdan doğrudan bu adrese gider; uç noktanın <strong>CORS</strong> izni vermesi gerekir. Ollama için sunucuyu <code>OLLAMA_ORIGINS=*</code> ile başlatın. Abonelik hesapları (Claude Pro/Max, ChatGPT Plus) üçüncü taraf uygulamalara açılmaz — kredi/anahtar tabanlı bir servis ya da kurumunuzun ağ geçidini kullanın.
+              </div>
+            </div>
+          ) : null}
+
           <div style={{ font: '11px/1.5 Helvetica,Arial,sans-serif', color: '#8a857c', margin: '0 0 4px' }}>Anahtarınız yalnızca bu tarayıcıda saklanır ve doğrudan seçtiğiniz sağlayıcıya gönderilir; hiçbir sunucuda tutulmaz. Model alanı "Otomatik" modda da geçerlidir: boş bırakırsanız sunucudaki varsayılan model kullanılır.</div>
 
           <div style={{ borderTop: '1px solid #eceae5', margin: '2px 0 4px' }} />

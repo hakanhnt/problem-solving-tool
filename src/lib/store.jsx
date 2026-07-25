@@ -27,7 +27,8 @@ function normalize(state) {
     provider: 'auto', apiKey: '', model: '', baseUrl: '',
     level: 'dengeli', auto: true, context: '',
     length: 'kisa', tone: 'resmi', critic: 'nazik',
-    temperature: 0.6, topP: '', depth: 'standart'
+    temperature: 0.6, topP: '', depth: 'standart',
+    headerName: '', headerPrefix: 'Bearer ', extraHeaders: ''
   }, s.aiSettings || {});
   if (!Array.isArray(s.principles) || !s.principles.length) s.principles = defaultPrinciples();
   Object.keys(s.cases).forEach(k => {
