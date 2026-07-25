@@ -34,13 +34,13 @@ export default function AssistantChat() {
                   background: u ? 'var(--pri)' : 'var(--chat-bubble)', color: u ? 'var(--on-pri)' : 'var(--ink)',
                   border: '1px solid ' + (u ? 'var(--pri)' : 'var(--pri-border-7)'),
                   borderRadius: 10, padding: '10px 13px', font: '13px/1.55 Helvetica,Arial,sans-serif', whiteSpace: 'pre-wrap'
-                }}>{m.content}</div>
+                }}>{m.content}{m.live ? <span style={{ display: 'inline-block', width: 7, height: 13, background: 'var(--pri)', marginLeft: 3, verticalAlign: 'text-bottom', animation: 'pcxpulse 1s ease-in-out infinite' }} /> : null}</div>
               );
             })}
           </div>
         ) : null}
 
-        {state.aiBusy ? (
+        {state.aiBusy && !messages.some(m => m.live) ? (
           <div style={{ display: 'flex', gap: 8, alignItems: 'center', font: 'italic 12.5px Helvetica,Arial,sans-serif', color: 'var(--muted)' }}>
             <Spinner size={13} border={2} />Asistan değerlendiriyor…
           </div>

@@ -66,7 +66,11 @@ export default function CoachPanel() {
             <Spinner size={20} border={3} />
             <div>
               <div style={{ font: '700 13px Helvetica,Arial,sans-serif', color: 'var(--pri-ink)' }}>Rehber çalışıyor</div>
-              <div style={{ font: '12.5px/1.5 Helvetica,Arial,sans-serif', color: 'var(--pri-soft-ink)' }}>Problem tanımınız ve önceki adımlardaki çalışmanız inceleniyor; bu adım için aday girdiler hazırlanıyor. Bu birkaç saniye sürebilir.</div>
+              <div style={{ font: '12.5px/1.5 Helvetica,Arial,sans-serif', color: 'var(--pri-soft-ink)' }}>
+                {ck && ck.chars
+                  ? 'Öneriler üretiliyor — şu ana kadar ' + ck.chars.toLocaleString('tr-TR') + ' karakter geldi…'
+                  : 'Problem tanımınız ve önceki adımlardaki çalışmanız inceleniyor; bu adım için aday girdiler hazırlanıyor.'}
+              </div>
             </div>
           </div>
         ) : null}

@@ -138,9 +138,16 @@ async function streamBridge(S, opts) {
     const ch = (j.choices && j.choices[0]) || null;
     if (!ch) return;
     const dp = ch.delta && ch.delta.content;
-    if (dp) { sawDelta = true; deltaText += dp; return; }
+    if (dp) { sawDelta = true; deltaText += dp; notify(); return; }
     const mp = ch.message && ch.message.content;
-    if (mp) wholeText = mp;
+    if (mp) { wholeText = mp; notify(); }
+  };
+
+  // onDelta: o ana kadarki tam metinle çağrılır; arayüz kendisi throttle eder.
+  const notify = () => {
+    if (typeof opts.onDelta === 'function') {
+      try { opts.onDelta(sawDelta ? deltaText : wholeText); } catch (e) { /* arayüz hatası akışı durdurmasın */ }
+    }
   };
 
   for (;;) {
@@ -344,7 +351,7 @@ export function buildSystem(step, c, aiSettings, principles) {
   const S = aiSettings || {};
   let extra = '';
   if ((S.context || '').trim()) extra += '\n\nKullanıcının alan/sektör bağlamı: ' + S.context.trim() + ' — örneklerini ve terminolojini bu bağlama uyarla.';
-  if (S.level === 'ogreten') extra += '\n\nRehberlik seviyesi: ÖĞRETEN — hazır cevap, taslak ve çözüm VERME. Sokratik yöntemle doğru soruları sordurarak kullanıcının cevabı kendisinin bulmasını sağla; yalnızca yöntem açıkla ve soru sor.';
+  if (S.level === 'ogreten') extra += '\n\nRehberlik seviyesi: ÖĞRETEN — hazır cevap, taslak ve çözüm VERME; kullanıcı ısrar etse bile verme, bunun bir öğrenme aracı olduğunu nazikçe hatırlat. Sokratik yöntemle çalış: (1) Kullanıcının son cevabını önce DEĞERLENDİR — yüzeysel mi, belirti düzeyinde mi, veriye mi dayanıyor? (2) Yüzeyselse kabul etme; hangi açıdan eksik olduğunu tek cümleyle söyle ve bir seviye derine indirecek TEK bir soru sor (soru bombardımanı yapma). (3) Cevap sağlamsa bunu açıkça teslim et ve bir sonraki düşünme hamlesine geçir. (4) Her 3-4 turda bir kullanıcının nereden nereye geldiğini bir cümleyle özetle ki ilerlemeyi görsün. Amaç cevabı vermek değil, kullanıcının kendi zincirini kurması.';
   if (S.level === 'hizli') extra += '\n\nRehberlik seviyesi: HIZLANDIRAN — kullanıcı hız istiyor; eksiksiz, doğrudan kullanılabilir, spesifik taslaklar üret; kısa gerekçe ekle.';
   extra += S.length === 'detayli'
     ? '\nYanıt uzunluğu: DETAYLI — açıklamalarını gerekçeleriyle, örnekli yaz.'

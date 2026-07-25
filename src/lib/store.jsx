@@ -148,10 +148,20 @@ export function StoreProvider({ children }) {
           : buildCoachTask(step, principlesOf(s))
             + (level === 'hizli' ? COACH_FAST_SUFFIX : '')
             + (COACH_DEPTH_SUFFIX[(s.aiSettings || {}).depth] || '');
+        let lastTick = 0;
         const reply = await callAi({
           max_tokens: 4600,
           system: systemFor(step, c) + COACH_JSON_RULE + task,
-          messages: [{ role: 'user', content: 'Problem tanımıma ve önceki adımlardaki çalışmama göre bu adım için önerilerini JSON olarak üret.' }]
+          messages: [{ role: 'user', content: 'Problem tanımıma ve önceki adımlardaki çalışmama göre bu adım için önerilerini JSON olarak üret.' }],
+          onDelta: text => {
+            const now = Date.now();
+            if (now - lastTick < 400) return;
+            lastTick = now;
+            upd(n => {
+              const ck = n.cases[eff].coach && n.cases[eff].coach[step];
+              if (ck && ck.status === 'busy') ck.chars = text.length;
+            });
+          }
         });
         const j = parseJsonReply(reply);
         const items = coachItems(step, j, principlesOf(stateRef.current));
@@ -361,13 +371,33 @@ export function StoreProvider({ children }) {
       try {
         const c = stateRef.current.cases[eff];
         const messages = ((c.ai && c.ai[step]) || []).map(m => ({ role: m.role, content: m.content }));
-        const reply = await callAi({ max_tokens: 2500, system: systemFor(step, c), messages });
-        upd(n => {
-          const cc = n.cases[eff];
-          cc.ai = cc.ai || {}; cc.ai[step] = cc.ai[step] || [];
-          cc.ai[step].push({ role: 'assistant', content: reply });
-          n.aiBusy = false;
+        // Akış için yer tutucu mesaj: delta'lar geldikçe son mesajın içine yazılır.
+        let placed = false;
+        let lastTick = 0;
+        const writeLive = (content, done) => {
+          upd(n => {
+            const cc = n.cases[eff];
+            cc.ai = cc.ai || {}; cc.ai[step] = cc.ai[step] || [];
+            const arr = cc.ai[step];
+            if (!placed) { arr.push({ role: 'assistant', content, live: !done }); placed = true; }
+            else {
+              const last = arr[arr.length - 1];
+              last.content = content;
+              if (done) delete last.live; else last.live = true;
+            }
+            if (done) n.aiBusy = false;
+          });
+        };
+        const reply = await callAi({
+          max_tokens: 2500, system: systemFor(step, c), messages,
+          onDelta: text => {
+            const now = Date.now();
+            if (now - lastTick < 250 || !text.trim()) return;
+            lastTick = now;
+            writeLive(text, false);
+          }
         });
+        writeLive(reply, true);
       } catch (e) {
         upd(n => {
           const cc = n.cases[eff];
