@@ -5,6 +5,13 @@ import { Card, CardHead, GuidanceBox, MethodBox, HButton, RemoveButton, S, YZBut
 import WelcomeCard from '../components/WelcomeCard.jsx';
 import { extractFileText } from '../lib/extract.js';
 
+const SPEC_ROWS = [
+  { key: 'nerede', label: 'Nerede', phV: 'Hangi birim/bölge/hat/kanalda görülüyor?', phV2: '', phY: 'Benzer olduğu hâlde görülmeyen yer?' },
+  { key: 'zaman', label: 'Ne zaman', phV: 'Ne zamandan beri, hangi dönemlerde?', phY: 'Öncesinde / hangi dönemlerde yoktu?' },
+  { key: 'kirilim', label: 'Kırılımda', phV: 'Hangi ürün/segment/süreçte görülüyor?', phY: 'Hangi ürün/segment/süreçte görülmüyor?' },
+  { key: 'buyukluk', label: 'Büyüklük', phV: 'Ne kadar büyük, kaç adet/gün/%?', phY: 'Olabileceği hâlde olmayan büyüklük?' }
+];
+
 const QUESTIONS = [
   'Ne oldu? Hedef neydi, gerçekleşen ne?',
   'Sapma nerede oluşuyor — hangi coğrafyada, ülkede, mağazada, depoda, departmanda, sistemde ya da kanalda?',
@@ -142,6 +149,52 @@ export default function Step1Problem() {
         {hasGap ? (
           <div style={{ marginTop: 14, display: 'inline-block', background: 'var(--alert-soft)', border: '1px solid var(--alert-border)', borderRadius: 6, padding: '7px 12px', font: '600 13px Helvetica,Arial,sans-serif', color: 'var(--alert)' }}>{kpiGapText}</div>
         ) : null}
+      </Card>
+
+      <Card>
+        <CardHead
+          title="VAR / YOK Belirtimi"
+          sub="Problemin sınırlarını çizin: nerede/ne zaman VAR, nerede/ne zaman olabilirdi ama YOK? (isteğe bağlı ama kök neden analizini en çok güçlendiren adım)"
+          aiReady={aiReady}
+          onHelp={() => fieldHelp('VAR/YOK belirtimi (Kepner-Tregoe)', JSON.stringify(c.spec))}
+          helpTitle="YZ'den VAR/YOK belirtimi için yardım al"
+        />
+        <MethodBox>Kepner-Tregoe belirtimi — problemin görüldüğü yer ile görülebileceği hâlde görülmediği yer arasındaki <strong>fark</strong>, kök neden adaylarını üretir ve test eder: gerçek kök neden hem VAR'ı hem YOK'u açıklamak zorundadır.</MethodBox>
+        <div style={{ display: 'grid', gridTemplateColumns: narrow ? '1fr' : '90px 1fr 1fr', gap: 10, alignItems: 'start' }}>
+          {!narrow ? (
+            <>
+              <div />
+              <div style={{ font: '700 10.5px Helvetica,Arial,sans-serif', color: 'var(--ok-ink)', letterSpacing: '.6px' }}>VAR — nerede görülüyor?</div>
+              <div style={{ font: '700 10.5px Helvetica,Arial,sans-serif', color: 'var(--alert)', letterSpacing: '.6px' }}>YOK — görülebilirdi ama görülmüyor</div>
+            </>
+          ) : null}
+          {SPEC_ROWS.map(row => (
+            <React.Fragment key={row.key}>
+              <div style={{ font: '600 12px/1.4 Helvetica,Arial,sans-serif', color: 'var(--ink-3)', paddingTop: 9 }}>{row.label}</div>
+              <textarea
+                className="pcx-field-sm" value={(c.spec[row.key] || {}).v || ''} onChange={inp('spec', row.key, 'v')}
+                placeholder={narrow ? 'VAR — ' + row.phV : row.phV}
+                style={{ ...S.textarea, font: '12.5px/1.45 Helvetica,Arial,sans-serif', minHeight: 44 }}
+              />
+              <textarea
+                className="pcx-field-sm" value={(c.spec[row.key] || {}).y || ''} onChange={inp('spec', row.key, 'y')}
+                placeholder={narrow ? 'YOK — ' + row.phY : row.phY}
+                style={{ ...S.textarea, font: '12.5px/1.45 Helvetica,Arial,sans-serif', minHeight: 44 }}
+              />
+            </React.Fragment>
+          ))}
+        </div>
+        <div style={{ marginTop: 12 }}>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'baseline', flexWrap: 'wrap', margin: '0 0 6px' }}>
+            <label style={{ ...S.label, margin: 0 }}>Değişiklik analizi — sapma başladığı dönemde ne değişti?</label>
+            <span style={{ font: '11px Helvetica,Arial,sans-serif', color: 'var(--warn-ink)', background: 'var(--warn-soft)', border: '1px solid var(--warn-border)', borderRadius: 20, padding: '2px 8px' }}>sapma problemlerinin klasik anahtarı</span>
+          </div>
+          <textarea
+            className="pcx-field" value={c.spec.degisiklik || ''} onChange={inp('spec', 'degisiklik')}
+            placeholder="Yeni tedarikçi, sistem geçişi, süreç/organizasyon değişikliği, hacim artışı, personel değişimi…"
+            style={{ ...S.textarea, minHeight: 48 }}
+          />
+        </div>
       </Card>
 
       <Card>

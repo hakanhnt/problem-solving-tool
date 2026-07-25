@@ -59,12 +59,12 @@ JSON olarak dışa/içe aktarılabilir.
 
 | # | Adım | İçerik |
 | --- | --- | --- |
-| 1 | **Problem Tanımı** | Ölçülebilir ifade + boyutlar + KPI farkı; canlı kalite kontrol çipleri; referans ekleme (not/link/dosya) |
+| 1 | **Problem Tanımı** | Ölçülebilir ifade + boyutlar + KPI farkı; VAR/YOK belirtimi (Kepner-Tregoe) + değişiklik analizi; canlı kalite kontrol çipleri; referans ekleme (not/link/PDF/DOCX) |
 | 2 | **Business Driver Haritalama** | MECE driver listesi + otomatik çizilen driver haritası |
 | 3 | **Driver Analizi** | Alt bileşen analizi + SIPOC satırları |
-| 4 | **Problem Bulguları** | Ölçülmüş sapmalar + kanıt kaynağı |
+| 4 | **Problem Bulguları** | Ölçülmüş sapmalar + kanıt kaynağı + sapmaya katkı → Pareto önceliklendirme |
 | 5 | **Kök Neden Analizi** | 5 Neden zinciri, balık kılçığı (diyagramıyla), kök neden ↔ prensip ↔ yetkinlik eşleştirmesi |
-| 6 | **Karşı Önlemler ve Karar** | Alternatifler (düşünme yöntemiyle), ağırlıklı karar matrisi, karar öncesi düşünme kontrolü, karar, aksiyon planı (etki/efor önceliklendirme) |
+| 6 | **Karşı Önlemler ve Karar** | Geçici önlem (8D-D3), alternatifler (düşünme yöntemiyle), ağırlıklı karar matrisi, karar öncesi düşünme kontrolü, karar, pre-mortem (Klein), aksiyon planı (etki/efor önceliklendirme) |
 | 7 | **İzleme ve Retrospektif** | Aksiyon durumu, KPI trend grafiği, dört soruluk retrospektif |
 | 8 | **Çalışma Raporu** | Yönetici özeti, tutarlılık denetimi, karar matrisi tablosu + KPI trend grafiği, bölüm seçimi, yazdır/PDF, paylaşım linki |
 
@@ -82,6 +82,7 @@ yanılgı farkındalığı kuralı.
 | **Karar önerisi** | Adım 6 | Alternatif, kriter ve matris puanlarını değerlendirip gerekçeli karar taslağı verir |
 | **Aksiyon önerisi** | Adım 6 | Karara ve kök nedenlere dayalı, etki/efor puanlı aksiyonlar (B2, KN1 atıflarıyla) |
 | **Yanılgı taraması** | Adım 6 | Vakayı 11 maddelik yanılgı kataloğuna karşı tarar; her tespit kullanıcının kendi cümlesinden alıntıyla kanıtlanır |
+| **Pre-mortem** | Adım 6 | "Karar uygulandı ve başarısız oldu" kurgusuyla 4-5 senaryo + erken sinyal + önleyici tedbir; tedbirler plana eklenir |
 | **Tutarlılık denetimi** | Adım 8 | Problem → bulgu → kök neden → karar → aksiyon zincirinin nerede koptuğunu raporlar |
 | **Yönetici özeti** | Adım 8 | Rapora 4–6 cümlelik özet ekler |
 | **Asistan sohbeti** | Her adım | O adımın uzmanı rolünde serbest sohbet; alan başına `YZ` yardım düğmeleri |

@@ -45,7 +45,7 @@ const QUESTIONS = [
 ];
 
 export default function Step6Countermeasures() {
-  const { c, updC, inp, fieldHelp, runDecisionCoach, runActionCoach, removeC } = useStore();
+  const { c, updC, inp, fieldHelp, runDecisionCoach, runActionCoach, runPremortem, removeC } = useStore();
   const aiReady = (c.problem.statement || '').trim().length > 0;
   const M = decisionMatrix(c);
   const narrow = useNarrow();
@@ -54,10 +54,47 @@ export default function Step6Countermeasures() {
   const dcIdle = !dc || dc.status === 'idle' || dc.status === 'error';
   const ac = c.actionCoach;
   const acIdle = !ac || ac.status === 'idle' || ac.status === 'error';
+  const pm = c.premortem;
+  const pmIdle = !pm || pm.status === 'idle' || pm.status === 'error';
+  const hasDecision = (c.decision.choice || '').trim().length > 0;
 
   return (
     <div>
       <GuidanceBox items={QUESTIONS} />
+
+      {/* Geçici önlem (8D-D3) */}
+      <Card>
+        <CardHead
+          title="Geçici Önlem — Kanamayı Durdurun"
+          sub="Kök neden analizi ve kalıcı çözüm zaman alır; bu sırada müşteriyi / süreci bugün ne koruyor?"
+          aiReady={aiReady}
+          onHelp={() => fieldHelp('Geçici önlem (containment)', [c.containment.action, c.containment.owner, c.containment.until].filter(Boolean).join(' | '))}
+          helpTitle="YZ'den geçici önlem için yardım al"
+        />
+        <MethodBox>8D metodolojisinin D3 disiplini — geçici önlem 24-48 saat içinde devrede olmalıdır. <strong>Geçici önlem problemi çözmez, çözüm için zaman kazandırır:</strong> kalıcı çözüm doğrulanınca kaldırılır. Karar asla geçici önlemin kendisi olamaz.</MethodBox>
+        <textarea
+          className="pcx-field" value={c.containment.action} onChange={inp('containment', 'action')}
+          placeholder="Örn. şüpheli parti karantinaya alındı; kritik siparişlerde ek kontrol; kısmi hava kargo; manuel doğrulama adımı…"
+          style={{ ...S.textarea, minHeight: 52, margin: '0 0 12px' }}
+        />
+        <div style={{ display: 'grid', gridTemplateColumns: narrow ? '1fr' : '1fr 1.4fr', gap: 12 }}>
+          <div>
+            <label style={S.label}>Sorumlu</label>
+            <input className="pcx-field-sm" value={c.containment.owner} onChange={inp('containment', 'owner')} placeholder="Rol / kişi" style={S.inputSm} />
+          </div>
+          <div>
+            <label style={S.label}>Ne zamana kadar / hangi koşulda kaldırılacak?</label>
+            <input className="pcx-field-sm" value={c.containment.until} onChange={inp('containment', 'until')} placeholder="Örn. kalıcı çözüm KPI ile doğrulanana kadar" style={S.inputSm} />
+          </div>
+        </div>
+        {(c.containment.action || '').trim() ? (
+          <div style={{ marginTop: 12, display: 'inline-flex', gap: 8, alignItems: 'center', background: c.containment.removed ? 'var(--ok-soft)' : 'var(--warn-soft)', border: '1px solid ' + (c.containment.removed ? 'var(--ok-border)' : 'var(--warn-border)'), borderRadius: 20, padding: '5px 12px' }}>
+            <span style={{ font: '600 11.5px Helvetica,Arial,sans-serif', color: c.containment.removed ? 'var(--ok-ink)' : 'var(--warn-ink)' }}>
+              {c.containment.removed ? '✓ Geçici önlem kaldırıldı' : '⏳ Geçici önlem devrede — kalıcı çözüm doğrulanınca Adım 7\'de kaldırın'}
+            </span>
+          </div>
+        ) : null}
+      </Card>
 
       {/* Alternatif çözümler */}
       <Card>
@@ -235,6 +272,79 @@ export default function Step6Countermeasures() {
           style={{ ...S.textarea, minHeight: 76, height: 376 }}
         />
       </Card>
+
+      {/* Pre-mortem (Klein) */}
+      {hasDecision ? (
+        <Card>
+          <div style={{ ...S.cardTitle, margin: '0 0 4px' }}>Pre-Mortem — Karar Başarısız Olsaydı?</div>
+          <div style={S.cardSub}>Karar verildi; şimdi son savunma hattı. 6 ay sonrasını hayal edin: karar uygulandı ve başarısız oldu. Ne oldu?</div>
+          <MethodBox margin="0 0 14px">Gary Klein'ın yöntemi — olayı "olabilir" değil <strong>"oldu"</strong> diye hayal etmek, başarısızlık nedeni tespitini ~%30 artırır ve aşırı güveni ölçülebilir düşürür. Çekinceleri planlama aşamasında konuşulur kılar.</MethodBox>
+
+          <div style={{ background: 'var(--pri-soft-2)', border: '1px solid var(--pri-border)', borderRadius: 8, padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {pmIdle ? (
+              <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
+                <div style={{ font: '12.5px/1.5 Helvetica,Arial,sans-serif', color: 'var(--pri-ink-2)', flex: 1, minWidth: 220 }}>
+                  Rehber; kararınız, aksiyonlarınız ve kök nedenlerinize bakarak 4-5 olası başarısızlık senaryosu, erken uyarı sinyalleri ve önleyici tedbirler üretir.
+                  {pm && pm.status === 'error' ? <span style={{ color: 'var(--alert)' }}> Senaryolar üretilemedi, tekrar deneyin.</span> : null}
+                </div>
+                <HButton
+                  onClick={runPremortem}
+                  style={{ flex: 'none', padding: '8px 14px', border: '1px solid var(--pri)', borderRadius: 8, background: 'var(--pri)', color: 'var(--on-pri)', font: '600 12px Helvetica,Arial,sans-serif', cursor: 'pointer' }}
+                  hover={S.primaryHover}
+                >⏳ Pre-mortem çalıştır</HButton>
+              </div>
+            ) : null}
+
+            {pm && pm.status === 'busy' ? (
+              <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                <Spinner />
+                <div style={{ font: '600 12.5px Helvetica,Arial,sans-serif', color: 'var(--pri-ink)' }}>6 ay sonrası hayal ediliyor — başarısızlık senaryoları yazılıyor…</div>
+              </div>
+            ) : null}
+
+            {pm && pm.status === 'done' ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {pm.giris ? <div style={{ font: '12.5px/1.6 Helvetica,Arial,sans-serif', color: 'var(--pri-ink-2)' }}>{pm.giris}</div> : null}
+                {(pm.items || []).map((it, i) => (
+                  <div key={i} style={{ background: 'var(--surface)', border: '1px solid var(--pri-border-4)', borderRadius: 8, padding: '11px 13px' }}>
+                    <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ font: '700 13px/1.4 Helvetica,Arial,sans-serif', color: 'var(--ink)', margin: '0 0 4px' }}>💥 {it.baslik}</div>
+                        <div style={{ font: '12.5px/1.55 Helvetica,Arial,sans-serif', color: 'var(--ink-3)', margin: '0 0 6px' }}>{it.hikaye}</div>
+                        {it.sinyal ? <div style={{ font: '12px/1.5 Helvetica,Arial,sans-serif', color: 'var(--warn-ink)', margin: '0 0 3px' }}><strong>Erken sinyal:</strong> {it.sinyal}</div> : null}
+                        {it.onlem ? <div style={{ font: '12px/1.5 Helvetica,Arial,sans-serif', color: 'var(--ok-ink)' }}><strong>Önleyici tedbir:</strong> {it.onlem}</div> : null}
+                      </div>
+                      {it.onlem ? (
+                        <button
+                          onClick={() => updC(cc => {
+                            const x = cc.premortem && cc.premortem.items[i];
+                            if (!x || x.added) return;
+                            cc.actions = cc.actions || [];
+                            cc.actions.push({ text: x.onlem, owner: '', due: '', etki: '', efor: '', note: 'Pre-mortem tedbiri: ' + x.baslik });
+                            x.added = true;
+                          })}
+                          style={{
+                            flex: 'none',
+                            border: '1px solid ' + (it.added ? 'var(--ok-border)' : 'var(--pri)'),
+                            background: it.added ? 'var(--ok-soft)' : 'var(--pri)',
+                            color: it.added ? 'var(--ok)' : 'var(--on-pri)',
+                            borderRadius: 6, padding: '7px 12px', font: '600 12px Helvetica,Arial,sans-serif', cursor: 'pointer'
+                          }}
+                        >{it.added ? 'Eklendi ✓' : 'Tedbiri plana ekle'}</button>
+                      ) : null}
+                    </div>
+                  </div>
+                ))}
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <HButton onClick={runPremortem} style={{ padding: '7px 12px', border: '1px solid var(--pri-border)', borderRadius: 7, background: 'var(--surface)', color: 'var(--pri)', font: '600 11.5px Helvetica,Arial,sans-serif', cursor: 'pointer' }} hover={S.ghostHover}>Yeniden çalıştır</HButton>
+                  <HButton onClick={() => updC(cc => { delete cc.premortem; })} style={{ padding: '7px 12px', border: 'none', background: 'transparent', color: 'var(--muted)', font: '600 11.5px Helvetica,Arial,sans-serif', cursor: 'pointer' }} hover={{ color: 'var(--ink-3)' }}>Kapat</HButton>
+                </div>
+                <div style={{ font: '11px/1.5 Helvetica,Arial,sans-serif', color: 'var(--muted)' }}>Senaryolar hipotezdir; hangi tedbirin plana gireceğine siz karar verin. Erken sinyalleri Adım 7'deki izlemeye taşımayı unutmayın.</div>
+              </div>
+            ) : null}
+          </div>
+        </Card>
+      ) : null}
 
       {/* Aksiyon planı */}
       <Card>

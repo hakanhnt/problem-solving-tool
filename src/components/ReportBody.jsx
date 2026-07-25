@@ -3,7 +3,7 @@
 
 import React from 'react';
 import { prioMeta } from '../lib/store.jsx';
-import { gapInfo, decisionMatrix, trackingBars } from '../lib/derive.js';
+import { gapInfo, decisionMatrix, trackingBars, paretoData } from '../lib/derive.js';
 import { PRE_DECISION_QUESTIONS } from '../lib/thinking.js';
 
 const secTitle = { font: '700 12px Helvetica,Arial,sans-serif', color: 'var(--pri)', letterSpacing: '.6px', borderBottom: '1px solid var(--line-3)', paddingBottom: 5, margin: '0 0 8px' };
@@ -16,6 +16,11 @@ export default function ReportBody({ c, principles, sections, companyName, summa
   const { hasGap, kpiGapText } = gapInfo(c.problem);
   const M = decisionMatrix(c);
   const bars = trackingBars(c);
+  const pareto = paretoData(c);
+  const spec = c.spec || {};
+  const SPEC_LABELS = [['nerede', 'Nerede'], ['zaman', 'Ne zaman'], ['kirilim', 'Kırılımda'], ['buyukluk', 'Büyüklük']];
+  const specRows = SPEC_LABELS.filter(([k]) => ((spec[k] || {}).v || '').trim() || ((spec[k] || {}).y || '').trim());
+  const cont = c.containment || {};
 
   const metaParts = [(companyName || '').trim(), (c.name || '').trim()].filter(Boolean);
   const metaLine = metaParts.length ? metaParts.join(' · ') + ' · ' : '';
@@ -80,6 +85,29 @@ export default function ReportBody({ c, principles, sections, companyName, summa
                 {(c.problem.kpiName || 'KPI') + ': hedef ' + (c.problem.target || '—') + ' / gerçekleşen ' + (c.problem.actual || '—')} · {kpiGapText}
               </div>
             ) : null}
+
+            {specRows.length ? (
+              <div style={{ marginTop: 12 }}>
+                <div style={{ font: '600 11px Helvetica,Arial,sans-serif', color: 'var(--ink-3)', letterSpacing: '.4px', margin: '0 0 6px' }}>VAR / YOK BELİRTİMİ</div>
+                <div style={{ overflowX: 'auto' }}>
+                  <table style={{ borderCollapse: 'collapse', width: '100%' }}>
+                    <thead><tr><th style={th}> </th><th style={th}>VAR</th><th style={th}>YOK</th></tr></thead>
+                    <tbody>
+                      {specRows.map(([k, label]) => (
+                        <tr key={k}>
+                          <td style={{ ...td, fontWeight: 700, whiteSpace: 'nowrap' }}>{label}</td>
+                          <td style={td}>{(spec[k] || {}).v || '—'}</td>
+                          <td style={td}>{(spec[k] || {}).y || '—'}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                {(spec.degisiklik || '').trim() ? (
+                  <div style={{ font: '12.5px/1.55 Helvetica,Arial,sans-serif', color: 'var(--ink)', marginTop: 6 }}><strong>Değişiklik analizi:</strong> {spec.degisiklik}</div>
+                ) : null}
+              </div>
+            ) : null}
           </div>
         ) : null}
 
@@ -119,6 +147,11 @@ export default function ReportBody({ c, principles, sections, companyName, summa
                 </div>
               ))}
             </div>
+            {pareto ? (
+              <div style={{ marginTop: 8, font: '12.5px/1.55 Helvetica,Arial,sans-serif', color: 'var(--pri-ink)' }}>
+                <strong>Pareto:</strong> {pareto.vital.join(' + ')} → toplam sapmadaki kümülatif pay %{pareto.vitalPct} ({pareto.bars.map(b => b.label + ' %' + b.pct).join(' · ')}).
+              </div>
+            ) : null}
           </div>
         ) : null}
 
@@ -193,6 +226,12 @@ export default function ReportBody({ c, principles, sections, companyName, summa
               </div>
             ) : null}
 
+            {(cont.action || '').trim() ? (
+              <div style={{ margin: '0 0 10px', font: '12.5px/1.55 Helvetica,Arial,sans-serif', color: 'var(--ink)' }}>
+                <strong style={{ color: cont.removed ? 'var(--ok-ink)' : 'var(--warn-ink)' }}>Geçici önlem{cont.removed ? ' (kaldırıldı)' : ' (devrede)'}:</strong> {cont.action}
+                {(cont.owner || '').trim() ? <span style={{ color: 'var(--muted)' }}> — {cont.owner}</span> : null}
+              </div>
+            ) : null}
             {(c.decision.choice || '').trim() ? (
               <div style={{ background: 'var(--ok-soft)', border: '1px solid var(--ok-border)', borderRadius: 8, padding: '12px 14px' }}>
                 <div style={{ font: '700 10.5px Helvetica,Arial,sans-serif', color: 'var(--ok)', letterSpacing: '.8px', margin: '0 0 6px' }}>KARAR</div>

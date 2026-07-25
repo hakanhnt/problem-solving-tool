@@ -21,6 +21,7 @@ const STATUS_META = {
 
 export default function Step7Tracking() {
   const { c, updC, inp, removeC } = useStore();
+  const cont = c.containment || {};
   const actions = c.actions || [];
   const hasActions = actions.some(a => (a.text || '').trim());
   const bars = trackingBars(c);
@@ -29,6 +30,26 @@ export default function Step7Tracking() {
   return (
     <div>
       <GuidanceBox items={QUESTIONS} />
+
+      {(cont.action || '').trim() ? (
+        <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap', background: cont.removed ? 'var(--ok-soft)' : 'var(--warn-soft)', border: '1px solid ' + (cont.removed ? 'var(--ok-border)' : 'var(--warn-border)'), borderRadius: 10, padding: '12px 16px', margin: '0 0 16px' }}>
+          <div style={{ flex: 1, minWidth: 240 }}>
+            <div style={{ font: '700 12px Helvetica,Arial,sans-serif', color: cont.removed ? 'var(--ok-ink)' : 'var(--warn-ink)', letterSpacing: '.4px', margin: '0 0 3px' }}>
+              {cont.removed ? '✓ GEÇİCİ ÖNLEM KALDIRILDI' : '⏳ GEÇİCİ ÖNLEM HÂLÂ DEVREDE'}
+            </div>
+            <div style={{ font: '12.5px/1.5 Helvetica,Arial,sans-serif', color: 'var(--ink-3)' }}>{cont.action}</div>
+            {!cont.removed ? (
+              <div style={{ font: '11.5px/1.5 Helvetica,Arial,sans-serif', color: 'var(--muted)', marginTop: 3 }}>
+                Geçici önlem çözüm değildir ve maliyet üretir — KPI trendi kalıcı çözümün çalıştığını doğruladığında kaldırın{(cont.until || '').trim() ? ' (' + cont.until + ')' : ''}.
+              </div>
+            ) : null}
+          </div>
+          <button
+            onClick={() => updC(cc => { cc.containment.removed = !cc.containment.removed; })}
+            style={{ flex: 'none', padding: '8px 14px', border: '1px solid ' + (cont.removed ? 'var(--field-border)' : 'var(--ok)'), borderRadius: 8, background: cont.removed ? 'var(--surface)' : 'var(--ok)', color: cont.removed ? 'var(--ink-3)' : 'var(--on-pri)', font: '600 12px Helvetica,Arial,sans-serif', cursor: 'pointer' }}
+          >{cont.removed ? 'Yeniden devreye al' : 'Kaldırıldı olarak işaretle'}</button>
+        </div>
+      ) : null}
 
       <Card>
         <div style={{ ...S.cardTitle, margin: '0 0 4px' }}>Aksiyon Durumu</div>

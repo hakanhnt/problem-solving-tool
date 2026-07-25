@@ -85,3 +85,25 @@ export function driverMap(c) {
     return { name: d.name, sub: subs.join(' · '), hasSub: !!subs.length };
   });
 }
+
+/**
+ * Adım 4 Pareto: "sapmaya katkı" girilen bulguları büyükten küçüğe sıralar.
+ * En az 2 bulguda pozitif katkı yoksa null döner (grafik çizilmez).
+ */
+export function paretoData(c) {
+  const rows = (c.findings || [])
+    .map((f, i) => ({ i, label: 'B' + (i + 1), text: f.text || '', v: parseFloat(String(f.share || '').replace(',', '.')) }))
+    .filter(r => isFinite(r.v) && r.v > 0);
+  if (rows.filter(r => r.v > 0).length < 2) return null;
+  rows.sort((a, b) => b.v - a.v);
+  const total = rows.reduce((a, r) => a + r.v, 0);
+  let cum = 0;
+  const bars = rows.map(r => {
+    cum += r.v;
+    return { ...r, pct: Math.round(r.v / total * 100), cumPct: Math.round(cum / total * 100), w: Math.max(4, Math.round(r.v / rows[0].v * 100)) };
+  });
+  // %80 eşiğini geçen ilk grup — "hayati azınlık"
+  const vital = [];
+  for (const b of bars) { vital.push(b.label); if (b.cumPct >= 80) break; }
+  return { bars, total, vital, vitalPct: bars[Math.min(vital.length, bars.length) - 1].cumPct };
+}

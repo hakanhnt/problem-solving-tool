@@ -43,6 +43,8 @@ export function blankCase(name) {
     ], scores: {},
     decision: { choice: '', rationale: '' },
     thinking: { assume: '', alt: '', cost: '' },
+    spec: { nerede: { v: '', y: '' }, zaman: { v: '', y: '' }, kirilim: { v: '', y: '' }, buyukluk: { v: '', y: '' }, degisiklik: '' },
+    containment: { action: '', owner: '', until: '', removed: false },
     actions: [], tracking: [], retro: { valid: '', worked: '', process: '', lessons: '' }
   };
 }
@@ -74,10 +76,10 @@ export function exampleCase() {
       { s: "Gümrük müşaviri", i: "Evrak seti, ordino", p: "Beyanname açılışı ve gümrük işlemleri", o: "Kapanmış beyanname", c: "Antrepo / depo operasyonu" }
     ],
     findings: [
-      { text: "Booking → gemiye yükleme ortalama 12 gün (hedef 5 gün); +7 gün sapma.", evidence: "Forwarder milestone raporu, son 30 yükleme" },
-      { text: "Evrak setinin ilk seferde eksiksiz gelme oranı %38; düzeltme turları ortalama +4 gün ekliyor.", evidence: "Gümrük müşaviri evrak kayıtları, Q1–Q2" },
-      { text: "Varış → beyanname açılışı ortalama 6 gün (hedef 2 gün); +4 gün sapma.", evidence: "Gümrük sistemi zaman damgaları" },
-      { text: "Deniz transit süresi 28 gün (plan 30 gün); sapma yok.", evidence: "Hat tarifesi vs. gerçekleşen karşılaştırması" }
+      { text: "Booking → gemiye yükleme ortalama 12 gün (hedef 5 gün); +7 gün sapma.", evidence: "Forwarder milestone raporu, son 30 yükleme", share: "7" },
+      { text: "Evrak setinin ilk seferde eksiksiz gelme oranı %38; düzeltme turları ortalama +4 gün ekliyor.", evidence: "Gümrük müşaviri evrak kayıtları, Q1–Q2", share: "4" },
+      { text: "Varış → beyanname açılışı ortalama 6 gün (hedef 2 gün); +4 gün sapma.", evidence: "Gümrük sistemi zaman damgaları", share: "4" },
+      { text: "Deniz transit süresi 28 gün (plan 30 gün); sapma yok.", evidence: "Hat tarifesi vs. gerçekleşen karşılaştırması", share: "0" }
     ],
     whys: [
       "Evrak seti ilk seferde eksiksiz gelmediği için yükleme ve beyanname adımları düzeltme turlarıyla gecikiyor.",
@@ -122,6 +124,20 @@ export function exampleCase() {
       { label: "Ağustos", value: "52" }
     ],
     retro: { valid: "", worked: "", lessons: "" },
+    spec: {
+      nerede: { v: "Bangladeş çıkışlı yüklemeler (sapma +26 gün)", y: "Çin çıkışlı yüklemeler (sapma +9 gün)" },
+      zaman: { v: "2026 Q1'den itibaren", y: "2025 Q4 ve öncesi (ortalama 47 gün)" },
+      kirilim: { v: "Temel hazır giyim (yüksek adetli, çok evraklı siparişler)", y: "Aksesuar ve ayakkabı (az kalemli siparişler)" },
+      buyukluk: { v: "Ortalama +20 gün; en kötü yüklemede +38 gün", y: "Hiçbir yüklemede erken varış yok" }
+    ,
+      degisiklik: "Q1'de Bangladeş'te iki yeni üreticiyle çalışılmaya başlandı ve sipariş kalem sayısı arttı; evrak beklentisi yeni üreticilere hiç aktarılmadı."
+    },
+    containment: {
+      action: "Stok riski doğan temel giyim siparişlerinde kısmi hava kargo + kritik yüklemelerde evrak setinin gemiden 5 gün önce manuel ön kontrolü",
+      owner: "İthalat operasyon uzmanı",
+      until: "Checklist + kontrol kulesi devreye girene kadar",
+      removed: false
+    },
     thinking: {
       assume: "Evrak kalitesinin üreticinin kapasitesiyle ilgili olduğunu varsayıyoruz; oysa beklentiyi hiç yazılı tanımlamadık. İkinci varsayım: transit süre sabit — bunu ölçtük, doğrulandı.",
       alt: "Gecikmenin kaynağı üretici değil, bizim booking ve onay döngümüz olabilir; ya da tek bir forwarder'ın performansı ortalamayı bozuyor olabilir. İkisi de kırılım bazında test edilmeli.",

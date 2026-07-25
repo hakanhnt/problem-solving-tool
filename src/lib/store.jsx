@@ -6,7 +6,7 @@ import { STORAGE_KEY, blankCase, exampleCase, defaultPrinciples } from './defaul
 import {
   complete, buildSystem, buildCoachTask, coachItems, parseJsonReply,
   COACH_JSON_RULE, COACH_TEACH_TASK, COACH_FAST_SUFFIX, COACH_DEPTH_SUFFIX, ACTION_COACH_TASK,
-  DECISION_COACH_TASK, AUDIT_TASK, BIAS_SCAN_TASK, REPORT_SUMMARY_TASK, REF_SUMMARY_SYSTEM
+  DECISION_COACH_TASK, AUDIT_TASK, BIAS_SCAN_TASK, PREMORTEM_TASK, REPORT_SUMMARY_TASK, REF_SUMMARY_SYSTEM
 } from './ai.js';
 
 const Ctx = createContext(null);
@@ -44,6 +44,8 @@ function normalize(state) {
     if (!Array.isArray(cc.references)) cc.references = [];
     if (!cc.retro) cc.retro = { valid: '', worked: '', process: '', lessons: '' };
     if (!cc.thinking) cc.thinking = { assume: '', alt: '', cost: '' };
+    if (!cc.spec) cc.spec = { nerede: { v: '', y: '' }, zaman: { v: '', y: '' }, kirilim: { v: '', y: '' }, buyukluk: { v: '', y: '' }, degisiklik: '' };
+    if (!cc.containment) cc.containment = { action: '', owner: '', until: '', removed: false };
   });
   return s;
 }
@@ -354,6 +356,31 @@ export function StoreProvider({ children }) {
     })();
   }, [upd, effCase, callAi, systemFor]);
 
+  const runPremortem = useCallback(() => {
+    const s0 = stateRef.current;
+    const eff = effCase(s0);
+    if (s0.cases[eff].premortem && s0.cases[eff].premortem.status === 'busy') return;
+    upd(n => { n.cases[eff].premortem = { status: 'busy', giris: '', items: [] }; });
+    (async () => {
+      try {
+        const c = stateRef.current.cases[eff];
+        const reply = await callAi({
+          max_tokens: 2600,
+          system: systemFor(6, c) + PREMORTEM_TASK,
+          messages: [{ role: 'user', content: 'Kararım uygulandı ve 6 ay sonra başarısız oldu. Pre-mortem senaryolarını üret.' }]
+        });
+        const j = parseJsonReply(reply);
+        const items = (Array.isArray(j.senaryolar) ? j.senaryolar : []).map(x => ({
+          baslik: String(x.baslik || ''), hikaye: String(x.hikaye || ''),
+          sinyal: String(x.erkenSinyal || ''), onlem: String(x.onleyiciTedbir || ''), added: false
+        })).filter(x => x.baslik || x.hikaye);
+        upd(n => { n.cases[eff].premortem = { status: 'done', giris: String(j.giris || ''), items }; });
+      } catch (e) {
+        upd(n => { n.cases[eff].premortem = { status: 'error', giris: '', items: [] }; });
+      }
+    })();
+  }, [upd, effCase, callAi, systemFor]);
+
   const runAudit = useCallback(() => {
     const s0 = stateRef.current;
     const eff = effCase(s0);
@@ -534,9 +561,9 @@ export function StoreProvider({ children }) {
     mainRef,
     upd, updC, setC, inp, goStep, toggleTheme, removeC, undoLast, canUndo,
     ensureCoach, runCoach, applyCoachItem, coachRefresh,
-    runDecisionCoach, runActionCoach, runAudit, runBiasScan, runReportSummary,
+    runDecisionCoach, runActionCoach, runAudit, runBiasScan, runPremortem, runReportSummary,
     askAi, fieldHelp, addReference
-  }), [state, eff, upd, updC, setC, inp, goStep, toggleTheme, removeC, undoLast, canUndo, ensureCoach, runCoach, applyCoachItem, coachRefresh, runDecisionCoach, runActionCoach, runAudit, runBiasScan, runReportSummary, askAi, fieldHelp, addReference]);
+  }), [state, eff, upd, updC, setC, inp, goStep, toggleTheme, removeC, undoLast, canUndo, ensureCoach, runCoach, applyCoachItem, coachRefresh, runDecisionCoach, runActionCoach, runAudit, runBiasScan, runPremortem, runReportSummary, askAi, fieldHelp, addReference]);
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
