@@ -12,7 +12,7 @@ const QUESTIONS = [
 ];
 
 export default function Step2Drivers() {
-  const { c, updC, inp, fieldHelp } = useStore();
+  const { c, updC, inp, fieldHelp, removeC } = useStore();
   const aiReady = (c.problem.statement || '').trim().length > 0;
   const dmap = driverMap(c);
 
@@ -36,7 +36,7 @@ export default function Step2Drivers() {
                     style={{ ...S.textarea, flex: 1, width: 'auto', font: '600 14px/1.45 Helvetica,Arial,sans-serif', minHeight: 44 }}
                   />
                   {aiReady ? <YZButton onClick={() => fieldHelp('Ana driver / iş sürücüsü ' + (i + 1), (d.name || '') + (d.note ? ' — ' + d.note : ''))} /> : null}
-                  <RemoveButton onClick={() => updC(cc => cc.drivers.splice(i, 1))} />
+                  <RemoveButton onClick={() => removeC('driver', cc => cc.drivers.splice(i, 1))} />
                 </div>
                 <textarea
                   className="pcx-field" value={d.note} onChange={inp('drivers', i, 'note')}

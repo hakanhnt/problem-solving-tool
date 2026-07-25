@@ -12,7 +12,7 @@ const QUESTIONS = [
 ];
 
 export default function Step4Findings() {
-  const { c, updC, inp, fieldHelp } = useStore();
+  const { c, updC, inp, fieldHelp, removeC } = useStore();
   const aiReady = (c.problem.statement || '').trim().length > 0;
 
   return (
@@ -40,7 +40,7 @@ export default function Step4Findings() {
                     style={{ ...S.textarea, flex: 1, width: 'auto', minHeight: 52 }}
                   />
                   {aiReady ? <YZButton onClick={() => fieldHelp('Problem bulgusu B' + (i + 1), (f.text || '') + (f.evidence ? ' (Kanıt: ' + f.evidence + ')' : ''))} title="YZ'den bu bulgu için yardım al" /> : null}
-                  <RemoveButton onClick={() => updC(cc => cc.findings.splice(i, 1))} />
+                  <RemoveButton onClick={() => removeC('bulgu', cc => cc.findings.splice(i, 1))} />
                 </div>
                 <textarea
                   className="pcx-field" value={f.evidence} onChange={inp('findings', i, 'evidence')}

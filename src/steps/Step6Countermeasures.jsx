@@ -4,7 +4,7 @@ import { THINKING_METHODS } from '../lib/defaults.js';
 import { THINKING_METHOD_INFO } from '../lib/thinking.js';
 import { decisionMatrix } from '../lib/derive.js';
 import ThinkingCheck from '../components/ThinkingCheck.jsx';
-import { Card, CardHead, GuidanceBox, MethodBox, AddButton, RemoveButton, YZButton, Badge, HButton, Spinner, S } from '../ui/primitives.jsx';
+import { Card, CardHead, GuidanceBox, MethodBox, AddButton, RemoveButton, YZButton, Badge, HButton, Spinner, S, useNarrow } from '../ui/primitives.jsx';
 
 /**
  * Seçilen düşünme yönteminin karşı çalıştığı yanılgı ve ekip soruları.
@@ -45,9 +45,10 @@ const QUESTIONS = [
 ];
 
 export default function Step6Countermeasures() {
-  const { c, updC, inp, fieldHelp, runDecisionCoach, runActionCoach } = useStore();
+  const { c, updC, inp, fieldHelp, runDecisionCoach, runActionCoach, removeC } = useStore();
   const aiReady = (c.problem.statement || '').trim().length > 0;
   const M = decisionMatrix(c);
+  const narrow = useNarrow();
 
   const dc = c.decisionCoach;
   const dcIdle = !dc || dc.status === 'idle' || dc.status === 'error';
@@ -73,7 +74,7 @@ export default function Step6Countermeasures() {
                   style={{ ...S.textarea, flex: 1, width: 'auto', font: '600 13px/1.45 Helvetica,Arial,sans-serif', minHeight: 48 }}
                 />
                 {aiReady ? <YZButton onClick={() => fieldHelp('Alternatif çözüm A' + (i + 1), [a.name, a.method, a.note].filter(Boolean).join(' | '))} title="YZ'den bu alternatif için yardım al" /> : null}
-                <RemoveButton onClick={() => updC(cc => { cc.alternatives.splice(i, 1); cc.scores = {}; })} />
+                <RemoveButton onClick={() => removeC('alternatif (matris puanlarıyla)', cc => { cc.alternatives.splice(i, 1); cc.scores = {}; })} />
               </div>
               <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
                 <label style={{ flex: 'none', font: '600 12px Helvetica,Arial,sans-serif', color: 'var(--ink-3)' }}>Düşünme yöntemi:</label>
@@ -119,7 +120,7 @@ export default function Step6Countermeasures() {
                 className="pcx-field-sm" type="number" min="0" max="100" value={cr.weight} onChange={inp('criteria', i, 'weight')} placeholder="%"
                 style={{ width: 88, boxSizing: 'border-box', padding: '9px 11px', border: '1px solid var(--field-border)', borderRadius: 6, font: '13px/1.45 Helvetica,Arial,sans-serif', color: 'var(--ink)', background: 'var(--surface)', outline: 'none' }}
               />
-              <RemoveButton onClick={() => updC(cc => { cc.criteria.splice(i, 1); cc.scores = {}; })} />
+              <RemoveButton onClick={() => removeC('karar kriteri (matris puanlarıyla)', cc => { cc.criteria.splice(i, 1); cc.scores = {}; })} />
             </div>
           ))}
           <AddButton onClick={() => updC(cc => cc.criteria.push({ name: '', weight: '' }))}>+ Kriter ekle</AddButton>
@@ -313,9 +314,9 @@ export default function Step6Countermeasures() {
                       style={{ ...S.textarea, flex: 1, width: 'auto', minHeight: 46 }}
                     />
                     <div style={{ flex: 'none', padding: '5px 10px', borderRadius: 20, border: '1px solid ' + p.border, background: p.bg, color: p.color, font: '700 10.5px Helvetica,Arial,sans-serif', marginTop: 4 }}>{p.label}</div>
-                    <RemoveButton onClick={() => updC(cc => cc.actions.splice(i, 1))} />
+                    <RemoveButton onClick={() => removeC('aksiyon', cc => cc.actions.splice(i, 1))} />
                   </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr .7fr .7fr', gap: 10 }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: narrow ? '1fr 1fr' : '1.4fr 1fr .7fr .7fr', gap: 10 }}>
                     <div>
                       <label style={{ display: 'block', font: '600 11px Helvetica,Arial,sans-serif', color: 'var(--ink-3)', margin: '0 0 4px' }}>SORUMLU</label>
                       <input className="pcx-field-sm" value={a.owner} onChange={inp('actions', i, 'owner')} placeholder="Rol / kişi" style={S.inputSm} />

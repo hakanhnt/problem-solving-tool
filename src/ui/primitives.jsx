@@ -1,7 +1,19 @@
 // Ortak görsel öğeler ve stil sabitleri.
 // Değerler prototipteki inline stillerle birebir aynıdır (tasarım token'ları).
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+
+/** Dar ekran (mobil/tablet) algısı — mobil düzen bu eşiğe göre değişir. */
+export function useNarrow(px = 920) {
+  const [narrow, setNarrow] = useState(() => typeof matchMedia === 'function' && matchMedia('(max-width: ' + px + 'px)').matches);
+  useEffect(() => {
+    const mq = matchMedia('(max-width: ' + px + 'px)');
+    const fn = e => setNarrow(e.matches);
+    mq.addEventListener('change', fn);
+    return () => mq.removeEventListener('change', fn);
+  }, [px]);
+  return narrow;
+}
 
 /* ---------- hover destekli temel öğeler (prototipteki style-hover karşılığı) ---------- */
 
@@ -87,6 +99,7 @@ export function YZButton({ onClick, title, small }) {
     <HButton
       onClick={onClick}
       title={title || "YZ'den bu alan için yardım al"}
+      aria-label={title || "YZ'den bu alan için yardım al"}
       style={{ flex: 'none', width: size, height: size, borderRadius: '50%', border: '1px solid var(--pri-border-2)', background: 'var(--pri-soft)', color: 'var(--pri)', font: (small ? '700 8px/1' : '700 9px/1') + ' Helvetica,Arial,sans-serif', cursor: 'pointer' }}
       hover={{ background: 'var(--pri)', color: 'var(--on-pri)' }}
     >YZ</HButton>
@@ -129,6 +142,7 @@ export function RemoveButton({ onClick, children, style }) {
   return (
     <HButton
       onClick={onClick}
+      aria-label="Kaldır"
       style={{ border: 'none', background: 'transparent', color: 'var(--muted-2)', font: '600 12px Helvetica,Arial,sans-serif', cursor: 'pointer', flex: 'none', ...style }}
       hover={{ color: 'var(--danger)' }}
     >{children || 'Kaldır'}</HButton>

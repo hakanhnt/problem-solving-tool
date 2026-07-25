@@ -20,7 +20,7 @@ const STATUS_META = {
 };
 
 export default function Step7Tracking() {
-  const { c, updC, inp } = useStore();
+  const { c, updC, inp, removeC } = useStore();
   const actions = c.actions || [];
   const hasActions = actions.some(a => (a.text || '').trim());
   const bars = trackingBars(c);
@@ -98,7 +98,7 @@ export default function Step7Tracking() {
             <div key={i} style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
               <input className="pcx-field-sm" value={t.label} onChange={inp('tracking', i, 'label')} placeholder="Dönem — örn. Ağustos, 34. hafta" style={{ ...S.inputSm, flex: 1.4 }} />
               <input className="pcx-field-sm" value={t.value} onChange={inp('tracking', i, 'value')} placeholder="Ölçülen değer" style={{ ...S.inputSm, flex: 1 }} />
-              <RemoveButton onClick={() => updC(cc => cc.tracking.splice(i, 1))} />
+              <RemoveButton onClick={() => removeC('KPI ölçümü', cc => cc.tracking.splice(i, 1))} />
             </div>
           ))}
         </div>

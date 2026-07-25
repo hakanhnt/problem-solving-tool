@@ -1,7 +1,7 @@
 import React from 'react';
 import { useStore } from '../lib/store.jsx';
 import { gapInfo, statementChecks } from '../lib/derive.js';
-import { Card, CardHead, GuidanceBox, MethodBox, HButton, RemoveButton, S, YZButton } from '../ui/primitives.jsx';
+import { Card, CardHead, GuidanceBox, MethodBox, HButton, RemoveButton, S, YZButton, useNarrow } from '../ui/primitives.jsx';
 import WelcomeCard from '../components/WelcomeCard.jsx';
 import { extractFileText } from '../lib/extract.js';
 
@@ -15,13 +15,14 @@ const QUESTIONS = [
 ];
 
 export default function Step1Problem() {
-  const { state, c, upd, updC, inp, fieldHelp, addReference } = useStore();
+  const { state, c, upd, updC, inp, fieldHelp, addReference, removeC } = useStore();
   const p = c.problem;
   const aiReady = (p.statement || '').trim().length > 0;
   const { hasGap, kpiGapText } = gapInfo(p);
   const refs = c.references || [];
   const form = state.refForm;
   const [extracting, setExtracting] = React.useState('');
+  const narrow = useNarrow();
 
   const dims = [
     { key: 'geo', label: 'Yer / Birim — coğrafya, cluster, ülke, mağaza, depo, departman, sistem/kanal', ph: 'Sapma nerede oluşuyor? Örn. Bangladeş çıkışlı yüklemeler / X deposu / mobil uygulama / Y departmanı', helpLabel: 'Problem boyutu — Yer / Birim (coğrafya, mağaza, depo, departman, sistem, kanal)' },
@@ -124,7 +125,7 @@ export default function Step1Problem() {
           onHelp={() => fieldHelp('KPI farkı (hedef vs gerçekleşen)', (p.kpiName || '') + ' | hedef: ' + p.target + ' | gerçekleşen: ' + p.actual)}
         />
         <MethodBox>KPI farkı = gerçekleşen − hedef. Problemi sayısallaştırmak hem büyüklüğünü gösterir hem de çözümün başarısını ölçülebilir kılar.</MethodBox>
-        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: 12 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: narrow ? '1fr 1fr' : '2fr 1fr 1fr', gap: 12 }}>
           <div>
             <label style={S.label}>KPI adı</label>
             <input className="pcx-field" value={p.kpiName} onChange={inp('problem', 'kpiName')} placeholder="Örn. Uçtan uca yol süresi (gün)" style={S.input} />
@@ -165,7 +166,7 @@ export default function Step1Problem() {
                     </div>
                     <div style={{ font: '11.5px/1.5 Helvetica,Arial,sans-serif', color: 'var(--muted)', marginTop: 3, overflowWrap: 'anywhere' }}>{meta}</div>
                   </div>
-                  <RemoveButton onClick={() => { if (confirm('"' + (r.title || 'Referans') + '" silinsin mi?')) updC(cc => cc.references.splice(i, 1)); }} />
+                  <RemoveButton onClick={() => removeC('referans', cc => cc.references.splice(i, 1))} />
                 </div>
               );
             })}

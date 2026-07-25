@@ -1,7 +1,7 @@
 import React from 'react';
 import { useStore, verMeta } from '../lib/store.jsx';
 import { FISHBONE_CATS, WHY_PLACEHOLDERS } from '../lib/defaults.js';
-import { Card, GuidanceBox, MethodBox, AddButton, RemoveButton, VerifyBadge, YZButton, Badge, S } from '../ui/primitives.jsx';
+import { Card, GuidanceBox, MethodBox, AddButton, RemoveButton, VerifyBadge, YZButton, Badge, S, useNarrow } from '../ui/primitives.jsx';
 
 const QUESTIONS = [
   'Bu sapmalar neden oluşuyor? (5 kez "neden?" sordum mu?)',
@@ -14,8 +14,9 @@ const QUESTIONS = [
 ];
 
 export default function Step5RootCause() {
-  const { c, principles, updC, inp, fieldHelp } = useStore();
+  const { c, principles, updC, inp, fieldHelp, removeC } = useStore();
   const aiReady = (c.problem.statement || '').trim().length > 0;
+  const narrow = useNarrow();
   const fbTop = FISHBONE_CATS.slice(0, 3);
   const fbBottom = FISHBONE_CATS.slice(3);
   const hasFbDiagram = Object.values(c.fishbone).some(v => (v || '').trim());
@@ -48,7 +49,7 @@ export default function Step5RootCause() {
         <div style={{ ...S.cardTitle, margin: '0 0 4px' }}>Balık Kılçığı (Ishikawa)</div>
         <div style={S.cardSub}>Olası nedenleri kategorilere göre listeleyin.</div>
         <MethodBox margin="0 0 14px">Ishikawa (balık kılçığı) diyagramı olası nedenleri kategorilere ayırarak beyin fırtınasını yapılandırır; 5 Neden analiziyle birlikte kullanılır.</MethodBox>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: narrow ? '1fr' : '1fr 1fr', gap: 12 }}>
           {FISHBONE_CATS.map(f => (
             <div key={f.key}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, margin: '0 0 6px' }}>
@@ -111,7 +112,7 @@ export default function Step5RootCause() {
                     style={{ ...S.textarea, flex: 1, width: 'auto', minHeight: 52 }}
                   />
                   {aiReady ? <YZButton onClick={() => fieldHelp('Kök neden KN' + (i + 1), (rc.text || '') + (rc.competency ? ' | Yetkinlik gelişim alanı: ' + rc.competency : ''))} title="YZ'den bu kök neden için yardım al" /> : null}
-                  <RemoveButton onClick={() => updC(cc => cc.rootCauses.splice(i, 1))} />
+                  <RemoveButton onClick={() => removeC('kök neden', cc => cc.rootCauses.splice(i, 1))} />
                 </div>
 
                 <div>

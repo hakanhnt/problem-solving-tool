@@ -21,6 +21,7 @@ function normalize(state) {
   s.aiInput = '';
   s.showSettings = false;
   s.refForm = null;
+  s.undoToast = null;
   s.reportCfg = Object.assign({ company: '', sections: {} }, s.reportCfg || {});
   s.reportCfg.sections = Object.assign({ tanim: true, driver: true, analiz: true, bulgu: true, kok: true, karar: true, izleme: true, dusunme: true, referans: true }, s.reportCfg.sections);
   s.aiSettings = Object.assign({
@@ -113,6 +114,37 @@ export function StoreProvider({ children }) {
 
   const inp = useCallback((...path) => e => setC(path, e.target.value), [setC]);
 
+  // ---- Geri al (undo) -------------------------------------------------------
+  // Yıkıcı işlemler (silme, üzerine yazma) öncesinde vakanın anlık görüntüsü alınır.
+  // Yığın oturuma özgüdür (kalıcı değildir); Ctrl+Z ya da alttaki bildirim geri alır.
+
+  const undoRef = useRef([]);
+  const toastTimer = useRef(null);
+
+  const removeC = useCallback((label, fn) => {
+    const s = stateRef.current;
+    const eff = effCase(s);
+    undoRef.current.push({ eff, label, snap: structuredClone(s.cases[eff]) });
+    if (undoRef.current.length > 15) undoRef.current.shift();
+    upd(n => { fn(n.cases[effCase(n)]); n.undoToast = { label, id: Date.now() }; });
+    clearTimeout(toastTimer.current);
+    toastTimer.current = setTimeout(() => {
+      upd(n => { n.undoToast = null; });
+    }, 6000);
+  }, [upd, effCase]);
+
+  const undoLast = useCallback(() => {
+    const entry = undoRef.current.pop();
+    if (!entry) return;
+    clearTimeout(toastTimer.current);
+    upd(n => {
+      if (n.cases[entry.eff]) n.cases[entry.eff] = entry.snap;
+      n.undoToast = null;
+    });
+  }, [upd]);
+
+  const canUndo = useCallback(() => undoRef.current.length > 0, []);
+
   const principlesOf = s => (Array.isArray(s.principles) && s.principles.length) ? s.principles : defaultPrinciples();
 
   // Analiz derinliği token bütçesini ölçekler; üst sınır köprünün kabul ettiği tavandır.
@@ -203,6 +235,19 @@ export function StoreProvider({ children }) {
   }, [effCase, runCoach]);
 
   const applyCoachItem = useCallback((step, idx) => {
+    // Üzerine yazan öneriler (ifade / karar) geri alınabilsin
+    const s0 = stateRef.current;
+    const eff0 = effCase(s0);
+    const cur = s0.cases[eff0];
+    const it0 = cur.coach && cur.coach[step] && cur.coach[step].items[idx];
+    if (it0 && !it0.added) {
+      const overwritesStatement = it0.kind === 'statement' && (cur.problem.statement || '').trim();
+      const overwritesDecision = it0.kind === 'decision' && ((cur.decision.choice || '').trim() || (cur.decision.rationale || '').trim());
+      if (overwritesStatement || overwritesDecision) {
+        undoRef.current.push({ eff: eff0, label: overwritesStatement ? 'önceki problem ifadesi' : 'önceki karar taslağı', snap: structuredClone(cur) });
+        if (undoRef.current.length > 15) undoRef.current.shift();
+      }
+    }
     updC(cc => {
       const it = cc.coach && cc.coach[step] && cc.coach[step].items[idx];
       if (!it || it.added) return;
@@ -487,11 +532,11 @@ export function StoreProvider({ children }) {
     state, eff, c: state.cases[eff], step: state.step,
     principles: principlesOf(state),
     mainRef,
-    upd, updC, setC, inp, goStep, toggleTheme,
+    upd, updC, setC, inp, goStep, toggleTheme, removeC, undoLast, canUndo,
     ensureCoach, runCoach, applyCoachItem, coachRefresh,
     runDecisionCoach, runActionCoach, runAudit, runBiasScan, runReportSummary,
     askAi, fieldHelp, addReference
-  }), [state, eff, upd, updC, setC, inp, goStep, toggleTheme, ensureCoach, runCoach, applyCoachItem, coachRefresh, runDecisionCoach, runActionCoach, runAudit, runBiasScan, runReportSummary, askAi, fieldHelp, addReference]);
+  }), [state, eff, upd, updC, setC, inp, goStep, toggleTheme, removeC, undoLast, canUndo, ensureCoach, runCoach, applyCoachItem, coachRefresh, runDecisionCoach, runActionCoach, runAudit, runBiasScan, runReportSummary, askAi, fieldHelp, addReference]);
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useStore } from './lib/store.jsx';
 import { parseShareHash } from './lib/share.js';
 import SharedView from './components/SharedView.jsx';
@@ -15,13 +15,33 @@ import Step5RootCause from './steps/Step5RootCause.jsx';
 import Step6Countermeasures from './steps/Step6Countermeasures.jsx';
 import Step7Tracking from './steps/Step7Tracking.jsx';
 import Step8Report from './steps/Step8Report.jsx';
-import { HButton } from './ui/primitives.jsx';
+import { HButton, useNarrow } from './ui/primitives.jsx';
 
 const STEP_VIEWS = [Step1Problem, Step2Drivers, Step3Analysis, Step4Findings, Step5RootCause, Step6Countermeasures, Step7Tracking, Step8Report];
 
 export default function App() {
-  const { c, step, mainRef, goStep } = useStore();
+  const { state, c, step, mainRef, goStep, undoLast } = useStore();
   const [shared, setShared] = useState(() => parseShareHash(location.hash));
+  const narrow = useNarrow();
+  const [drawer, setDrawer] = useState(false);
+
+  // Klavye kısayolları: Ctrl/Cmd+Z geri al, Ctrl/Cmd+←/→ adım gezinme.
+  // Yazı alanlarında tarayıcının kendi geri alması bozulmaz.
+  useEffect(() => {
+    const onKey = e => {
+      const t = e.target;
+      const typing = t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable);
+      if (!(e.ctrlKey || e.metaKey)) return;
+      if (e.key.toLowerCase() === 'z' && !typing && !e.shiftKey) { e.preventDefault(); undoLast(); }
+      if (e.key === 'ArrowRight' && !typing) { e.preventDefault(); goStep(Math.min(8, stepRef.current + 1)); }
+      if (e.key === 'ArrowLeft' && !typing) { e.preventDefault(); goStep(Math.max(1, stepRef.current - 1)); }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  const stepRef = React.useRef(step);
+  stepRef.current = step;
   const StepView = STEP_VIEWS[step - 1];
   const aiReady = (c.problem.statement || '').trim().length > 0;
 
@@ -46,11 +66,37 @@ export default function App() {
   };
 
   return (
-    <div data-app-root="1" style={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
-      <Sidebar />
+    <div data-app-root="1" style={{ display: 'flex', flexDirection: narrow ? 'column' : 'row', height: '100vh', overflow: 'hidden' }}>
+      {narrow ? (
+        <div data-noprint="1" style={{ flex: 'none', display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', background: 'var(--surface)', borderBottom: '1px solid var(--line-strong)' }}>
+          <HButton
+            onClick={() => setDrawer(true)}
+            aria-label="Menüyü aç"
+            style={{ flex: 'none', width: 38, height: 38, border: '1px solid var(--field-border)', borderRadius: 8, background: 'var(--surface)', color: 'var(--ink-3)', font: '18px/1 Helvetica,Arial,sans-serif', cursor: 'pointer' }}
+            hover={{ background: 'var(--surface-4)' }}
+          >☰</HButton>
+          <div style={{ minWidth: 0 }}>
+            <div style={{ font: '700 13.5px/1.3 Helvetica,Arial,sans-serif', color: 'var(--ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{STEPS[step - 1].title}</div>
+            <div style={{ font: '10.5px/1.3 Helvetica,Arial,sans-serif', color: 'var(--muted)' }}>Adım {step}/8 · {c.name || 'Çalışma'}</div>
+          </div>
+        </div>
+      ) : null}
+
+      {narrow ? (
+        drawer ? (
+          <div data-noprint="1" style={{ position: 'fixed', inset: 0, zIndex: 55 }}>
+            <div onClick={() => setDrawer(false)} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,.45)' }} />
+            <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, boxShadow: '4px 0 24px rgba(0,0,0,.25)', display: 'flex' }}>
+              <Sidebar onNavigate={() => setDrawer(false)} />
+            </div>
+          </div>
+        ) : null
+      ) : (
+        <Sidebar />
+      )}
 
       <main ref={mainRef} data-main="1" style={{ flex: 1, overflow: 'auto' }}>
-        <div style={{ maxWidth: 880, margin: '0 auto', padding: '34px 44px 90px' }}>
+        <div style={{ maxWidth: 880, margin: '0 auto', padding: narrow ? '20px 16px 90px' : '34px 44px 90px' }}>
           <div data-noprint="1" style={{ font: '700 11px Helvetica,Arial,sans-serif', color: 'var(--muted)', letterSpacing: '1px' }}>
             ADIM {step} / 8 · {c.name || 'Çalışma'}
           </div>
@@ -79,6 +125,17 @@ export default function App() {
           </div>
         </div>
       </main>
+
+      {state.undoToast ? (
+        <div data-noprint="1" style={{ position: 'fixed', left: '50%', bottom: 22, transform: 'translateX(-50%)', zIndex: 70, display: 'flex', gap: 10, alignItems: 'center', background: 'var(--ink)', color: 'var(--bg)', borderRadius: 10, padding: '10px 14px', boxShadow: '0 8px 26px rgba(0,0,0,.3)' }}>
+          <span style={{ font: '600 12.5px Helvetica,Arial,sans-serif' }}>Silindi: {state.undoToast.label}</span>
+          <HButton
+            onClick={undoLast}
+            style={{ flex: 'none', padding: '6px 12px', border: 'none', borderRadius: 7, background: 'var(--pri-bar)', color: 'var(--ink)', font: '700 12px Helvetica,Arial,sans-serif', cursor: 'pointer' }}
+            hover={{ background: 'var(--pri-border)' }}
+          >Geri al (Ctrl+Z)</HButton>
+        </div>
+      ) : null}
 
       <SettingsModal />
     </div>

@@ -49,6 +49,8 @@ kök neden dış paydaşta aranır. Bu araç akışı disipline eder ve her adı
 | **Döngüyü kapatır** | Aksiyon durumu + KPI trendi; hedefe kapanmıyorsa analize geri döndürür (PDCA). |
 | **Paylaşılabilir çıktı** | Tek sayfa rapor: yönetici özeti, seçilebilir bölümler, yazdır/PDF. |
 | **Aydınlık / karanlık tema** | İlk açılışta sistem tercihini izler, kenar çubuğundaki anahtarla değiştirilir; yazdırma her zaman açık temadır. |
+| **Paylaşım linki** | Çalışma sıkıştırılıp URL'ye gömülür (sunucusuz); alıcı salt-okunur raporu görür, isterse kopyalayıp düzenler. |
+| **Mobil uyumlu** | Dar ekranda kenar çubuğu çekmeceye dönüşür; Gemba'da telefondan kullanılabilir. |
 
 Birden çok çalışma (vaka) aynı anda yürütülebilir; silinen çalışma geri alınabilir; tüm veri
 JSON olarak dışa/içe aktarılabilir.
@@ -64,7 +66,7 @@ JSON olarak dışa/içe aktarılabilir.
 | 5 | **Kök Neden Analizi** | 5 Neden zinciri, balık kılçığı (diyagramıyla), kök neden ↔ prensip ↔ yetkinlik eşleştirmesi |
 | 6 | **Karşı Önlemler ve Karar** | Alternatifler (düşünme yöntemiyle), ağırlıklı karar matrisi, karar öncesi düşünme kontrolü, karar, aksiyon planı (etki/efor önceliklendirme) |
 | 7 | **İzleme ve Retrospektif** | Aksiyon durumu, KPI trend grafiği, dört soruluk retrospektif |
-| 8 | **Çalışma Raporu** | Yönetici özeti, tutarlılık denetimi, bölüm seçimi, yazdır/PDF |
+| 8 | **Çalışma Raporu** | Yönetici özeti, tutarlılık denetimi, karar matrisi tablosu + KPI trend grafiği, bölüm seçimi, yazdır/PDF, paylaşım linki |
 
 ![Adım 5 — balık kılçığı diyagramı ve kök neden ↔ prensip eşleştirmesi](docs/screenshots/readme-02-fishbone.png)
 
@@ -264,9 +266,9 @@ parametresiyle taşınır.
 ## Bilinen sınırlar
 
 - Veri kullanıcının tarayıcısındadır — çok kullanıcılı eşzamanlı çalışma yoktur. Paylaşım
-  PDF raporu ya da JSON dışa/içe aktarma ile yapılır.
-- Referans dosyası olarak `.txt` / `.md` desteklenir; PDF/Word için metni kopyalayıp
-  "Not ekle" ile yapıştırmak gerekir.
+  salt-okunur paylaşım linki, PDF raporu ya da JSON dışa/içe aktarma ile yapılır.
+- Referans dosyası olarak `.txt`, `.md`, `.pdf` ve `.docx` desteklenir (çıkarım tarayıcıda);
+  taranmış/görüntü PDF'lerde OCR yoktur — metni kopyalayıp "Not ekle" ile yapıştırın.
 - Yanılgı taraması ve tutarlılık denetimi hipotez üretir; nihai değerlendirme kullanıcınındır.
 - Arayüz yalnızca Türkçedir.
 

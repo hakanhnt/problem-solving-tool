@@ -30,7 +30,7 @@ function stepDone(c, n) {
   return !!((c.report && (c.report.text || '').trim()) || (c.audit && (c.audit.text || '').trim()));
 }
 
-export default function Sidebar() {
+export default function Sidebar({ onNavigate }) {
   const { state, eff, c, step, upd, goStep, ensureCoach, toggleTheme } = useStore();
   const doneSteps = [1, 2, 3, 4, 5, 6, 7, 8].filter(n => stepDone(c, n));
   const doneCount = doneSteps.length;
@@ -38,7 +38,7 @@ export default function Sidebar() {
   const caseKeys = Object.keys(state.cases);
   caseKeys.sort((a, b) => (a === 'ornek' ? -1 : b === 'ornek' ? 1 : 0));
 
-  const selectCase = k => { upd(n => { n.activeCase = k; }); setTimeout(() => ensureCoach(), 60); };
+  const selectCase = k => { upd(n => { n.activeCase = k; }); setTimeout(() => ensureCoach(), 60); if (onNavigate) onNavigate(); };
 
   const renameCase = k => {
     const name = prompt('Çalışmanın yeni adı:', state.cases[k].name || '');
@@ -167,7 +167,7 @@ export default function Sidebar() {
           return (
             <div
               key={n}
-              onClick={() => goStep(n)}
+              onClick={() => { goStep(n); if (onNavigate) onNavigate(); }}
               style={{ display: 'flex', gap: 10, alignItems: 'flex-start', padding: 10, borderRadius: 8, cursor: 'pointer', background: active ? 'var(--pri-soft)' : 'transparent' }}
             >
               <div style={{
@@ -244,7 +244,7 @@ export default function Sidebar() {
           </span>
         </HButton>
         <HButton
-          onClick={() => upd(n => { n.showSettings = true; })}
+          onClick={() => { upd(n => { n.showSettings = true; }); if (onNavigate) onNavigate(); }}
           style={{ padding: '8px 10px', border: '1px solid var(--field-border)', borderRadius: 6, background: 'var(--surface)', color: 'var(--ink-3)', font: '600 12px Helvetica,Arial,sans-serif', cursor: 'pointer', textAlign: 'left' }}
           hover={{ background: 'var(--surface-4)' }}
         >⚙ Ayarlar · Kurum prensipleri</HButton>

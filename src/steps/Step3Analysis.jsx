@@ -20,7 +20,7 @@ const SIPOC_COLS = [
 const GRID = '1fr 1.3fr 1.3fr 1.1fr 1fr 52px';
 
 export default function Step3Analysis() {
-  const { c, updC, inp, fieldHelp } = useStore();
+  const { c, updC, inp, fieldHelp, removeC } = useStore();
   const aiReady = (c.problem.statement || '').trim().length > 0;
 
   return (
@@ -46,7 +46,7 @@ export default function Step3Analysis() {
                     style={{ ...S.textarea, flex: 1.4, width: 'auto', minHeight: 58 }}
                   />
                   {aiReady ? <YZButton onClick={() => fieldHelp('Driver alt bileşen analizi ' + (i + 1), [d.driver, d.component, d.issue].filter(Boolean).join(' | '))} /> : null}
-                  <RemoveButton onClick={() => updC(cc => cc.driverAnalysis.splice(i, 1))} />
+                  <RemoveButton onClick={() => removeC('alt bileşen analizi', cc => cc.driverAnalysis.splice(i, 1))} />
                 </div>
                 <textarea
                   className="pcx-field" value={d.issue} onChange={inp('driverAnalysis', i, 'issue')}
@@ -66,6 +66,8 @@ export default function Step3Analysis() {
         <div style={S.cardSub}>Sorunlu süreç adımları için Tedarikçi → Girdi → Süreç → Çıktı → Müşteri zincirini doldurun.</div>
         <MethodBox margin="0 0 14px">SIPOC — süreci Tedarikçi → Girdi → Süreç → Çıktı → Müşteri zinciri olarak gösterir; özellikle girdi kalitesindeki bozuklukları görünür kılar.</MethodBox>
 
+        <div style={{ overflowX: 'auto' }}>
+        <div style={{ minWidth: 640 }}>
         <div style={{ display: 'grid', gridTemplateColumns: GRID, gap: 8, margin: '0 0 8px' }}>
           {SIPOC_COLS.map(col => (
             <div key={col.key} style={{ font: '700 11px Helvetica,Arial,sans-serif', color: 'var(--ink-3)', letterSpacing: '.4px' }}>{col.head[0]}<br />{col.head[1]}</div>
@@ -84,11 +86,13 @@ export default function Step3Analysis() {
               ))}
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'center', paddingTop: 4 }}>
                 {aiReady ? <YZButton onClick={() => fieldHelp('SIPOC satırı ' + (i + 1), [r.s, r.i, r.p, r.o, r.c].filter(Boolean).join(' | '))} title="YZ'den bu satır için yardım al" /> : null}
-                <RemoveButton onClick={() => updC(cc => cc.sipoc.splice(i, 1))} style={{ font: '600 11px Helvetica,Arial,sans-serif' }} />
+                <RemoveButton onClick={() => removeC('SIPOC satırı', cc => cc.sipoc.splice(i, 1))} style={{ font: '600 11px Helvetica,Arial,sans-serif' }} />
               </div>
             </div>
           ))}
           <AddButton onClick={() => updC(cc => cc.sipoc.push({ s: '', i: '', p: '', o: '', c: '' }))}>+ SIPOC satırı ekle</AddButton>
+        </div>
+        </div>
         </div>
       </Card>
     </div>
