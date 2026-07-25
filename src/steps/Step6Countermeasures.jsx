@@ -1,14 +1,47 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useStore, prioMeta } from '../lib/store.jsx';
 import { THINKING_METHODS } from '../lib/defaults.js';
+import { THINKING_METHOD_INFO } from '../lib/thinking.js';
 import { decisionMatrix } from '../lib/derive.js';
+import ThinkingCheck from '../components/ThinkingCheck.jsx';
 import { Card, CardHead, GuidanceBox, MethodBox, AddButton, RemoveButton, YZButton, Badge, HButton, Spinner, S } from '../ui/primitives.jsx';
+
+/**
+ * Seçilen düşünme yönteminin karşı çalıştığı yanılgı ve ekip soruları.
+ * Kaynak: "Düşünme Yöntemlerine Göre Güçlü Ekip Soruları" kurum dokümanı.
+ */
+function MethodQuestions({ method }) {
+  const [open, setOpen] = useState(false);
+  const info = THINKING_METHOD_INFO[method];
+  if (!info) return null;
+  return (
+    <div style={{ background: '#f2f6fb', border: '1px solid #d8e2ee', borderRadius: 8, padding: '9px 12px' }}>
+      <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+        <span style={{ font: '11.5px/1.5 Helvetica,Arial,sans-serif', color: '#3e4a5a', flex: 1, minWidth: 200 }}>
+          Bu yöntem <strong>{info.bias}</strong> yanılgısına karşı çalışır · {info.amac}
+        </span>
+        <HButton
+          onClick={() => setOpen(!open)}
+          style={{ flex: 'none', padding: '5px 10px', border: '1px solid #b9cbe0', borderRadius: 6, background: '#fff', color: '#35506e', font: '600 11px Helvetica,Arial,sans-serif', cursor: 'pointer' }}
+          hover={{ background: '#e3ecf5' }}
+        >{open ? 'Soruları gizle' : 'Ekibe sorulacak ' + info.sorular.length + ' soru'}</HButton>
+      </div>
+      {open ? (
+        <ul style={{ margin: '8px 0 0', padding: '0 0 0 18px', display: 'flex', flexDirection: 'column', gap: 4 }}>
+          {info.sorular.map((q, i) => <li key={i} style={{ font: '12px/1.5 Helvetica,Arial,sans-serif', color: '#3e4a5a' }}>{q}</li>)}
+        </ul>
+      ) : null}
+    </div>
+  );
+}
 
 const QUESTIONS = [
   'Nasıl çözeceğiz, ne yapacağız? Yerine göre doğru düşünme yöntemlerini kullanarak alternatifler ürettim mi?',
   'Kısıtları ve riskleri dikkate alarak karar kriterlerini belirledim mi?',
   'Alternatifleri kriterlere göre yarıştırdım mı?',
-  'Seçtiğim çözüm kök nedeni mi gideriyor, yoksa sadece belirtiyi mi?'
+  'Seçtiğim çözüm kök nedeni mi gideriyor, yoksa sadece belirtiyi mi?',
+  'İlk aklıma gelen çözüme mi çapalandım — en az iki gerçek alternatif ürettim mi? (çapa etkisi)',
+  'Bu seçeneği geleceğe bakarak mı, yoksa geçmişteki yatırımı savunmak için mi tutuyorum? (batık maliyet)'
 ];
 
 export default function Step6Countermeasures() {
@@ -52,6 +85,7 @@ export default function Step6Countermeasures() {
                   {THINKING_METHODS.map(m => <option key={m} value={m}>{m}</option>)}
                 </select>
               </div>
+              <MethodQuestions method={a.method} />
               <textarea
                 className="pcx-field" value={a.note} onChange={inp('alternatives', i, 'note')}
                 placeholder="Nasıl uygulanır, hangi kısıt/riskleri var?"
@@ -134,6 +168,9 @@ export default function Step6Countermeasures() {
           ) : null}
         </Card>
       ) : null}
+
+      {/* Karar öncesi düşünme kontrolü */}
+      <ThinkingCheck />
 
       {/* Karar */}
       <Card>

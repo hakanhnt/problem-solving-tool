@@ -1,6 +1,7 @@
 import React from 'react';
 import { useStore, prioMeta } from '../lib/store.jsx';
 import { gapInfo, decisionMatrix } from '../lib/derive.js';
+import { PRE_DECISION_QUESTIONS } from '../lib/thinking.js';
 import { HButton, Spinner, S } from '../ui/primitives.jsx';
 
 const SECTION_CHIPS = [
@@ -10,6 +11,7 @@ const SECTION_CHIPS = [
   { key: 'bulgu', label: 'Bulgular' },
   { key: 'kok', label: 'Kök neden' },
   { key: 'karar', label: 'Alternatifler + karar' },
+  { key: 'dusunme', label: 'Düşünme kontrolü' },
   { key: 'referans', label: 'Referanslar' }
 ];
 
@@ -46,6 +48,9 @@ export default function Step8Report() {
   const alts = c.alternatives.filter(a => (a.name || '').trim());
   const actions = (c.actions || []).filter(a => (a.text || '').trim());
   const refs = c.references || [];
+  const th = c.thinking || {};
+  const thinkingRows = PRE_DECISION_QUESTIONS.filter(q => (th[q.key] || '').trim());
+  const scanItems = (c.biasScan && c.biasScan.status === 'done' && (c.biasScan.items || [])) || [];
 
   return (
     <div>
@@ -274,6 +279,31 @@ export default function Step8Report() {
                     </div>
                   );
                 })}
+              </div>
+            </div>
+          ) : null}
+
+          {(thinkingRows.length || scanItems.length) && on('dusunme') ? (
+            <div>
+              <div style={secTitle}>DÜŞÜNME KONTROLÜ</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {thinkingRows.map(q => (
+                  <div key={q.key}>
+                    <div style={{ font: '600 12.5px/1.5 Helvetica,Arial,sans-serif', color: '#35506e' }}>{q.title}</div>
+                    <div style={body}>{th[q.key]}</div>
+                  </div>
+                ))}
+                {scanItems.length ? (
+                  <div style={{ marginTop: 2 }}>
+                    <div style={{ font: '600 12.5px/1.5 Helvetica,Arial,sans-serif', color: '#35506e', margin: '0 0 3px' }}>Tespit edilen düşünme yanılgıları</div>
+                    {scanItems.map((it, i) => (
+                      <div key={i} style={{ font: '12.5px/1.55 Helvetica,Arial,sans-serif', color: '#26241f' }}>
+                        <strong>{it.yanilgi}</strong>{it.yontem ? <span style={{ color: '#8a857c' }}> (panzehir: {it.yontem})</span> : null}
+                        {it.soru ? <span style={{ color: '#57534b' }}> — {it.soru}</span> : null}
+                      </div>
+                    ))}
+                  </div>
+                ) : null}
               </div>
             </div>
           ) : null}

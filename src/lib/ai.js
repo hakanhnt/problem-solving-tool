@@ -2,6 +2,12 @@
 // ve tüm sistem talimatı / görev şeması üreticileri.
 
 import { AGENT_TITLES } from './defaults.js';
+import { BIASES, THINKING_METHOD_INFO } from './thinking.js';
+
+/** Sistem talimatına eklenen yöntem ↔ yanılgı eşleşmesi (kurum dokümanı). */
+const BIAS_RULE = '\n\nDÜŞÜNME YANILGILARI FARKINDALIĞI — kurum dokümanına göre her sağlıklı düşünme yöntemi belirli bir bilişsel yanılgıya karşı denge mekanizmasıdır: '
+  + Object.keys(THINKING_METHOD_INFO).map(k => k + ' → ' + THINKING_METHOD_INFO[k].bias).join('; ')
+  + '. Kullanıcının girdilerinde bu yanılgıların izini görürsen (tek nedene indirgeme, ilk fikre çapalanma, yalnız kendini doğrulayan veri, "bu kadar yatırım yaptık" savunması, saha yerine varsayım, sonuca bakıp kararı doğru sayma) bunu nazikçe ama açıkça adıyla söyle ve panzehir yöntemin sorusunu sor. Yanılgıyı kişisel bir zayıflık gibi değil, herkeste çalışan sistematik bir zihin eğilimi olarak anlat.';
 
 /**
  * Sağlayıcı katmanı.
@@ -323,6 +329,7 @@ export function buildSystem(step, c, aiSettings, principles) {
     problemTanimi: c.problem, driverlar: c.drivers, driverAnalizi: c.driverAnalysis, sipoc: c.sipoc,
     bulgular: c.findings, besNeden: c.whys, balikKilcigi: c.fishbone,
     kokNedenler: (c.rootCauses || []).map(r => ({ kokNeden: r.text, iliskiliPrensipler: (r.principles || []).map(pi => (pi + 1) + '. ' + (PR[pi] || '')), yetkinlikGelisimAlani: r.competency })),
+    kararOncesiDusunmeKontrolu: c.thinking || {},
     alternatifler: c.alternatives, kararKriterleri: c.criteria, matrisPuanlari: c.scores, karar: c.decision,
     aksiyonPlani: c.actions || [],
     izleme: { kpiOlcumleri: c.tracking || [], retrospektif: c.retro || {} }
@@ -343,6 +350,7 @@ export function buildSystem(step, c, aiSettings, principles) {
     : '\nEleştirellik: yapıcı ve nazik — eksikleri belirt ama cesaret kırma.';
   if (S.depth === 'genis') extra += '\nAnaliz derinliği: GENİŞ — aday sayısını üst sınırda tut, her maddeye kısa bir gerekçe ekle, gözden kaçan alanları da tara.';
   if (S.depth === 'derin') extra += '\nAnaliz derinliği: DERİN — mümkün olan en kapsamlı analizi yap: her madde için gerekçe, hangi veriyle doğrulanacağı ve sınama sorusu ver; birbiriyle yarışan alternatif yorumları belirt; zayıf halkaları ve riskleri açıkça işaretle. Uzunluktan çekinme, ama dolgu cümlesi yazma — her cümle bilgi taşısın.';
+  extra += BIAS_RULE;
   return 'Sen "' + AGENT_TITLES[step - 1] + '" rolünde, kabul görmüş problem çözme ve karar verme metodolojisinde uzman bir koçsun. Metodoloji alan bağımsızdır: kullanıcının problemi lojistik, tedarik, pazarlama, satış, e-ticaret, teknoloji/BT, operasyon, mağazacılık, İK, finans veya başka herhangi bir alanda olabilir — örneklerini ve sorularını kullanıcının kendi alanına uyarla, ürün/ithalat varsayımı yapma. Kullanıcı 6 adımlı akışta (1 Problem Tanımı, 2 Business Driver Haritalama, 3 Driver Analizi, 4 Problem Bulguları, 5 Kök Neden Analizi, 6 Karşı Önlemler ve Karar) kendi iş problemini çalışıyor; şu anda Adım ' + step + ' üzerinde.\n\nKurallar:\n- Türkçe, kısa, net ve madde işaretli yaz; başlık ve numaralı maddeler kullanabilirsin ama markdown yıldızı yerine sade metin tercih et.\n- Problem, problem bulgusu ve kök neden farklı şeylerdir; karışıklık görürsen açıkça düzelt.\n- 1-4. adımlarda çözüm önerme; doğru soruları sordurarak koçluk et.\n- Kök neden adımında nedeni dışarıda (paydaşta, üreticide) değil, önce kullanıcının kendi yetkinliklerinde ve kurum prensiplerindeki gelişim alanlarında aramasına yardım et.\n- Somut ol: kullanıcının verisindeki ifadelere atıf yap; eksik, zayıf veya çelişkili yerleri açıkça belirt.\n- Cevabının sonunda kullanıcının kendine veya paydaşlarına sorması gereken 2-3 doğru soruyu öner.\n\nBu adımın odağı: ' + FOCUS[step - 1] + '\n\nKullanıcının mevcut çalışma verisi (JSON):\n' + JSON.stringify(data) + extra + buildRefBlock(c);
 }
 
@@ -409,6 +417,10 @@ export const ACTION_COACH_TASK = '\n\nŞimdi koçluk sohbeti DEĞİL, uygulanabi
 export const DECISION_COACH_TASK = '\n\nŞimdi koçluk sohbeti DEĞİL, karar önerisi üretiyorsun. Kullanıcının alternatiflerini, karar kriterlerini ve matris puanlarını değerlendirerek en doğru kararı öner. Gerekçe, kararın hangi kök nedeni nasıl giderdiğini ve kısıt/riskleri nasıl karşıladığını açıklamalı; alternatiflere (A1, A2…) atıf yap. Matris puanları varsa dikkate al ama körü körüne izleme; akıl yürüt. SADECE geçerli tek bir JSON nesnesi döndür: {"oneri":"önerilen karar","gerekce":"kök nedenle ilişkilendirilmiş gerekçe"}';
 
 export const AUDIT_TASK = '\n\nŞimdi TUTARLILIK DENETÇİSİsin. Vakayı uçtan uca denetle ve zincir kopukluklarını raporla: (1) problem ifadesi ↔ driver\'lar ↔ bulgular ↔ kök nedenler ↔ karar ↔ aksiyonlar zinciri nerede kopuyor; (2) hiçbir kök nedene bağlanmayan bulgular, hiçbir bulguya dayanmayan kök nedenler; (3) 5 Neden zincirindeki mantık sıçramaları; (4) karar kök nedenleri gerçekten adresliyor mu, belirti tedavisi var mı; (5) aksiyonlar kararı ve kök nedenleri kapsıyor mu, sahipsiz kök neden kaldı mı. Atıflarla yaz (B1, KN2, A1...). Kısa, maddeli, düz metin Türkçe rapor; markdown yıldızı kullanma. Ciddi sorun yoksa bunu açıkça söyle. Sadece denetim raporunu döndür.';
+
+export const BIAS_SCAN_TASK = '\n\nŞimdi koçluk sohbeti DEĞİL, DÜŞÜNME YANILGISI TARAMASI yapıyorsun. Kullanıcının tüm çalışma verisini (problem ifadesi, driver\'lar, bulgular, 5 Neden zinciri, kök nedenler, alternatifler, karar gerekçesi, karar öncesi düşünme kontrolü) okuyup hangi bilişsel yanılgıların izini taşıdığını tespit et. Katalog: '
+  + BIASES.map(b => b.ad + ' (' + b.belirti + ' · panzehir: ' + b.panzehir + ')').join(' | ')
+  + '.\n\nKurallar: (1) Her tespiti kullanıcının KENDİ metninden kısa bir alıntıya dayandır — genel geçer uyarı yazma. (2) Kanıt bulamadığın yanılgıyı listeleme; hiç bulamazsan boş dizi döndür ve özet alanında bunu söyle. (3) Her tespit için panzehir yöntemi ve kullanıcının kendine sorması gereken tek bir keskin soru ver. (4) En fazla 5 tespit, en ciddiden başlayarak. SADECE geçerli tek bir JSON nesnesi döndür: {"ozet":"1-2 cümle genel değerlendirme","yanilgilar":[{"yanilgi":"katalogdaki ad","kanit":"kullanıcının metninden alıntı ya da hangi girdide görüldüğü","risk":"bu yanılgı bu vakada neye mal olur","yontem":"panzehir düşünme yöntemi","soru":"tek keskin soru","ciddiyet":"yüksek|orta|düşük"}]}';
 
 export const REPORT_SUMMARY_TASK = '\n\nŞimdi koçluk sohbeti DEĞİL, rapor için yönetici özeti yazıyorsun. Kullanıcının tüm çalışma verisine dayanarak 4-6 cümlelik, düz metin (madde işareti ve başlık YOK) bir yönetici özeti yaz: problem ve KPI farkı, en kritik bulgular, kök neden(ler) ve alınan karar. Veriye dayalı, kısa ve karar odaklı ol; sadece özet metnini döndür, başka hiçbir şey yazma.';
 

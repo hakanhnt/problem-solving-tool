@@ -87,10 +87,11 @@ CASE = { name, problem{statement,geo,time,brand,kpiName,target,actual},
   fishbone{insan,metot,sistem,girdi,olcum,cevre},
   rootCauses[{text,principles[int],competency,…}], alternatives[{name,method,note}],
   criteria[{name,weight}], scores{'ai_ci':val}, decision{choice,rationale},
+  thinking{assume,alt,cost},                  // karar öncesi düşünme kontrolü
   actions[{text,owner,due,etki,efor,status}], tracking[{label,value}],
   retro{valid,worked,lessons}, references[{id,title,type,url,text,summary,…}],
   ai{step:[msg]}, coach{step:{status,intro,items,questions,errMsg}},
-  decisionCoach{…}, actionCoach{…}, audit{…}, report{…} }
+  decisionCoach{…}, actionCoach{…}, audit{…}, biasScan{…}, report{…} }
 ```
 
 Kurallar: `ornek` vakası silinemez/yeniden adlandırılamaz ("sıfırla" ile ilk haline döner);
@@ -111,6 +112,20 @@ tarayıcı isteklerine CORS izni vermesi gerekir (Ollama için `OLLAMA_ORIGINS=*
 
 Abonelik hesapları (Claude Pro/Max, ChatGPT Plus) üçüncü taraf uygulamalara açılmadığı için
 desteklenmez; kredi/anahtar tabanlı servisler ya da kurumsal ağ geçitleri bu yolla kullanılır.
+
+### Düşünme yöntemleri ve bilişsel yanılgılar
+
+`src/lib/thinking.js`, kurum dokümanlarından ("Düşünme Yöntemlerine Göre Güçlü Ekip Soruları",
+"Düşünme Yanılgıları") türetilmiş bilgi tabanıdır: 7 yöntem × 5 ekip sorusu + karşı çalıştığı
+yanılgı, meta katman soruları, karar öncesi üç soru, yanılgı kataloğu ve toplantı mikro
+müdahaleleri. Kullanıldığı yerler:
+
+- **Adım 6 · alternatifler** — yöntem seçilince yanılgı eşleşmesi ve 5 ekip sorusu açılır
+- **Adım 6 · Karar Öncesi Düşünme Kontrolü** (`ThinkingCheck.jsx`) — üç soru + `runBiasScan()`
+  yanılgı taraması + farkındalık ve toplantı hamleleri
+- **Sistem talimatı** — `BIAS_RULE` tüm YZ akışlarına yöntem↔yanılgı eşleşmesini ekler
+- **Rehber kutuları** — 4, 5 ve 6. adımlara yanılgı karşıtı sorular eklendi
+- **Rapor** — "Düşünme kontrolü" bölüm çipi
 
 ### Model üretim ayarları
 

@@ -8,7 +8,9 @@ const QUESTIONS = [
   'Kök nedeni dışarıda, paydaşta, ekipte aramak yerine önce kendimizde aradık mı?',
   'Ben neyi farklı yapsaydım bu sonuç olmazdı?',
   'Bu sonuç hangi liderlik/mesleki yetkinlik eksikliğimizden ya da hangi kabul, varsayım veya inancımızdan kaynaklanmış olabilir?',
-  'Hangi kurum prensibinde gelişim alanımız var?'
+  'Hangi kurum prensibinde gelişim alanımız var?',
+  'Bu sonucu tek bir nedene ya da tek bir kişiye bağlayarak neyi gizliyorum? (aşırı basitleştirme)',
+  'En kolay hatırladığım olay gerçekten en yaygın olan mı, yoksa en akılda kalan mı? (mevcudiyet yanlılığı)'
 ];
 
 export default function Step5RootCause() {

@@ -42,6 +42,7 @@ export function blankCase(name) {
       { name: 'Risk / uygulanabilirlik', weight: '15' }
     ], scores: {},
     decision: { choice: '', rationale: '' },
+    thinking: { assume: '', alt: '', cost: '' },
     actions: [], tracking: [], retro: { valid: '', worked: '', lessons: '' }
   };
 }
@@ -121,6 +122,11 @@ export function exampleCase() {
       { label: "Ağustos", value: "52" }
     ],
     retro: { valid: "", worked: "", lessons: "" },
+    thinking: {
+      assume: "Evrak kalitesinin üreticinin kapasitesiyle ilgili olduğunu varsayıyoruz; oysa beklentiyi hiç yazılı tanımlamadık. İkinci varsayım: transit süre sabit — bunu ölçtük, doğrulandı.",
+      alt: "Gecikmenin kaynağı üretici değil, bizim booking ve onay döngümüz olabilir; ya da tek bir forwarder'ın performansı ortalamayı bozuyor olabilir. İkisi de kırılım bazında test edilmeli.",
+      cost: "Checklist'in bedelini ilk ay ithalat operasyon ekibi (ek kontrol yükü) öder; kontrol kulesi kurulmazsa bedeli 2 çeyrek sonra mağaza bulunurluğu olarak müşteri öder."
+    },
     decision: {
       choice: "A1 ve A2 birlikte uygulanır: evrak checklist'i + emir tekrarı hemen devreye alınır; ara milestone KPI'ları ve haftalık kontrol kulesi 1 ay içinde kurulur. A3 (dijital evrak akışı) orta vadeli pilot olarak planlanır.",
       rationale: "İlk iki alternatif en yüksek ağırlıklı puanı alıyor, düşük maliyetli ve birbirini tamamlıyor: checklist bulgu B2'deki girdi kalitesi sorununu, kontrol kulesi ise kök neden KN1'deki ölçüm/sahiplik boşluğunu doğrudan gideriyor. Hedef: yol süresini 2 çeyrek içinde 50 günün altına, ardından 45 güne indirmek."

@@ -6,7 +6,7 @@ import { STORAGE_KEY, blankCase, exampleCase, defaultPrinciples } from './defaul
 import {
   complete, buildSystem, buildCoachTask, coachItems, parseJsonReply,
   COACH_JSON_RULE, COACH_TEACH_TASK, COACH_FAST_SUFFIX, COACH_DEPTH_SUFFIX, ACTION_COACH_TASK,
-  DECISION_COACH_TASK, AUDIT_TASK, REPORT_SUMMARY_TASK, REF_SUMMARY_SYSTEM
+  DECISION_COACH_TASK, AUDIT_TASK, BIAS_SCAN_TASK, REPORT_SUMMARY_TASK, REF_SUMMARY_SYSTEM
 } from './ai.js';
 
 const Ctx = createContext(null);
@@ -22,7 +22,7 @@ function normalize(state) {
   s.showSettings = false;
   s.refForm = null;
   s.reportCfg = Object.assign({ company: '', sections: {} }, s.reportCfg || {});
-  s.reportCfg.sections = Object.assign({ tanim: true, driver: true, analiz: true, bulgu: true, kok: true, karar: true, referans: true }, s.reportCfg.sections);
+  s.reportCfg.sections = Object.assign({ tanim: true, driver: true, analiz: true, bulgu: true, kok: true, karar: true, dusunme: true, referans: true }, s.reportCfg.sections);
   s.aiSettings = Object.assign({
     provider: 'auto', apiKey: '', model: '', baseUrl: '',
     level: 'dengeli', auto: true, context: '',
@@ -38,6 +38,7 @@ function normalize(state) {
     if (!Array.isArray(cc.tracking)) cc.tracking = [];
     if (!Array.isArray(cc.references)) cc.references = [];
     if (!cc.retro) cc.retro = { valid: '', worked: '', lessons: '' };
+    if (!cc.thinking) cc.thinking = { assume: '', alt: '', cost: '' };
   });
   return s;
 }
@@ -269,6 +270,31 @@ export function StoreProvider({ children }) {
     })();
   }, [upd, effCase, callAi, systemFor]);
 
+  const runBiasScan = useCallback(() => {
+    const s0 = stateRef.current;
+    const eff = effCase(s0);
+    if (s0.cases[eff].biasScan && s0.cases[eff].biasScan.status === 'busy') return;
+    upd(n => { n.cases[eff].biasScan = { status: 'busy', ozet: '', items: [] }; });
+    (async () => {
+      try {
+        const c = stateRef.current.cases[eff];
+        const reply = await callAi({
+          max_tokens: 2200,
+          system: systemFor(6, c) + BIAS_SCAN_TASK,
+          messages: [{ role: 'user', content: 'Çalışmamda hangi düşünme yanılgılarının izi var? Kendi metnimden kanıtlarla göster.' }]
+        });
+        const j = parseJsonReply(reply);
+        const items = (Array.isArray(j.yanilgilar) ? j.yanilgilar : []).map(x => ({
+          yanilgi: String(x.yanilgi || ''), kanit: String(x.kanit || ''), risk: String(x.risk || ''),
+          yontem: String(x.yontem || ''), soru: String(x.soru || ''), ciddiyet: String(x.ciddiyet || 'orta')
+        })).filter(x => x.yanilgi);
+        upd(n => { n.cases[eff].biasScan = { status: 'done', ozet: String(j.ozet || ''), items }; });
+      } catch (e) {
+        upd(n => { n.cases[eff].biasScan = { status: 'error', ozet: '', items: [] }; });
+      }
+    })();
+  }, [upd, effCase, callAi, systemFor]);
+
   const runAudit = useCallback(() => {
     const s0 = stateRef.current;
     const eff = effCase(s0);
@@ -421,9 +447,9 @@ export function StoreProvider({ children }) {
     mainRef,
     upd, updC, setC, inp, goStep,
     ensureCoach, runCoach, applyCoachItem, coachRefresh,
-    runDecisionCoach, runActionCoach, runAudit, runReportSummary,
+    runDecisionCoach, runActionCoach, runAudit, runBiasScan, runReportSummary,
     askAi, fieldHelp, addReference
-  }), [state, eff, upd, updC, setC, inp, goStep, ensureCoach, runCoach, applyCoachItem, coachRefresh, runDecisionCoach, runActionCoach, runAudit, runReportSummary, askAi, fieldHelp, addReference]);
+  }), [state, eff, upd, updC, setC, inp, goStep, ensureCoach, runCoach, applyCoachItem, coachRefresh, runDecisionCoach, runActionCoach, runAudit, runBiasScan, runReportSummary, askAi, fieldHelp, addReference]);
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

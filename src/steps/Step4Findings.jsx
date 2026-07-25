@@ -6,7 +6,8 @@ const QUESTIONS = [
   'Ölçülmüş, kanıtlı sapmalar neler?',
   'Ölçülmüş ve doğrulanmış problem bulguları neler?',
   'Hangi sapmalar verilerle doğrulandı?',
-  'Varsayımları bıraktım mı — her bulgunun bir verisi/kanıtı var mı?'
+  'Varsayımları bıraktım mı — her bulgunun bir verisi/kanıtı var mı?',
+  'Fikrimi doğrulayan veriyi mi topladım, yoksa çürütebilecek veriye de baktım mı? (onaylama yanlılığı)'
 ];
 
 export default function Step4Findings() {
