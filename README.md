@@ -36,9 +36,12 @@ Site ayarlarında tanımlanacak ortam değişkenleri:
 
 Fonksiyonlar:
 
-- `netlify/functions/ai.js` — YZ köprüsü (anahtar sunucuda kalır); sağlayıcıyı 9 sn'de keser
-  ki Netlify'ın 10 sn'lik senkron sınırına takılıp gövdesiz 502 dönmek yerine anlaşılır bir
-  hata üretsin
+- `netlify/edge-functions/ai.js` → **`/api/ai`** — asıl YZ köprüsü. Sağlayıcıyı `stream: true`
+  ile çağırıp SSE akışını olduğu gibi iletir; ilk bayt saniyeler içinde gittiği için
+  serverless fonksiyonların 10 sn'lik senkron sınırı devreye girmez.
+- `netlify/functions/ai.js` — akışsız yedek köprü. "Otomatik" mod önce `/api/ai`'yi dener,
+  ulaşılamazsa (eski deploy, edge kapalı) buraya düşer. Sağlayıcıyı 9 sn'de keserek
+  gövdesiz 502 yerine anlaşılır bir 504 mesajı döndürür.
 - `netlify/functions/fetch-ref.js` — referans linki okuyucu (SSRF korumalı, 8 sn timeout, ilk 20.000 karakter)
 
 > Fonksiyonlar **ESM** yazılmalıdır (`export const handler = …`). Kökteki `package.json`

@@ -10,22 +10,103 @@ import { AGENT_TITLES } from './defaults.js';
  * - openai    : OpenAI (veya uyumlu) chat/completions
  * - anthropic : Anthropic Messages API (tarayıcıdan doğrudan erişim başlığıyla)
  */
+const BRIDGE_HINT = ' — Ayarlar > YZ Sağlayıcı bölümünden kendi API anahtarınızı girebilirsiniz';
+
+/** Köprü uçları yoksa (yerel `vite dev`, eski deploy) bu işaretle fallback tetiklenir. */
+function missing(msg) {
+  const e = new Error(msg);
+  e.bridgeMissing = true;
+  return e;
+}
+
+/**
+ * Akışlı köprü (/api/ai — Netlify Edge Function).
+ * Serverless fonksiyonların 10 sn'lik senkron sınırına takılmamak için yanıt SSE olarak
+ * akar; burada delta'lar birleştirilip tam metin döndürülür.
+ */
+async function streamBridge(opts) {
+  let r;
+  try {
+    r = await fetch('/api/ai', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ system: opts.system, messages: opts.messages, max_tokens: opts.max_tokens || 2000 })
+    });
+  } catch (e) {
+    throw missing('Akışlı köprüye ulaşılamadı');
+  }
+
+  const ct = (r.headers.get('content-type') || '').toLowerCase();
+  if (!ct.includes('text/event-stream') || !r.body) {
+    if (r.ok) throw missing('Akışlı köprü bu ortamda yok');
+    let j = null;
+    try { j = await r.json(); } catch (e) { /* gövde JSON değil */ }
+    if (r.status === 404 || r.status === 405) throw missing('Akışlı köprü bulunamadı');
+    throw new Error((j && j.error) || ('Demo YZ hizmetine ulaşılamadı (HTTP ' + r.status + ')' + BRIDGE_HINT));
+  }
+
+  const reader = r.body.getReader();
+  const decoder = new TextDecoder();
+  let buf = '';
+  let text = '';
+  let providerError = '';
+
+  const consume = chunk => {
+    const payload = chunk.trim();
+    if (!payload || payload === '[DONE]') return;
+    let j;
+    try { j = JSON.parse(payload); } catch (e) { return; }
+    if (j.base_resp && j.base_resp.status_code) providerError = j.base_resp.status_msg || ('Sağlayıcı hata kodu ' + j.base_resp.status_code);
+    if (j.error && (j.error.message || j.error.type)) providerError = j.error.message || j.error.type;
+    const ch = (j.choices && j.choices[0]) || null;
+    if (!ch) return;
+    const piece = (ch.delta && ch.delta.content) || (ch.message && ch.message.content) || '';
+    if (piece) text += piece;
+  };
+
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buf += decoder.decode(value, { stream: true });
+    let nl;
+    while ((nl = buf.indexOf('\n')) >= 0) {
+      const line = buf.slice(0, nl).replace(/\r$/, '');
+      buf = buf.slice(nl + 1);
+      if (line.startsWith('data:')) consume(line.slice(5));
+    }
+  }
+  if (buf.startsWith('data:')) consume(buf.slice(5));
+
+  if (!text.trim()) throw new Error(providerError || 'Sağlayıcıdan boş yanıt geldi' + BRIDGE_HINT);
+  return text;
+}
+
+/** Akışsız köprü (/.netlify/functions/ai) — edge ucu yoksa yedek yol. */
+async function plainBridge(opts) {
+  const r = await fetch('/.netlify/functions/ai', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ system: opts.system, messages: opts.messages, max_tokens: opts.max_tokens || 2000 })
+  });
+  let j = null;
+  try { j = await r.json(); } catch (e) { /* gövde JSON değil */ }
+  if (!r.ok || !j || !j.text) {
+    throw new Error((j && j.error) || ('Demo YZ hizmetine ulaşılamadı (HTTP ' + r.status + ')' + BRIDGE_HINT));
+  }
+  return j.text;
+}
+
 export async function complete(settings, opts) {
   const S = settings || {};
   const prov = S.provider || 'auto';
 
   if (prov === 'auto') {
-    const r = await fetch('/.netlify/functions/ai', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ system: opts.system, messages: opts.messages, max_tokens: opts.max_tokens || 2000 })
-    });
-    let j = null;
-    try { j = await r.json(); } catch (e) { /* gövde JSON değil */ }
-    if (!r.ok || !j || !j.text) {
-      throw new Error((j && j.error) || ('Demo YZ hizmetine ulaşılamadı (HTTP ' + r.status + ') — Ayarlar > YZ Sağlayıcı bölümünden kendi API anahtarınızı girebilirsiniz'));
+    try {
+      return await streamBridge(opts);
+    } catch (e) {
+      if (!(e && e.bridgeMissing)) throw e;
+      return await plainBridge(opts);
     }
-    return j.text;
   }
 
   const key = (S.apiKey || '').trim();

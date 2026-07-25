@@ -8,3 +8,9 @@
   command = "npm run build"
   publish = "dist"
   functions = "netlify/functions"
+
+# Akışlı YZ köprüsü: serverless fonksiyonların 10 sn'lik senkron sınırına takılmamak için
+# "Otomatik" mod önce bu uca gider, ulaşılamazsa /.netlify/functions/ai'ye düşer.
+[[edge_functions]]
+  function = "ai"
+  path = "/api/ai"
