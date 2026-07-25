@@ -73,7 +73,7 @@ verisi olduğu gibi açılır).
 ```
 { activeCase, step (1-8), trash{key,data,name}|null,
   principles: string[],                       // düzenlenebilir kurum prensipleri
-  reportCfg: { company, sections{tanim,driver,analiz,bulgu,kok,karar,referans} },
+  reportCfg: { company, sections{tanim,driver,analiz,bulgu,kok,karar,izleme,dusunme,referans} },
   aiSettings: { provider:'auto'|'minimax'|'openai'|'anthropic'|'ozel', apiKey, model, baseUrl,
                 headerName, headerPrefix, extraHeaders,   // yalnız 'ozel' sağlayıcıda
                 level:'ogreten'|'dengeli'|'hizli', auto, context,
@@ -89,7 +89,7 @@ CASE = { name, problem{statement,geo,time,brand,kpiName,target,actual},
   criteria[{name,weight}], scores{'ai_ci':val}, decision{choice,rationale},
   thinking{assume,alt,cost},                  // karar öncesi düşünme kontrolü
   actions[{text,owner,due,etki,efor,status}], tracking[{label,value}],
-  retro{valid,worked,lessons}, references[{id,title,type,url,text,summary,…}],
+  retro{valid,worked,process,lessons}, references[{id,title,type,url,text,summary,…}],
   ai{step:[msg]}, coach{step:{status,intro,items,questions,errMsg}},
   decisionCoach{…}, actionCoach{…}, audit{…}, biasScan{…}, report{…} }
 ```
@@ -125,7 +125,11 @@ müdahaleleri. Kullanıldığı yerler:
   yanılgı taraması + farkındalık ve toplantı hamleleri
 - **Sistem talimatı** — `BIAS_RULE` tüm YZ akışlarına yöntem↔yanılgı eşleşmesini ekler
 - **Rehber kutuları** — 4, 5 ve 6. adımlara yanılgı karşıtı sorular eklendi
-- **Rapor** — "Düşünme kontrolü" bölüm çipi
+- **Adım 7 · retrospektif** — "karar sonrası refleksiyon" alanı (sonuç yanlılığı) ve günlük
+  alışkanlık hatırlatmaları; adımın rehber kutusu da bu soruları sorar
+- **Adım 6 · lider davranışları** — "bilmiyorum" diyebilmek, varsayımını açık etmek, fikir
+  değiştirmeyi normalleştirmek
+- **Rapor** — "Düşünme kontrolü" ve "İzleme + retrospektif" bölüm çipleri
 
 ### Model üretim ayarları
 

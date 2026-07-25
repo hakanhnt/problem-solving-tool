@@ -8,7 +8,8 @@ const QUESTIONS = [
   'Sapma nerede oluşuyor — hangi coğrafyada, ülkede, mağazada, depoda, departmanda, sistemde ya da kanalda?',
   'Hangi zaman aralığında ya da dönemde?',
   'Hangi kırılımda — marka/kategori, müşteri segmenti, süreç, proje ya da kampanya?',
-  'Problemi çözüm içermeden, ölçülebilir bir KPI farkı olarak ifade ettim mi?'
+  'Problemi çözüm içermeden, ölçülebilir bir KPI farkı olarak ifade ettim mi?',
+  'Biz aslında neyi çözmeye çalışıyoruz — problem gerçekten bu mu? (statüko yanlılığına karşı yeniden tanımlama)'
 ];
 
 export default function Step1Problem() {

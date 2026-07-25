@@ -145,6 +145,20 @@ export const BIASES = [
   { ad: 'Grup düşüncesi', panzehir: 'Eleştirel düşünce', belirti: 'İtiraz edilmediği için uzlaşı sanılan sessizlik oluşur.' }
 ];
 
+/** Liderler için kritik davranışlar (dokümanın 4. bölümü) — sistemden güçlüdür. */
+export const LEADER_MOVES = [
+  { ad: '"Bilmiyorum" diyebilmek', not: 'Zayıflık değil, düşünmeyi açan tetikleyici. Lider bunu yapınca ekip de düşünmeye başlar.' },
+  { ad: 'Kendi varsayımını açık etmek', not: '"Benim şu anki varsayımım şu, yanlış olabilir" — tartışmayı bu cümle başlatır.' },
+  { ad: 'Fikir değiştirmeyi normalleştirmek', not: '"Bu yeni bilgiyle fikrimi değiştiriyorum." Yapılmazsa herkes pozisyonunu savunur.' }
+];
+
+/** Günlük iş yapışta zihinsel kası geliştiren alışkanlıklar (dokümanın 3. bölümü). */
+export const DAILY_HABITS = [
+  { ad: 'Gözlem yapmadan yorum yapmama', against: 'Temsil yanlılığı', not: '"Bence" ile başlayan cümleleri azaltın; "gördüğüm/duyduğum veri şu" ile değiştirin.' },
+  { ad: 'Problemi yeniden tanımlama', against: 'Statüko yanlılığı', not: 'Her problemde sorun: biz aslında neyi çözmeye çalışıyoruz, problem gerçekten bu mu?' },
+  { ad: 'Karar sonrası kısa refleksiyon', against: 'Sonuç yanlılığı', not: 'Sonuç iyi diye karar doğru sayılmaz: süreç doğru muydu, bugün tekrar aynı kararı alır mıydım?' }
+];
+
 /** Toplantıda uygulanacak mikro müdahaleler (dokümanın 2. bölümü). */
 export const MEETING_MOVES = [
   { ad: 'İlk fikri askıya al', against: 'Çapa etkisi', not: 'İlk fikri hemen değerlendirme; en az 2 alternatif gelmeden karar sürecine girme.' },

@@ -3,7 +3,7 @@
 
 import React from 'react';
 import { useStore } from '../lib/store.jsx';
-import { PRE_DECISION_QUESTIONS, META_QUESTIONS, MEETING_MOVES } from '../lib/thinking.js';
+import { PRE_DECISION_QUESTIONS, META_QUESTIONS, MEETING_MOVES, LEADER_MOVES } from '../lib/thinking.js';
 import { Card, MethodBox, HButton, Spinner, S } from '../ui/primitives.jsx';
 
 const SEVERITY = {
@@ -100,8 +100,8 @@ export default function ThinkingCheck() {
         ) : null}
       </div>
 
-      {/* Meta katman + toplantı hamleleri */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginTop: 14 }}>
+      {/* Meta katman + toplantı hamleleri + lider davranışları */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))', gap: 12, marginTop: 14 }}>
         <div style={{ border: '1px solid #e8e5df', borderRadius: 8, background: '#fbfaf8', padding: '11px 13px' }}>
           <div style={{ font: '700 10.5px Helvetica,Arial,sans-serif', color: '#8a857c', letterSpacing: '.8px', margin: '0 0 7px' }}>DÜŞÜNME FARKINDALIĞI</div>
           <ul style={{ margin: 0, padding: '0 0 0 16px', display: 'flex', flexDirection: 'column', gap: 4 }}>
@@ -119,6 +119,18 @@ export default function ThinkingCheck() {
               </div>
             ))}
           </div>
+        </div>
+        <div style={{ border: '1px solid #e8e5df', borderRadius: 8, background: '#fbfaf8', padding: '11px 13px' }}>
+          <div style={{ font: '700 10.5px Helvetica,Arial,sans-serif', color: '#8a857c', letterSpacing: '.8px', margin: '0 0 7px' }}>LİDER DAVRANIŞLARI</div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
+            {LEADER_MOVES.map((m, i) => (
+              <div key={i}>
+                <div style={{ font: '600 11.5px/1.4 Helvetica,Arial,sans-serif', color: '#26241f' }}>{m.ad}</div>
+                <div style={{ font: '11px/1.45 Helvetica,Arial,sans-serif', color: '#6d6860' }}>{m.not}</div>
+              </div>
+            ))}
+          </div>
+          <div style={{ font: '600 11px/1.5 Helvetica,Arial,sans-serif', color: '#5f7897', marginTop: 8 }}>Sistemi lider kurar; ama liderin davranışı sistemden güçlüdür.</div>
         </div>
       </div>
     </Card>

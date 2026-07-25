@@ -1,7 +1,16 @@
 import React from 'react';
 import { useStore } from '../lib/store.jsx';
 import { trackingBars, trackingGapText } from '../lib/derive.js';
-import { Card, MethodBox, AddButton, RemoveButton, S } from '../ui/primitives.jsx';
+import { Card, GuidanceBox, MethodBox, AddButton, RemoveButton, S } from '../ui/primitives.jsx';
+import { DAILY_HABITS } from '../lib/thinking.js';
+
+const QUESTIONS = [
+  'Aksiyonlar gerçekten ilerliyor mu, yoksa sadece listede mi duruyor?',
+  'KPI trendi hedefe kapanıyor mu? Kapanmıyorsa kök neden mi, karşı önlem mi yanlıştı?',
+  'Sonuç iyi diye kararı doğru mu sayıyorum — süreç de doğru muydu? (sonuç yanlılığı)',
+  'Bu kararı bugün, bildiklerimle yeniden alsam yine aynı kararı alır mıydım?',
+  'İşe yarayan neyi standarda bağlayacağız; yaramayan neyi durduracağız?'
+];
 
 const STATUS_META = {
   tamam: ['Tamamlandı', '#eef4ee', '#3d5a3d', '#cfe0cf'],
@@ -19,6 +28,8 @@ export default function Step7Tracking() {
 
   return (
     <div>
+      <GuidanceBox items={QUESTIONS} />
+
       <Card>
         <div style={{ ...S.cardTitle, margin: '0 0 4px' }}>Aksiyon Durumu</div>
         <div style={{ font: '12px/1.5 Helvetica,Arial,sans-serif', color: '#8a857c', margin: '0 0 12px' }}>Adım 6'daki aksiyon planının ilerlemesini işaretleyin.</div>
@@ -105,8 +116,30 @@ export default function Step7Tracking() {
         <label style={S.label}>Karşı önlemler işe yaradı mı? KPI hedefe kapanıyor mu?</label>
         <textarea className="pcx-field" value={(c.retro && c.retro.worked) || ''} onChange={inp('retro', 'worked')} style={{ ...S.textarea, minHeight: 52, margin: '0 0 12px' }} />
 
+        <div style={{ display: 'flex', gap: 8, alignItems: 'baseline', flexWrap: 'wrap', margin: '0 0 6px' }}>
+          <label style={{ ...S.label, margin: 0 }}>Karar sonrası refleksiyon — süreç mi doğruydu, yoksa sadece sonuç mu iyi?</label>
+          <span style={{ font: '11px Helvetica,Arial,sans-serif', color: '#8c6a35', background: '#faf3e3', border: '1px solid #eaddb8', borderRadius: 20, padding: '2px 8px' }}>→ Sonuç yanlılığına karşı</span>
+        </div>
+        <textarea
+          className="pcx-field" value={(c.retro && c.retro.process) || ''} onChange={inp('retro', 'process')}
+          placeholder="Bu kararı bugün, bildiklerimle yeniden alsam yine aynı kararı alır mıydım? İyi sonuç şansa mı, doğru sürece mi dayanıyor?"
+          style={{ ...S.textarea, minHeight: 52, margin: '0 0 12px' }}
+        />
+
         <label style={S.label}>Öğrendiklerimiz — standarda bağlanacaklar, bir dahaki sefere farklı yapacaklarımız</label>
         <textarea className="pcx-field" value={(c.retro && c.retro.lessons) || ''} onChange={inp('retro', 'lessons')} style={{ ...S.textarea, minHeight: 64 }} />
+
+        <div style={{ border: '1px solid #e8e5df', borderRadius: 8, background: '#fbfaf8', padding: '11px 13px', marginTop: 14 }}>
+          <div style={{ font: '700 10.5px Helvetica,Arial,sans-serif', color: '#8a857c', letterSpacing: '.8px', margin: '0 0 7px' }}>DÖNGÜYÜ AYAKTA TUTAN GÜNLÜK ALIŞKANLIKLAR</div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 10 }}>
+            {DAILY_HABITS.map((h, i) => (
+              <div key={i}>
+                <div style={{ font: '600 11.5px/1.4 Helvetica,Arial,sans-serif', color: '#26241f' }}>{h.ad} <span style={{ fontWeight: 400, color: '#8a857c' }}>→ {h.against}</span></div>
+                <div style={{ font: '11px/1.45 Helvetica,Arial,sans-serif', color: '#6d6860' }}>{h.not}</div>
+              </div>
+            ))}
+          </div>
+        </div>
       </Card>
     </div>
   );

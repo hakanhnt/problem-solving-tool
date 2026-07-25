@@ -22,7 +22,7 @@ function normalize(state) {
   s.showSettings = false;
   s.refForm = null;
   s.reportCfg = Object.assign({ company: '', sections: {} }, s.reportCfg || {});
-  s.reportCfg.sections = Object.assign({ tanim: true, driver: true, analiz: true, bulgu: true, kok: true, karar: true, dusunme: true, referans: true }, s.reportCfg.sections);
+  s.reportCfg.sections = Object.assign({ tanim: true, driver: true, analiz: true, bulgu: true, kok: true, karar: true, izleme: true, dusunme: true, referans: true }, s.reportCfg.sections);
   s.aiSettings = Object.assign({
     provider: 'auto', apiKey: '', model: '', baseUrl: '',
     level: 'dengeli', auto: true, context: '',
@@ -37,7 +37,7 @@ function normalize(state) {
     if (!Array.isArray(cc.actions)) cc.actions = [];
     if (!Array.isArray(cc.tracking)) cc.tracking = [];
     if (!Array.isArray(cc.references)) cc.references = [];
-    if (!cc.retro) cc.retro = { valid: '', worked: '', lessons: '' };
+    if (!cc.retro) cc.retro = { valid: '', worked: '', process: '', lessons: '' };
     if (!cc.thinking) cc.thinking = { assume: '', alt: '', cost: '' };
   });
   return s;

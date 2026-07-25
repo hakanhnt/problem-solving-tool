@@ -12,6 +12,7 @@ const SECTION_CHIPS = [
   { key: 'kok', label: 'Kök neden' },
   { key: 'karar', label: 'Alternatifler + karar' },
   { key: 'dusunme', label: 'Düşünme kontrolü' },
+  { key: 'izleme', label: 'İzleme + retrospektif' },
   { key: 'referans', label: 'Referanslar' }
 ];
 
@@ -51,6 +52,14 @@ export default function Step8Report() {
   const th = c.thinking || {};
   const thinkingRows = PRE_DECISION_QUESTIONS.filter(q => (th[q.key] || '').trim());
   const scanItems = (c.biasScan && c.biasScan.status === 'done' && (c.biasScan.items || [])) || [];
+  const trackRows = (c.tracking || []).filter(t => (t.label || '').trim() || (t.value || '').trim());
+  const retro = c.retro || {};
+  const RETRO_ROWS = [
+    { key: 'valid', label: 'Kök neden tespiti doğru muydu?' },
+    { key: 'worked', label: 'Karşı önlemler işe yaradı mı?' },
+    { key: 'process', label: 'Karar sonrası refleksiyon (süreç mi, sonuç mu?)' },
+    { key: 'lessons', label: 'Öğrendiklerimiz / standarda bağlananlar' }
+  ].filter(r => (retro[r.key] || '').trim());
 
   return (
     <div>
@@ -279,6 +288,26 @@ export default function Step8Report() {
                     </div>
                   );
                 })}
+              </div>
+            </div>
+          ) : null}
+
+          {(trackRows.length || RETRO_ROWS.length) && on('izleme') ? (
+            <div>
+              <div style={secTitle}>7 · İZLEME VE RETROSPEKTİF</div>
+              {trackRows.length ? (
+                <div style={{ ...body, margin: '0 0 8px' }}>
+                  <strong>KPI ölçümleri:</strong> {trackRows.map(t => (t.label || '—') + ': ' + (t.value || '—')).join(' · ')}
+                  {(c.problem.target || '').trim() ? <span style={{ color: '#8a857c' }}> (hedef {c.problem.target})</span> : null}
+                </div>
+              ) : null}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                {RETRO_ROWS.map(r => (
+                  <div key={r.key}>
+                    <div style={{ font: '600 12.5px/1.5 Helvetica,Arial,sans-serif', color: '#35506e' }}>{r.label}</div>
+                    <div style={body}>{retro[r.key]}</div>
+                  </div>
+                ))}
               </div>
             </div>
           ) : null}

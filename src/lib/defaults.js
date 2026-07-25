@@ -43,7 +43,7 @@ export function blankCase(name) {
     ], scores: {},
     decision: { choice: '', rationale: '' },
     thinking: { assume: '', alt: '', cost: '' },
-    actions: [], tracking: [], retro: { valid: '', worked: '', lessons: '' }
+    actions: [], tracking: [], retro: { valid: '', worked: '', process: '', lessons: '' }
   };
 }
 
