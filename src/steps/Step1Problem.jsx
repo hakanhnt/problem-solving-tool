@@ -2,6 +2,7 @@ import React from 'react';
 import { useStore } from '../lib/store.jsx';
 import { gapInfo, statementChecks } from '../lib/derive.js';
 import { Card, CardHead, GuidanceBox, MethodBox, HButton, RemoveButton, S, YZButton } from '../ui/primitives.jsx';
+import WelcomeCard from '../components/WelcomeCard.jsx';
 
 const QUESTIONS = [
   'Ne oldu? Hedef neydi, gerçekleşen ne?',
@@ -50,6 +51,7 @@ export default function Step1Problem() {
 
   return (
     <div>
+      <WelcomeCard />
       <GuidanceBox items={QUESTIONS} />
 
       <Card>

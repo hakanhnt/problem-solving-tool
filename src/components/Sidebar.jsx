@@ -3,8 +3,37 @@ import { useStore } from '../lib/store.jsx';
 import { STEPS, blankCase, exampleCase } from '../lib/defaults.js';
 import { HButton, HA } from '../ui/primitives.jsx';
 
+/** Uygulama işareti: akışın daralarak karara inişini anlatan üç düğüm. */
+function BrandMark() {
+  return (
+    <div style={{ flex: 'none', width: 38, height: 38, borderRadius: 10, background: '#35506e', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 1px 3px rgba(53,80,110,.35)' }}>
+      <svg width="21" height="21" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M4 5h16M7 12h10M10.5 19h3" stroke="#fff" strokeWidth="2" strokeLinecap="round" />
+        <circle cx="12" cy="5" r="1.6" fill="#8fb0d4" />
+        <circle cx="12" cy="12" r="1.6" fill="#c9d8e8" />
+        <circle cx="12" cy="19" r="1.9" fill="#fff" />
+      </svg>
+    </div>
+  );
+}
+
+/** Aktif çalışmanın hangi adımlarında içerik var — ilerleme göstergesi için. */
+function stepDone(c, n) {
+  if (n === 1) return !!(c.problem.statement || '').trim();
+  if (n === 2) return c.drivers.some(d => (d.name || '').trim());
+  if (n === 3) return c.driverAnalysis.length > 0 || c.sipoc.length > 0;
+  if (n === 4) return c.findings.some(f => (f.text || '').trim());
+  if (n === 5) return c.whys.some(w => (w || '').trim()) || c.rootCauses.length > 0;
+  if (n === 6) return c.alternatives.length > 0 || !!(c.decision.choice || '').trim();
+  if (n === 7) return (c.tracking || []).length > 0 || Object.values(c.retro || {}).some(v => (v || '').trim()) || (c.actions || []).some(a => a.status);
+  // Rapor adımı: yönetici özeti üretildiyse ya da tutarlılık denetimi çalıştırıldıysa
+  return !!((c.report && (c.report.text || '').trim()) || (c.audit && (c.audit.text || '').trim()));
+}
+
 export default function Sidebar() {
-  const { state, eff, step, upd, goStep, ensureCoach } = useStore();
+  const { state, eff, c, step, upd, goStep, ensureCoach } = useStore();
+  const doneSteps = [1, 2, 3, 4, 5, 6, 7, 8].filter(n => stepDone(c, n));
+  const doneCount = doneSteps.length;
 
   const caseKeys = Object.keys(state.cases);
   caseKeys.sort((a, b) => (a === 'ornek' ? -1 : b === 'ornek' ? 1 : 0));
@@ -35,9 +64,19 @@ export default function Sidebar() {
 
   return (
     <aside data-noprint="1" style={{ width: 288, flex: 'none', background: '#fff', borderRight: '1px solid #e0ddd7', display: 'flex', flexDirection: 'column' }}>
-      <div style={{ padding: '22px 20px 16px', borderBottom: '1px solid #eceae5' }}>
-        <div style={{ font: '700 16px/1.3 Helvetica,Arial,sans-serif', color: '#26241f' }}>Problem Çözme Akışı</div>
-        <div style={{ font: '12px/1.5 Helvetica,Arial,sans-serif', color: '#8a857c', marginTop: 4 }}>Problem tanımı → kök neden → karşı önlem → karar · Tüm alanlar için: lojistik, pazarlama, teknoloji, operasyon…</div>
+      <div style={{ padding: '18px 18px 14px', borderBottom: '1px solid #eceae5', background: 'linear-gradient(180deg,#f7f9fc 0%,#fff 100%)' }}>
+        <div style={{ display: 'flex', gap: 11, alignItems: 'center' }}>
+          <BrandMark />
+          <div style={{ minWidth: 0 }}>
+            <div style={{ font: '700 16px/1.25 Helvetica,Arial,sans-serif', color: '#26241f', letterSpacing: '-.2px' }}>Problem Çözme Akışı</div>
+            <div style={{ font: '11.5px/1.4 Helvetica,Arial,sans-serif', color: '#5f7897', marginTop: 2 }}>Rehberli problem çözme ve karar verme</div>
+          </div>
+        </div>
+        <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', marginTop: 11 }}>
+          {['8 adımlık akış', 'YZ destekli', 'Alan bağımsız'].map(t => (
+            <span key={t} style={{ font: '600 10px Helvetica,Arial,sans-serif', color: '#5f7897', background: '#eef2f7', border: '1px solid #dbe4ef', borderRadius: 20, padding: '3px 8px' }}>{t}</span>
+          ))}
+        </div>
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '14px 16px 6px' }}>
@@ -93,16 +132,37 @@ export default function Sidebar() {
         </div>
       ) : null}
 
-      <nav style={{ padding: '8px 12px', display: 'flex', flexDirection: 'column', gap: 2, flex: 1, overflow: 'auto' }}>
+      <div style={{ padding: '12px 16px 8px' }}>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, margin: '0 0 6px' }}>
+          <div style={{ flex: 1, font: '700 10.5px Helvetica,Arial,sans-serif', color: '#8a857c', letterSpacing: '.8px' }}>ÇALIŞMA İLERLEMESİ</div>
+          <div style={{ font: '700 11px Helvetica,Arial,sans-serif', color: doneCount === 8 ? '#3d5a3d' : '#35506e' }}>{doneCount}/8</div>
+        </div>
+        <div style={{ display: 'flex', gap: 3 }}>
+          {[1, 2, 3, 4, 5, 6, 7, 8].map(n => (
+            <div
+              key={n}
+              title={n + '. ' + STEPS[n - 1].title + (doneSteps.includes(n) ? ' — dolduruldu' : ' — boş')}
+              style={{ flex: 1, height: 4, borderRadius: 2, background: doneSteps.includes(n) ? (doneCount === 8 ? '#4a6741' : '#35506e') : '#e3e0da' }}
+            />
+          ))}
+        </div>
+      </div>
+
+      <nav style={{ padding: '2px 12px 8px', display: 'flex', flexDirection: 'column', gap: 2, flex: 1, overflow: 'auto' }}>
         {STEPS.map((s, i) => {
-          const n = i + 1, active = step === n;
+          const n = i + 1, active = step === n, done = doneSteps.includes(n);
           return (
             <div
               key={n}
               onClick={() => goStep(n)}
               style={{ display: 'flex', gap: 10, alignItems: 'flex-start', padding: 10, borderRadius: 8, cursor: 'pointer', background: active ? '#eef2f7' : 'transparent' }}
             >
-              <div style={{ width: 22, height: 22, flex: 'none', borderRadius: '50%', background: active ? '#35506e' : '#e8e5df', color: active ? '#fff' : '#6d6860', font: '700 11px/22px Helvetica,Arial,sans-serif', textAlign: 'center' }}>{n}</div>
+              <div style={{
+                width: 22, height: 22, flex: 'none', borderRadius: '50%',
+                background: active ? '#35506e' : (done ? '#e4ede4' : '#e8e5df'),
+                color: active ? '#fff' : (done ? '#4a6741' : '#6d6860'),
+                font: '700 11px/22px Helvetica,Arial,sans-serif', textAlign: 'center'
+              }}>{!active && done ? '✓' : n}</div>
               <div>
                 <div style={{ font: '600 13px/1.35 Helvetica,Arial,sans-serif', color: active ? '#35506e' : '#3d3a34' }}>{s.title}</div>
                 <div style={{ font: '11px/1.4 Helvetica,Arial,sans-serif', color: active ? '#5f7897' : '#96918a', marginTop: 1 }}>{s.sub}</div>

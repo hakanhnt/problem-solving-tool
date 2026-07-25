@@ -11,6 +11,11 @@ Tarayıcıdan açılır, kurulum ve kullanıcı hesabı gerektirmez; girdiler ta
 
 ![Adım 1 — problem tanımı ve rehber paneli](docs/screenshots/readme-01-problem.png)
 
+Boş bir çalışmada ilk adım, akışın dört evresini ve temel ilkeleri anlatan bir karşılama
+kartıyla açılır; kenar çubuğu aktif çalışmanın kaç adımının dolduğunu gösterir.
+
+![Karşılama kartı ve ilerleme göstergesi](docs/screenshots/readme-05-welcome.png)
+
 ---
 
 ## İçindekiler
