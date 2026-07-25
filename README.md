@@ -1,14 +1,112 @@
 # Problem Çözme Akışı
 
-YZ destekli, rehberli problem çözme ve karar verme çalışma aracı. Kullanıcıyı 8 adımlık bir
-metodolojiden geçirir: problem tanımı → driver haritalama → driver analizi → bulgular →
-kök neden → karşı önlemler ve karar → izleme/retrospektif → çalışma raporu.
+**Bir iş problemini ölçülmüş sapmadan kök nedene, karardan aksiyona kadar tek akışta çözdüren,
+yapay zekâ destekli çalışma aracı.**
 
-Bu depo, Claude Design'da hazırlanan `Problem Çözme Akışı.dc.html` prototipinin React + Vite ile
-üretim uygulamasına taşınmış halidir. Prototip ve tasarım sohbetleri referans olarak
-`project/` ve `chats/` klasörlerinde durur.
+Amaç yalnızca bir formu doldurtmak değil; doğru düşünme tekniklerini gerçek bir problem üzerinde
+uygulatmak. Araç alan bağımsızdır — lojistik, pazarlama, teknoloji, operasyon, İK, finans.
+Tarayıcıdan açılır, kurulum ve kullanıcı hesabı gerektirmez; girdiler tarayıcıda saklanır.
 
-## Çalıştırma
+🔗 **Canlı:** https://problem-solving-tool.netlify.app · 📖 Uygulama içinden **Kullanım Rehberi**
+
+![Adım 1 — problem tanımı ve rehber paneli](docs/screenshots/readme-01-problem.png)
+
+---
+
+## İçindekiler
+
+- [Ne yapar](#ne-yapar)
+- [8 adımlık akış](#8-adımlık-akış)
+- [Yapay zekâ katmanı](#yapay-zekâ-katmanı)
+- [Düşünme yöntemleri ve bilişsel yanılgılar](#düşünme-yöntemleri-ve-bilişsel-yanılgılar)
+- [Hızlı başlangıç](#hızlı-başlangıç)
+- [Netlify yayını](#netlify-yayını)
+- [Ayarlar](#ayarlar)
+- [Mimari](#mimari)
+- [Veri modeli](#veri-modeli)
+- [Geliştirirken bilinmesi gerekenler](#geliştirirken-bilinmesi-gerekenler)
+- [Bilinen sınırlar](#bilinen-sınırlar)
+
+---
+
+## Ne yapar
+
+Kurumlarda kararlar çoğu zaman veri eksikliğinden değil **yöntem** eksikliğinden zayıflar:
+problem ile bulgu, bulgu ile kök neden birbirine karışır; analiz bitmeden çözüm konuşulur;
+kök neden dış paydaşta aranır. Bu araç akışı disipline eder ve her adımda doğru soruyu sordurur.
+
+| | |
+| --- | --- |
+| **Metodolojik disiplin** | Problem ≠ bulgu ≠ kök neden ayrımı her adımda korunur; 1–4. adımlarda çözüm konuşulmaz. |
+| **Kurum prensipleriyle entegre** | Kök nedenler, düzenlenebilir 20 kurum prensibiyle ve yetkinlik gelişim alanlarıyla eşleştirilir. |
+| **YZ önerir, kullanıcı doğrular** | Rehberin ürettiği her kayıt "doğrulanmadı" rozetiyle işaretlenir; doğrulanmadan ilerlerken uyarı çıkar. |
+| **Düşünme denetimi** | Düşünme yöntemi ↔ bilişsel yanılgı eşleşmesi, karar öncesi üç soru ve yanılgı taraması. |
+| **Döngüyü kapatır** | Aksiyon durumu + KPI trendi; hedefe kapanmıyorsa analize geri döndürür (PDCA). |
+| **Paylaşılabilir çıktı** | Tek sayfa rapor: yönetici özeti, seçilebilir bölümler, yazdır/PDF. |
+
+Birden çok çalışma (vaka) aynı anda yürütülebilir; silinen çalışma geri alınabilir; tüm veri
+JSON olarak dışa/içe aktarılabilir.
+
+## 8 adımlık akış
+
+| # | Adım | İçerik |
+| --- | --- | --- |
+| 1 | **Problem Tanımı** | Ölçülebilir ifade + boyutlar + KPI farkı; canlı kalite kontrol çipleri; referans ekleme (not/link/dosya) |
+| 2 | **Business Driver Haritalama** | MECE driver listesi + otomatik çizilen driver haritası |
+| 3 | **Driver Analizi** | Alt bileşen analizi + SIPOC satırları |
+| 4 | **Problem Bulguları** | Ölçülmüş sapmalar + kanıt kaynağı |
+| 5 | **Kök Neden Analizi** | 5 Neden zinciri, balık kılçığı (diyagramıyla), kök neden ↔ prensip ↔ yetkinlik eşleştirmesi |
+| 6 | **Karşı Önlemler ve Karar** | Alternatifler (düşünme yöntemiyle), ağırlıklı karar matrisi, karar öncesi düşünme kontrolü, karar, aksiyon planı (etki/efor önceliklendirme) |
+| 7 | **İzleme ve Retrospektif** | Aksiyon durumu, KPI trend grafiği, dört soruluk retrospektif |
+| 8 | **Çalışma Raporu** | Yönetici özeti, tutarlılık denetimi, bölüm seçimi, yazdır/PDF |
+
+![Adım 5 — balık kılçığı diyagramı ve kök neden ↔ prensip eşleştirmesi](docs/screenshots/readme-02-fishbone.png)
+
+## Yapay zekâ katmanı
+
+Tüm akışlar `buildSystem(step, case)` sistem talimatını paylaşır: adımın odağı + çalışmanın
+tamamı (JSON) + ayarlardan gelen seviye/üslup/derinlik ekleri + kullanıcı referansları +
+yanılgı farkındalığı kuralı.
+
+| Akış | Nerede | Ne yapar |
+| --- | --- | --- |
+| **Rehber (coach)** | Adım 1–6 | Adıma girince form boşsa kendiliğinden çalışır; katı JSON şemasıyla aday girdiler üretir, "Forma ekle" ile forma işlenir |
+| **Karar önerisi** | Adım 6 | Alternatif, kriter ve matris puanlarını değerlendirip gerekçeli karar taslağı verir |
+| **Aksiyon önerisi** | Adım 6 | Karara ve kök nedenlere dayalı, etki/efor puanlı aksiyonlar (B2, KN1 atıflarıyla) |
+| **Yanılgı taraması** | Adım 6 | Vakayı 11 maddelik yanılgı kataloğuna karşı tarar; her tespit kullanıcının kendi cümlesinden alıntıyla kanıtlanır |
+| **Tutarlılık denetimi** | Adım 8 | Problem → bulgu → kök neden → karar → aksiyon zincirinin nerede koptuğunu raporlar |
+| **Yönetici özeti** | Adım 8 | Rapora 4–6 cümlelik özet ekler |
+| **Asistan sohbeti** | Her adım | O adımın uzmanı rolünde serbest sohbet; alan başına `YZ` yardım düğmeleri |
+
+**Rehberlik seviyesi** çıktının karakterini değiştirir: *Öğreten* modda YZ hiç öneri vermez,
+yalnızca Sokratik sorular sorar; *Dengeli* hipotez + doğrulama soruları üretir; *Hızlandıran*
+doğrudan kullanılabilir taslaklar yazar.
+
+## Düşünme yöntemleri ve bilişsel yanılgılar
+
+`src/lib/thinking.js`, kurum dokümanlarından türetilmiş bilgi tabanıdır: her düşünme yöntemi
+belirli bir yanılgının panzehiridir.
+
+| Düşünme yöntemi | Karşı çalıştığı yanılgı |
+| --- | --- |
+| Eleştirel düşünce | Onaylama yanlılığı |
+| İlk ilkeler düşüncesi | Statüko yanlılığı & batık maliyet |
+| Tasarım odaklı düşünce | Temsil yanlılığı |
+| Yanal düşünce | Aşırı güven yanlılığı |
+| İkinci düzey düşünce | Kısa vadecilik & sonuç yanlılığı |
+| Sistem düşüncesi | Mevcudiyet yanlılığı & aşırı basitleştirme |
+| Algoritmik düşünce | Çapa etkisi & sezgisel kısayollar |
+
+Uygulamadaki karşılıkları: alternatife yöntem seçilince o yöntemin **5 ekip sorusu** açılır;
+Adım 6'daki **Karar Öncesi Düşünme Kontrolü** üç soruyu sordurur (neyi varsayıyorum / başka
+hangi açıklama mümkün / bedelini kim ve ne zaman ödeyecek), yanılgı taramasını çalıştırır ve
+düşünme farkındalığı + toplantı mikro müdahaleleri + lider davranışlarını hatırlatır. Günlük
+alışkanlıklar ilgili adımlara soru olarak gömülüdür (Adım 1 problemi yeniden tanımlama,
+Adım 4 "bence" yerine ölçülen veri, Adım 7 karar sonrası refleksiyon).
+
+![Adım 6 — karar öncesi düşünme kontrolü](docs/screenshots/readme-03-thinking.png)
+
+## Hızlı başlangıç
 
 ```bash
 npm install
@@ -17,157 +115,142 @@ npm run build      # dist/
 npm run preview    # üretim çıktısını yerelde dener
 ```
 
-> `npm run dev` ile yerelde YZ "Otomatik" modu çalışmaz (Netlify fonksiyonları yok).
-> Yerelde denemek için ya `netlify dev` kullanın ya da Ayarlar → YZ Sağlayıcı'dan
-> kendi API anahtarınızı girin.
+> `npm run dev` ile "Otomatik" YZ modu çalışmaz (Netlify uçları yok). Yerelde denemek için
+> `netlify dev` kullanın ya da Ayarlar → YZ Sağlayıcı'dan kendi API anahtarınızı girin.
+
+Gereksinim: Node 18+.
 
 ## Netlify yayını
 
-`netlify.toml` hazırdır: `npm run build` → `dist` yayınlanır, `netlify/functions` sunucu
-fonksiyonu olarak kurulur.
+`netlify.toml` hazırdır: `npm run build` → `dist` yayınlanır, `netlify/functions` ve
+`netlify/edge-functions` otomatik kurulur.
 
-Site ayarlarında tanımlanacak ortam değişkenleri:
-
-| Değişken | Zorunlu | Açıklama |
+| Ortam değişkeni | Zorunlu | Açıklama |
 | --- | --- | --- |
 | `MINIMAX_API_KEY` | evet | "Otomatik" modda kullanılan anahtar; tarayıcıya hiç inmez |
 | `MINIMAX_MODEL` | hayır | varsayılan `MiniMax-Text-01` |
 | `MINIMAX_BASE_URL` | hayır | varsayılan MiniMax chat/completions ucu |
 
-Fonksiyonlar:
+Sunucu uçları:
 
-- `netlify/edge-functions/ai.js` → **`/api/ai`** — asıl YZ köprüsü. Sağlayıcıyı `stream: true`
-  ile çağırıp SSE akışını olduğu gibi iletir; ilk bayt saniyeler içinde gittiği için
-  serverless fonksiyonların 10 sn'lik senkron sınırı devreye girmez.
-- `netlify/functions/ai.js` — akışsız yedek köprü. "Otomatik" mod önce `/api/ai`'yi dener,
-  ulaşılamazsa (eski deploy, edge kapalı) buraya düşer. Sağlayıcıyı 9 sn'de keserek
-  gövdesiz 502 yerine anlaşılır bir 504 mesajı döndürür.
-- `netlify/functions/fetch-ref.js` — referans linki okuyucu (SSRF korumalı, 8 sn timeout, ilk 20.000 karakter)
+- **`netlify/edge-functions/ai.js` → `/api/ai`** — asıl köprü. Sağlayıcıyı `stream: true` ile
+  çağırıp SSE akışını olduğu gibi iletir; ilk bayt saniyeler içinde gittiği için serverless
+  fonksiyonların 10 sn'lik senkron sınırı devreye girmez.
+- **`netlify/functions/ai.js`** — akışsız yedek köprü. İstemci önce `/api/ai`'yi dener,
+  ulaşılamazsa buraya düşer. Sağlayıcıyı 9 sn'de keserek gövdesiz 502 yerine anlaşılır bir
+  504 mesajı döndürür.
+- **`netlify/functions/fetch-ref.js`** — referans linki okuyucu (SSRF korumalı, 8 sn timeout,
+  ilk 20.000 karakter).
 
-> Fonksiyonlar **ESM** yazılmalıdır (`export const handler = …`). Kökteki `package.json`
-> `"type": "module"` olduğu için `exports.handler` kullanan bir fonksiyon Netlify'da
-> `exports is not defined in ES module scope` ile çöker ve istemciye gövdesiz 502 döner.
+## Ayarlar
+
+Kenar çubuğundaki **⚙ Ayarlar** panelinden:
+
+- **YZ sağlayıcı** — `Otomatik` (sunucudaki anahtar) · `MiniMax` · `OpenAI` · `Anthropic` ·
+  **`Özel / Yerel`**: OpenAI uyumlu herhangi bir uç nokta. Hazır profiller: OpenRouter, Ollama,
+  LM Studio, Azure OpenAI. Kimlik başlığı adı/ön eki ve ek başlıklar ayarlanabilir; anahtar boşsa
+  hiç yetki başlığı gönderilmez (yerel sunucular). *Uç noktanın CORS izni vermesi gerekir;
+  Ollama için `OLLAMA_ORIGINS=*`.*
+- **Model üretim ayarları** — model adı (Otomatik modda da geçerli), **analiz derinliği**
+  (standart / geniş / derin → token bütçesini ×1, ×1,6, ×2,5 ölçekler ve prompt'a derinlik
+  kuralı ekler), **yaratıcılık** (temperature) ve `top_p`.
+- **Rehber ayarları** — rehberlik seviyesi, otomatik öneri, alan/sektör bağlamı, yanıt uzunluğu,
+  ton, eleştirellik.
+- **Kurum prensipleri** — 20 varsayılan prensip düzenlenebilir/silinebilir; kök neden
+  eşleştirmeleri prensip silindiğinde otomatik güncellenir.
+- **Veri yedekleme** — tüm çalışmaları JSON dışa/içe aktarma.
+
+> Kendi API anahtarınız yalnızca tarayıcınızda saklanır ve doğrudan seçtiğiniz sağlayıcıya
+> gider; hiçbir sunucuda tutulmaz. Abonelik hesapları (Claude Pro/Max, ChatGPT Plus) üçüncü
+> taraf uygulamalara açılmadığı için desteklenmez.
 
 ## Mimari
 
+React 18 + Vite. Durum yönetimi tek bir Context store'da; harici state kütüphanesi yok.
+
 ```
 src/
-  App.jsx                 sayfa iskeleti, adım geçişleri, doğrulama uyarıları
+  App.jsx                  sayfa iskeleti, adım geçişleri, doğrulama uyarıları
   lib/
-    store.jsx             tek state ağacı + localStorage + tüm YZ akışları (Context)
-    ai.js                 sağlayıcı katmanı (complete) + sistem talimatı/görev şemaları
-    defaults.js           kurum prensipleri, boş/örnek çalışma, adım metinleri
-    derive.js             KPI farkı, ifade kalite kontrolü, karar matrisi, trend/harita
-  components/             Sidebar · CoachPanel · AssistantChat · SettingsModal
-  steps/                  Step1…Step8
-  ui/primitives.jsx       tasarım token'ları ve ortak öğeler (hover/focus davranışı dahil)
-public/rehber.html        kullanım rehberi (kenar çubuğundaki "📖 Kullanım Rehberi")
+    store.jsx              tek state ağacı + localStorage + tüm YZ akışları (Context)
+    ai.js                  sağlayıcı katmanı (complete) + sistem talimatı ve görev şemaları
+    thinking.js            düşünme yöntemi ↔ yanılgı bilgi tabanı, soru setleri
+    defaults.js            kurum prensipleri, boş/örnek çalışma, adım metinleri
+    derive.js              KPI farkı, ifade kalite kontrolü, karar matrisi, trend, driver haritası
+  components/              Sidebar · CoachPanel · AssistantChat · SettingsModal · ThinkingCheck
+  steps/                   Step1…Step8
+  ui/primitives.jsx        tasarım token'ları ve ortak öğeler (hover/focus davranışı dahil)
+public/rehber.html         yazdırılabilir kullanım rehberi (A4)
+netlify/                   edge-functions/ai.js · functions/ai.js · functions/fetch-ref.js
+docs/screenshots/          README görselleri
+project/ · chats/          kaynak prototip ve tasarım oturumu dökümleri (referans)
 ```
 
-### Veri modeli
+Stil, prototipteki inline stillerle birebir taşınmıştır; `ui/primitives.jsx` içindeki `S`
+nesnesi tasarım token'larını (kart, girdi, düğme, rozet) tek yerde tutar. Hover davranışı
+`HButton`/`HA`/`HDiv` bileşenlerinde, focus davranışı `index.css`'teki `.pcx-field`
+sınıflarındadır.
 
-Tüm durum tek bir ağaçta tutulur ve her değişimde `localStorage` anahtarı
-**`pcx_workbook_v1`** altına yazılır (prototiple aynı anahtar ve şema — mevcut kullanıcı
-verisi olduğu gibi açılır).
+## Veri modeli
+
+Tüm durum tek ağaçta tutulur ve her değişimde `localStorage` anahtarı **`pcx_workbook_v1`**
+altına yazılır (prototiple aynı şema — eski kullanıcı verisi olduğu gibi açılır).
 
 ```
 { activeCase, step (1-8), trash{key,data,name}|null,
-  principles: string[],                       // düzenlenebilir kurum prensipleri
+  principles: string[],
   reportCfg: { company, sections{tanim,driver,analiz,bulgu,kok,karar,izleme,dusunme,referans} },
-  aiSettings: { provider:'auto'|'minimax'|'openai'|'anthropic'|'ozel', apiKey, model, baseUrl,
-                headerName, headerPrefix, extraHeaders,   // yalnız 'ozel' sağlayıcıda
+  aiSettings: { provider:'auto'|'minimax'|'openai'|'anthropic'|'ozel',
+                apiKey, model, baseUrl, headerName, headerPrefix, extraHeaders,
                 level:'ogreten'|'dengeli'|'hizli', auto, context,
-                length:'kisa'|'detayli', tone:'resmi'|'samimi', critic:'nazik'|'sert',
-                temperature, topP, depth:'standart'|'genis'|'derin' },
+                length, tone, critic, temperature, topP,
+                depth:'standart'|'genis'|'derin' },
   cases: { <id>: CASE } }
 
 CASE = { name, problem{statement,geo,time,brand,kpiName,target,actual},
-  drivers[{name,note,src?,verified?}], driverAnalysis[{driver,component,issue,…}],
-  sipoc[{s,i,p,o,c}], findings[{text,evidence,…}], whys[5],
-  fishbone{insan,metot,sistem,girdi,olcum,cevre},
+  drivers[{name,note,src?,verified?}], driverAnalysis[…], sipoc[{s,i,p,o,c}],
+  findings[{text,evidence,…}], whys[5], fishbone{insan,metot,sistem,girdi,olcum,cevre},
   rootCauses[{text,principles[int],competency,…}], alternatives[{name,method,note}],
   criteria[{name,weight}], scores{'ai_ci':val}, decision{choice,rationale},
-  thinking{assume,alt,cost},                  // karar öncesi düşünme kontrolü
-  actions[{text,owner,due,etki,efor,status}], tracking[{label,value}],
-  retro{valid,worked,process,lessons}, references[{id,title,type,url,text,summary,…}],
-  ai{step:[msg]}, coach{step:{status,intro,items,questions,errMsg}},
-  decisionCoach{…}, actionCoach{…}, audit{…}, biasScan{…}, report{…} }
+  thinking{assume,alt,cost}, actions[{text,owner,due,etki,efor,status}],
+  tracking[{label,value}], retro{valid,worked,process,lessons},
+  references[{id,title,type,url,text,summary,…}],
+  ai{step:[msg]}, coach{step:{status,intro,items,questions}},
+  decisionCoach{…}, actionCoach{…}, biasScan{…}, audit{…}, report{…} }
 ```
 
-Kurallar: `ornek` vakası silinemez/yeniden adlandırılamaz ("sıfırla" ile ilk haline döner);
-silinen vaka `trash`e alınır ve kenar çubuğundaki "Geri al" şeridiyle kurtarılır;
-Adım 1'de problem ifadesi boşken sonraki adıma geçilemez; rehberden eklenen kayıtlar
-`src:'yz', verified:false` ile işaretlenir ve doğrulanmadan ilerlenirse uyarı çıkar.
+Kurallar: `ornek` vakası silinemez (yalnız sıfırlanır); silinen vaka `trash`e alınır ve
+"Geri al" ile kurtarılır; problem ifadesi boşken sonraki adıma geçilemez; rehberden eklenen
+kayıtlar `src:'yz', verified:false` ile işaretlenir.
 
-### Özel (OpenAI uyumlu) sağlayıcı
+![Adım 8 — çalışma raporu](docs/screenshots/readme-04-report.png)
 
-`provider: 'ozel'` seçilirse istek tarayıcıdan doğrudan `baseUrl`'e gider. Kimlik başlığı
-serbesttir: `headerName` (varsayılan `Authorization`) + `headerPrefix` (varsayılan `Bearer `),
-anahtar boşsa hiç başlık eklenmez (yerel sunucular). `extraHeaders` her satırı `Ad: değer`
-biçiminde ek başlığa çevirir. Yanıt ayrıştırıcı OpenAI (`choices[0].message.content`),
-Ollama (`message.content`, `response`) ve Anthropic (`content[]`) biçimlerini tanır.
+## Geliştirirken bilinmesi gerekenler
 
-Ayarlar'daki hazır profiller: OpenRouter, Ollama, LM Studio, Azure OpenAI. Uç noktanın
-tarayıcı isteklerine CORS izni vermesi gerekir (Ollama için `OLLAMA_ORIGINS=*`).
+- **Netlify fonksiyonları ESM olmalıdır** (`export const handler = …`). Kökteki `package.json`
+  `"type": "module"` olduğu için `exports.handler` kullanan bir fonksiyon Netlify'da
+  `exports is not defined in ES module scope` ile çöker ve istemciye **gövdesiz 502** döner.
+- **Akış birleştirme.** MiniMax delta paketlerinden sonra son pakette tüm metni tekrar
+  gönderir; istemci delta gördüyse yalnız delta'ları toplar (`sawDelta`), yoksa tam metni alır.
+  Aksi halde yanıt çiftlenir ve JSON ayrıştırma patlar.
+- **JSON ayrıştırma toleransı.** `parseJsonReply` önce tam dilimi dener, olmazsa ilk dengeli
+  `{ … }` bloğuna düşer (dizge içindeki süslü parantezleri saymaz).
+- **State güncellemeleri** `stateRef` üzerinden zincirlenir; setState güncelleyicisi yan etkisizdir.
+  Aynı tick içindeki ardışık `upd()` çağrıları birbirinin üzerine yazmaz.
+- **Yazdırma.** Yazdırılmaması gereken her şey `data-noprint="1"` taşır; rapor dışında hiçbir
+  şey çıktıya girmez.
+- **Sır yönetimi.** Derleme zamanında hiçbir anahtar paketlenmez; `MINIMAX_API_KEY` yalnızca
+  sunucu uçlarında okunur.
 
-Abonelik hesapları (Claude Pro/Max, ChatGPT Plus) üçüncü taraf uygulamalara açılmadığı için
-desteklenmez; kredi/anahtar tabanlı servisler ya da kurumsal ağ geçitleri bu yolla kullanılır.
+## Bilinen sınırlar
 
-### Düşünme yöntemleri ve bilişsel yanılgılar
+- Veri kullanıcının tarayıcısındadır — çok kullanıcılı eşzamanlı çalışma yoktur. Paylaşım
+  PDF raporu ya da JSON dışa/içe aktarma ile yapılır.
+- Referans dosyası olarak `.txt` / `.md` desteklenir; PDF/Word için metni kopyalayıp
+  "Not ekle" ile yapıştırmak gerekir.
+- Yanılgı taraması ve tutarlılık denetimi hipotez üretir; nihai değerlendirme kullanıcınındır.
+- Arayüz yalnızca Türkçedir.
 
-`src/lib/thinking.js`, kurum dokümanlarından ("Düşünme Yöntemlerine Göre Güçlü Ekip Soruları",
-"Düşünme Yanılgıları") türetilmiş bilgi tabanıdır: 7 yöntem × 5 ekip sorusu + karşı çalıştığı
-yanılgı, meta katman soruları, karar öncesi üç soru, yanılgı kataloğu ve toplantı mikro
-müdahaleleri. Kullanıldığı yerler:
+---
 
-- **Adım 6 · alternatifler** — yöntem seçilince yanılgı eşleşmesi ve 5 ekip sorusu açılır
-- **Adım 6 · Karar Öncesi Düşünme Kontrolü** (`ThinkingCheck.jsx`) — üç soru + `runBiasScan()`
-  yanılgı taraması + farkındalık ve toplantı hamleleri
-- **Sistem talimatı** — `BIAS_RULE` tüm YZ akışlarına yöntem↔yanılgı eşleşmesini ekler
-- **Rehber kutuları** — 4, 5 ve 6. adımlara yanılgı karşıtı sorular eklendi
-- **Adım 7 · retrospektif** — "karar sonrası refleksiyon" alanı (sonuç yanlılığı) ve günlük
-  alışkanlık hatırlatmaları; adımın rehber kutusu da bu soruları sorar
-- **Adım 6 · lider davranışları** — "bilmiyorum" diyebilmek, varsayımını açık etmek, fikir
-  değiştirmeyi normalleştirmek
-- **Rapor** — "Düşünme kontrolü" ve "İzleme + retrospektif" bölüm çipleri
-
-### Model üretim ayarları
-
-`model`, `temperature`, `topP` her sağlayıcıda geçerlidir; "Otomatik" modda köprüye
-gönderilir ve köprü değerleri sınırlar (`temperature` 0–2, `top_p` 0,01–1, `model` ≤64 karakter,
-`max_tokens` ≤16.000). Model boş bırakılırsa sunucudaki `MINIMAX_MODEL` kullanılır.
-
-`depth` iki yerde etki eder: çağrı başına token bütçesini çarpar (standart ×1, geniş ×1,6,
-derin ×2,5) ve sistem talimatına derinlik kuralı, rehber görevine de aday sayısı/gerekçe
-kuralı ekler (`COACH_DEPTH_SUFFIX`).
-
-### YZ akışları
-
-Hepsi `buildSystem(step, case)` sistem talimatını paylaşır (adım odağı + tüm çalışma verisi
-JSON + ayarlardan seviye/üslup/bağlam ekleri + referans bloğu):
-
-1. **Rehber (coach)** — adım 1-6; adıma girişte form boşsa ve otomatik öneri açıksa kendiliğinden,
-   yoksa düğmeyle. Adım başına katı JSON şeması ister, "Forma ekle" kartlarına çevirir.
-   "Öğreten" seviyesinde öneri yerine yalnız Sokratik sorular üretir.
-2. **Karar önerisi** ve **aksiyon planı önerisi** (Adım 6), **tutarlılık denetimi** ve
-   **yönetici özeti** (Adım 8) — tek atımlık çağrılar.
-3. **Sohbet asistanı** — adım başına mesaj geçmişi vakada saklanır; alan yanındaki `YZ`
-   düğmeleri o alana özel yardım ister.
-4. **Referans özetleme** — 4.000 karakteri aşan referanslar bir kez özetlenir; hem ham metin
-   hem özet saklanır, sistem talimatına ~8.000 karakterlik bütçeyle girer.
-
-## Prototipe göre farklar
-
-- Prototipe özgü `window.claude` dalı kaldırıldı; "Otomatik" mod doğrudan
-  `/.netlify/functions/ai` köprüsünü kullanır (devir README'sinin önerisi).
-- Görsel editörden gelen sabit piksel ölçüler (Adım 6 Karar kartı 800×1357px, 807px genişlik
-  textarea'lar vb.) akışkan genişliğe çevrildi; karar/gerekçe alanlarının büyütülmüş
-  yükseklikleri korundu.
-- Tasarım aracına özgü `showGuidance` / `showExample` editör anahtarları kaldırıldı
-  (ikisi de varsayılan davranış: açık).
-
-## Referans dosyalar
-
-- `project/Problem Çözme Akışı.dc.html` — kaynak prototip
-- `project/design_handoff_problem_cozme/README.md` — tasarım devir notları
-- `chats/` — tasarım sohbet dökümleri
+Bu depo kurum içi kullanım için hazırlanmıştır; ayrıca bir lisans tanımlanmamıştır.
