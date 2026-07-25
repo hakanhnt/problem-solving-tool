@@ -71,11 +71,11 @@ export default function Step1Problem() {
         />
         {aiReady ? (
           <div style={{ marginTop: 10 }}>
-            <div style={{ font: '700 10px Helvetica,Arial,sans-serif', color: '#8a857c', letterSpacing: '.8px', margin: '0 0 6px' }}>İFADE KALİTE KONTROLÜ</div>
+            <div style={{ font: '700 10px Helvetica,Arial,sans-serif', color: 'var(--muted)', letterSpacing: '.8px', margin: '0 0 6px' }}>İFADE KALİTE KONTROLÜ</div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
               {statementChecks(p).map((pc, i) => (
                 <div key={i} style={{ display: 'flex', gap: 6, alignItems: 'center', background: pc.bg, border: '1px solid ' + pc.border, borderRadius: 20, padding: '5px 11px 5px 8px' }}>
-                  <div style={{ flex: 'none', width: 15, height: 15, borderRadius: '50%', background: pc.color, color: '#fff', font: '700 9px/15px Helvetica,Arial,sans-serif', textAlign: 'center' }}>{pc.icon}</div>
+                  <div style={{ flex: 'none', width: 15, height: 15, borderRadius: '50%', background: pc.color, color: 'var(--on-pri)', font: '700 9px/15px Helvetica,Arial,sans-serif', textAlign: 'center' }}>{pc.icon}</div>
                   <div style={{ font: '600 11.5px/1.3 Helvetica,Arial,sans-serif', color: pc.color }}>{pc.text}</div>
                 </div>
               ))}
@@ -92,7 +92,7 @@ export default function Step1Problem() {
           {dims.map(d => (
             <div key={d.key}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, margin: '0 0 6px' }}>
-                <label style={{ font: '600 12px Helvetica,Arial,sans-serif', color: '#57534b' }}>{d.label}</label>
+                <label style={{ font: '600 12px Helvetica,Arial,sans-serif', color: 'var(--ink-3)' }}>{d.label}</label>
                 {aiReady ? <YZButton small onClick={() => fieldHelp(d.helpLabel, p[d.key])} /> : null}
               </div>
               <input className="pcx-field" value={p[d.key]} onChange={inp('problem', d.key)} placeholder={d.ph} style={S.input} />
@@ -124,13 +124,13 @@ export default function Step1Problem() {
           </div>
         </div>
         {hasGap ? (
-          <div style={{ marginTop: 14, display: 'inline-block', background: '#f6e9e5', border: '1px solid #e5c8bf', borderRadius: 6, padding: '7px 12px', font: '600 13px Helvetica,Arial,sans-serif', color: '#8c4a35' }}>{kpiGapText}</div>
+          <div style={{ marginTop: 14, display: 'inline-block', background: 'var(--alert-soft)', border: '1px solid var(--alert-border)', borderRadius: 6, padding: '7px 12px', font: '600 13px Helvetica,Arial,sans-serif', color: 'var(--alert)' }}>{kpiGapText}</div>
         ) : null}
       </Card>
 
       <Card>
-        <div style={{ ...S.cardTitle, margin: '0 0 4px' }}>Referanslar <span style={{ font: '400 12px Helvetica,Arial,sans-serif', color: '#8a857c' }}>— YZ bağlamı</span></div>
-        <div style={{ font: '12px/1.5 Helvetica,Arial,sans-serif', color: '#8a857c', margin: '0 0 12px' }}>Rapor, veri, e-posta alıntısı, link ya da dosya ekleyin — rehber ve asistan tüm adımlarda bunlardan yararlanır ve R1, R2 biçiminde atıf yapar.</div>
+        <div style={{ ...S.cardTitle, margin: '0 0 4px' }}>Referanslar <span style={{ font: '400 12px Helvetica,Arial,sans-serif', color: 'var(--muted)' }}>— YZ bağlamı</span></div>
+        <div style={{ font: '12px/1.5 Helvetica,Arial,sans-serif', color: 'var(--muted)', margin: '0 0 12px' }}>Rapor, veri, e-posta alıntısı, link ya da dosya ekleyin — rehber ve asistan tüm adımlarda bunlardan yararlanır ve R1, R2 biçiminde atıf yapar.</div>
 
         {refs.length ? (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8, margin: '0 0 12px' }}>
@@ -141,14 +141,14 @@ export default function Step1Problem() {
                 r.url || ''
               ].filter(Boolean).join(' · ');
               return (
-                <div key={r.id || i} style={{ display: 'flex', gap: 10, alignItems: 'flex-start', border: '1px solid #e8e5df', borderRadius: 8, padding: '10px 12px', background: '#fbfaf8' }}>
-                  <div style={{ flex: 'none', background: '#35506e', color: '#fff', borderRadius: 5, font: '700 10px/1 Helvetica,Arial,sans-serif', padding: '4px 7px', marginTop: 2 }}>R{i + 1}</div>
+                <div key={r.id || i} style={{ display: 'flex', gap: 10, alignItems: 'flex-start', border: '1px solid var(--line-2)', borderRadius: 8, padding: '10px 12px', background: 'var(--surface-2)' }}>
+                  <div style={{ flex: 'none', background: 'var(--pri)', color: 'var(--on-pri)', borderRadius: 5, font: '700 10px/1 Helvetica,Arial,sans-serif', padding: '4px 7px', marginTop: 2 }}>R{i + 1}</div>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-                      <span style={{ flex: 'none', font: '700 9.5px Helvetica,Arial,sans-serif', letterSpacing: '.6px', color: '#5f7897', background: '#e8eef6', borderRadius: 4, padding: '3px 6px' }}>{(r.type || 'not').toUpperCase()}</span>
-                      <span style={{ font: '600 13px/1.4 Helvetica,Arial,sans-serif', color: '#26241f', overflowWrap: 'anywhere' }}>{r.title || r.url || 'Referans'}</span>
+                      <span style={{ flex: 'none', font: '700 9.5px Helvetica,Arial,sans-serif', letterSpacing: '.6px', color: 'var(--pri-soft-ink)', background: 'var(--tag-bg)', borderRadius: 4, padding: '3px 6px' }}>{(r.type || 'not').toUpperCase()}</span>
+                      <span style={{ font: '600 13px/1.4 Helvetica,Arial,sans-serif', color: 'var(--ink)', overflowWrap: 'anywhere' }}>{r.title || r.url || 'Referans'}</span>
                     </div>
-                    <div style={{ font: '11.5px/1.5 Helvetica,Arial,sans-serif', color: '#8a857c', marginTop: 3, overflowWrap: 'anywhere' }}>{meta}</div>
+                    <div style={{ font: '11.5px/1.5 Helvetica,Arial,sans-serif', color: 'var(--muted)', marginTop: 3, overflowWrap: 'anywhere' }}>{meta}</div>
                   </div>
                   <RemoveButton onClick={() => { if (confirm('"' + (r.title || 'Referans') + '" silinsin mi?')) updC(cc => cc.references.splice(i, 1)); }} />
                 </div>
@@ -158,19 +158,19 @@ export default function Step1Problem() {
         ) : null}
 
         {form ? (
-          <div style={{ border: '1px solid #d8e2ee', borderRadius: 8, padding: '12px 14px', background: '#f2f6fb', display: 'flex', flexDirection: 'column', gap: 8, margin: '0 0 12px' }}>
+          <div style={{ border: '1px solid var(--pri-border-4)', borderRadius: 8, padding: '12px 14px', background: 'var(--pri-soft-2)', display: 'flex', flexDirection: 'column', gap: 8, margin: '0 0 12px' }}>
             <input
               className="pcx-field-sm" value={form.title || ''}
               onChange={e => upd(n => { if (n.refForm) n.refForm.title = e.target.value; })}
               placeholder="Başlık — örn. Q2 lojistik raporu"
-              style={{ width: '100%', boxSizing: 'border-box', padding: '8px 11px', border: '1px solid #d6d3ce', borderRadius: 6, font: '13px/1.4 Helvetica,Arial,sans-serif', color: '#26241f', background: '#fff', outline: 'none' }}
+              style={{ width: '100%', boxSizing: 'border-box', padding: '8px 11px', border: '1px solid var(--field-border)', borderRadius: 6, font: '13px/1.4 Helvetica,Arial,sans-serif', color: 'var(--ink)', background: 'var(--surface)', outline: 'none' }}
             />
             {form.type === 'link' ? (
               <input
                 className="pcx-field-sm" value={form.url || ''}
                 onChange={e => upd(n => { if (n.refForm) n.refForm.url = e.target.value; })}
                 placeholder="https://… (içerik sunucu üzerinden okunur)"
-                style={{ width: '100%', boxSizing: 'border-box', padding: '8px 11px', border: '1px solid #d6d3ce', borderRadius: 6, font: '13px/1.4 Helvetica,Arial,sans-serif', color: '#26241f', background: '#fff', outline: 'none' }}
+                style={{ width: '100%', boxSizing: 'border-box', padding: '8px 11px', border: '1px solid var(--field-border)', borderRadius: 6, font: '13px/1.4 Helvetica,Arial,sans-serif', color: 'var(--ink)', background: 'var(--surface)', outline: 'none' }}
               />
             ) : null}
             {form.type === 'not' ? (
@@ -178,12 +178,12 @@ export default function Step1Problem() {
                 className="pcx-field-sm" value={form.text || ''}
                 onChange={e => upd(n => { if (n.refForm) n.refForm.text = e.target.value; })}
                 placeholder="Referans metnini buraya yapıştırın — rapor özeti, veri, e-posta alıntısı…"
-                style={{ width: '100%', boxSizing: 'border-box', padding: '8px 11px', border: '1px solid #d6d3ce', borderRadius: 6, font: '13px/1.45 Helvetica,Arial,sans-serif', color: '#26241f', background: '#fff', outline: 'none', resize: 'vertical', minHeight: 90 }}
+                style={{ width: '100%', boxSizing: 'border-box', padding: '8px 11px', border: '1px solid var(--field-border)', borderRadius: 6, font: '13px/1.45 Helvetica,Arial,sans-serif', color: 'var(--ink)', background: 'var(--surface)', outline: 'none', resize: 'vertical', minHeight: 90 }}
               />
             ) : null}
             <div style={{ display: 'flex', gap: 8 }}>
-              <HButton onClick={saveRef} style={{ padding: '8px 14px', border: '1px solid #35506e', borderRadius: 7, background: '#35506e', color: '#fff', font: '600 12px Helvetica,Arial,sans-serif', cursor: 'pointer' }} hover={{ background: '#2a4159' }}>Kaydet</HButton>
-              <HButton onClick={() => upd(n => { n.refForm = null; })} style={{ padding: '8px 14px', border: '1px solid #d6d3ce', borderRadius: 7, background: '#fff', color: '#57534b', font: '600 12px Helvetica,Arial,sans-serif', cursor: 'pointer' }} hover={{ background: '#f1efeb' }}>Vazgeç</HButton>
+              <HButton onClick={saveRef} style={{ padding: '8px 14px', border: '1px solid var(--pri)', borderRadius: 7, background: 'var(--pri)', color: 'var(--on-pri)', font: '600 12px Helvetica,Arial,sans-serif', cursor: 'pointer' }} hover={{ background: 'var(--pri-hover)' }}>Kaydet</HButton>
+              <HButton onClick={() => upd(n => { n.refForm = null; })} style={{ padding: '8px 14px', border: '1px solid var(--field-border)', borderRadius: 7, background: 'var(--surface)', color: 'var(--ink-3)', font: '600 12px Helvetica,Arial,sans-serif', cursor: 'pointer' }} hover={{ background: 'var(--surface-4)' }}>Vazgeç</HButton>
             </div>
           </div>
         ) : null}
@@ -196,8 +196,8 @@ export default function Step1Problem() {
           ].map(b => (
             <HButton
               key={b.label} onClick={b.onClick}
-              style={{ padding: '9px 14px', border: '1px dashed #b9b4ab', borderRadius: 8, background: 'transparent', color: '#57534b', font: '600 12.5px Helvetica,Arial,sans-serif', cursor: 'pointer' }}
-              hover={{ background: '#f1efeb' }}
+              style={{ padding: '9px 14px', border: '1px dashed var(--dash-border)', borderRadius: 8, background: 'transparent', color: 'var(--ink-3)', font: '600 12.5px Helvetica,Arial,sans-serif', cursor: 'pointer' }}
+              hover={{ background: 'var(--surface-4)' }}
             >{b.label}</HButton>
           ))}
         </div>

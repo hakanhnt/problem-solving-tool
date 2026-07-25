@@ -15,20 +15,20 @@ function MethodQuestions({ method }) {
   const info = THINKING_METHOD_INFO[method];
   if (!info) return null;
   return (
-    <div style={{ background: '#f2f6fb', border: '1px solid #d8e2ee', borderRadius: 8, padding: '9px 12px' }}>
+    <div style={{ background: 'var(--pri-soft-2)', border: '1px solid var(--pri-border-4)', borderRadius: 8, padding: '9px 12px' }}>
       <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
-        <span style={{ font: '11.5px/1.5 Helvetica,Arial,sans-serif', color: '#3e4a5a', flex: 1, minWidth: 200 }}>
+        <span style={{ font: '11.5px/1.5 Helvetica,Arial,sans-serif', color: 'var(--pri-ink-2)', flex: 1, minWidth: 200 }}>
           Bu yöntem <strong>{info.bias}</strong> yanılgısına karşı çalışır · {info.amac}
         </span>
         <HButton
           onClick={() => setOpen(!open)}
-          style={{ flex: 'none', padding: '5px 10px', border: '1px solid #b9cbe0', borderRadius: 6, background: '#fff', color: '#35506e', font: '600 11px Helvetica,Arial,sans-serif', cursor: 'pointer' }}
-          hover={{ background: '#e3ecf5' }}
+          style={{ flex: 'none', padding: '5px 10px', border: '1px solid var(--pri-border)', borderRadius: 6, background: 'var(--surface)', color: 'var(--pri)', font: '600 11px Helvetica,Arial,sans-serif', cursor: 'pointer' }}
+          hover={{ background: 'var(--pri-soft-3)' }}
         >{open ? 'Soruları gizle' : 'Ekibe sorulacak ' + info.sorular.length + ' soru'}</HButton>
       </div>
       {open ? (
         <ul style={{ margin: '8px 0 0', padding: '0 0 0 18px', display: 'flex', flexDirection: 'column', gap: 4 }}>
-          {info.sorular.map((q, i) => <li key={i} style={{ font: '12px/1.5 Helvetica,Arial,sans-serif', color: '#3e4a5a' }}>{q}</li>)}
+          {info.sorular.map((q, i) => <li key={i} style={{ font: '12px/1.5 Helvetica,Arial,sans-serif', color: 'var(--pri-ink-2)' }}>{q}</li>)}
         </ul>
       ) : null}
     </div>
@@ -67,7 +67,7 @@ export default function Step6Countermeasures() {
           {c.alternatives.map((a, i) => (
             <div key={i} style={S.itemCard}>
               <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
-                <Badge bg="#4a6741">A{i + 1}</Badge>
+                <Badge bg="var(--ok)">A{i + 1}</Badge>
                 <textarea
                   className="pcx-field" value={a.name} onChange={inp('alternatives', i, 'name')} placeholder="Alternatif çözüm"
                   style={{ ...S.textarea, flex: 1, width: 'auto', font: '600 13px/1.45 Helvetica,Arial,sans-serif', minHeight: 48 }}
@@ -76,7 +76,7 @@ export default function Step6Countermeasures() {
                 <RemoveButton onClick={() => updC(cc => { cc.alternatives.splice(i, 1); cc.scores = {}; })} />
               </div>
               <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-                <label style={{ flex: 'none', font: '600 12px Helvetica,Arial,sans-serif', color: '#57534b' }}>Düşünme yöntemi:</label>
+                <label style={{ flex: 'none', font: '600 12px Helvetica,Arial,sans-serif', color: 'var(--ink-3)' }}>Düşünme yöntemi:</label>
                 <select
                   value={a.method} onChange={inp('alternatives', i, 'method')}
                   style={{ ...S.select, flex: 1, font: '13px Helvetica,Arial,sans-serif' }}
@@ -117,7 +117,7 @@ export default function Step6Countermeasures() {
               />
               <input
                 className="pcx-field-sm" type="number" min="0" max="100" value={cr.weight} onChange={inp('criteria', i, 'weight')} placeholder="%"
-                style={{ width: 88, boxSizing: 'border-box', padding: '9px 11px', border: '1px solid #d6d3ce', borderRadius: 6, font: '13px/1.45 Helvetica,Arial,sans-serif', color: '#26241f', background: '#fff', outline: 'none' }}
+                style={{ width: 88, boxSizing: 'border-box', padding: '9px 11px', border: '1px solid var(--field-border)', borderRadius: 6, font: '13px/1.45 Helvetica,Arial,sans-serif', color: 'var(--ink)', background: 'var(--surface)', outline: 'none' }}
               />
               <RemoveButton onClick={() => updC(cc => { cc.criteria.splice(i, 1); cc.scores = {}; })} />
             </div>
@@ -139,30 +139,30 @@ export default function Step6Countermeasures() {
           <MethodBox margin="0 0 14px">Ağırlıklı puanlama matrisi alternatifleri nesnel biçimde karşılaştırır; ama matris karar vermez, akıl yürütmenize girdi sağlar.</MethodBox>
           <div style={{ overflowX: 'auto' }}>
             <div style={{ display: 'flex', gap: 8, margin: '0 0 8px', minWidth: 560 }}>
-              <div style={{ flex: 1, minWidth: 140, font: '700 11px Helvetica,Arial,sans-serif', color: '#57534b', letterSpacing: '.4px' }}>ALTERNATİF</div>
+              <div style={{ flex: 1, minWidth: 140, font: '700 11px Helvetica,Arial,sans-serif', color: 'var(--ink-3)', letterSpacing: '.4px' }}>ALTERNATİF</div>
               {M.head.map((mh, i) => (
-                <div key={i} style={{ flex: '1 1 72px', minWidth: 72, maxWidth: 104, font: '700 11px/1.4 Helvetica,Arial,sans-serif', color: '#57534b' }}>{mh.name}<br />%{mh.weight}</div>
+                <div key={i} style={{ flex: '1 1 72px', minWidth: 72, maxWidth: 104, font: '700 11px/1.4 Helvetica,Arial,sans-serif', color: 'var(--ink-3)' }}>{mh.name}<br />%{mh.weight}</div>
               ))}
-              <div style={{ width: 56, flex: 'none', font: '700 11px Helvetica,Arial,sans-serif', color: '#57534b', textAlign: 'right' }}>PUAN</div>
+              <div style={{ width: 56, flex: 'none', font: '700 11px Helvetica,Arial,sans-serif', color: 'var(--ink-3)', textAlign: 'right' }}>PUAN</div>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8, minWidth: 560 }}>
               {M.rows.map(mr => (
-                <div key={mr.n} style={{ display: 'flex', gap: 8, alignItems: 'center', borderTop: '1px solid #eeece7', paddingTop: 8 }}>
-                  <div style={{ flex: 1, minWidth: 140, font: '13px/1.4 Helvetica,Arial,sans-serif', color: '#26241f' }}><strong>A{mr.n}</strong> · {mr.name}</div>
+                <div key={mr.n} style={{ display: 'flex', gap: 8, alignItems: 'center', borderTop: '1px solid var(--line-4)', paddingTop: 8 }}>
+                  <div style={{ flex: 1, minWidth: 140, font: '13px/1.4 Helvetica,Arial,sans-serif', color: 'var(--ink)' }}><strong>A{mr.n}</strong> · {mr.name}</div>
                   {mr.cells.map(cell => (
                     <input
                       key={cell.key} className="pcx-field-sm" type="number" min="0" max="5" value={cell.value}
                       onChange={e => { const v = e.target.value; updC(cc => { cc.scores[cell.key] = v; }); }}
-                      style={{ flex: '1 1 72px', minWidth: 72, maxWidth: 104, boxSizing: 'border-box', padding: '8px 9px', border: '1px solid #d6d3ce', borderRadius: 6, font: '13px Helvetica,Arial,sans-serif', color: '#26241f', background: '#fff', outline: 'none' }}
+                      style={{ flex: '1 1 72px', minWidth: 72, maxWidth: 104, boxSizing: 'border-box', padding: '8px 9px', border: '1px solid var(--field-border)', borderRadius: 6, font: '13px Helvetica,Arial,sans-serif', color: 'var(--ink)', background: 'var(--surface)', outline: 'none' }}
                     />
                   ))}
-                  <div style={{ width: 56, flex: 'none', font: '700 15px Helvetica,Arial,sans-serif', color: '#35506e', textAlign: 'right' }}>{mr.total}</div>
+                  <div style={{ width: 56, flex: 'none', font: '700 15px Helvetica,Arial,sans-serif', color: 'var(--pri)', textAlign: 'right' }}>{mr.total}</div>
                 </div>
               ))}
             </div>
           </div>
           {M.best ? (
-            <div style={{ marginTop: 14, background: '#eef4ee', border: '1px solid #cfe0cf', borderRadius: 8, padding: '12px 14px', font: '13px/1.5 Helvetica,Arial,sans-serif', color: '#3d5a3d' }}>
+            <div style={{ marginTop: 14, background: 'var(--ok-soft)', border: '1px solid var(--ok-border)', borderRadius: 8, padding: '12px 14px', font: '13px/1.5 Helvetica,Arial,sans-serif', color: 'var(--ok-ink)' }}>
               <strong>Matris önerisi:</strong> En yüksek ağırlıklı puan {M.best.total} ile <strong>A{M.best.n} — {M.best.name}</strong>
             </div>
           ) : null}
@@ -183,41 +183,41 @@ export default function Step6Countermeasures() {
         />
         <MethodBox>Kararı kök nedenle ilişkilendirin — seçilen çözüm kök nedeni gidermiyorsa belirti tedavisidir. Gerekçenizde kısıt ve riskleri nasıl karşıladığınızı yazın.</MethodBox>
 
-        <div style={{ background: '#f2f6fb', border: '1px solid #b9cbe0', borderRadius: 8, padding: '12px 14px', margin: '0 0 14px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+        <div style={{ background: 'var(--pri-soft-2)', border: '1px solid var(--pri-border)', borderRadius: 8, padding: '12px 14px', margin: '0 0 14px', display: 'flex', flexDirection: 'column', gap: 10 }}>
           {dcIdle ? (
             <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
-              <div style={{ font: '12.5px/1.5 Helvetica,Arial,sans-serif', color: '#3e4a5a', flex: 1, minWidth: 220 }}>
+              <div style={{ font: '12.5px/1.5 Helvetica,Arial,sans-serif', color: 'var(--pri-ink-2)', flex: 1, minWidth: 220 }}>
                 Rehber; alternatiflerinize, kriterlerinize ve matris puanlarınıza bakarak size bir karar önerisi hazırlayabilir.
-                {dc && dc.status === 'error' ? <span style={{ color: '#8c4a35' }}> Öneri hazırlanırken hata oluştu, tekrar deneyin.</span> : null}
+                {dc && dc.status === 'error' ? <span style={{ color: 'var(--alert)' }}> Öneri hazırlanırken hata oluştu, tekrar deneyin.</span> : null}
               </div>
-              <HButton onClick={runDecisionCoach} style={{ flex: 'none', ...S.ghostBtn, border: '1px solid #35506e', background: '#35506e', color: '#fff' }} hover={S.primaryHover}>Rehberden karar önerisi al</HButton>
+              <HButton onClick={runDecisionCoach} style={{ flex: 'none', ...S.ghostBtn, border: '1px solid var(--pri)', background: 'var(--pri)', color: 'var(--on-pri)' }} hover={S.primaryHover}>Rehberden karar önerisi al</HButton>
             </div>
           ) : null}
           {dc && dc.status === 'busy' ? (
             <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
               <Spinner />
-              <div style={{ font: '600 12.5px Helvetica,Arial,sans-serif', color: '#2c4159' }}>Rehber çalışıyor — alternatifleriniz ve matris puanlarınız değerlendiriliyor…</div>
+              <div style={{ font: '600 12.5px Helvetica,Arial,sans-serif', color: 'var(--pri-ink)' }}>Rehber çalışıyor — alternatifleriniz ve matris puanlarınız değerlendiriliyor…</div>
             </div>
           ) : null}
           {dc && dc.status === 'done' ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              <div style={{ font: '700 10.5px Helvetica,Arial,sans-serif', color: '#5f7897', letterSpacing: '.8px' }}>REHBERİN KARAR ÖNERİSİ</div>
-              <div style={{ font: '600 13px/1.5 Helvetica,Arial,sans-serif', color: '#26241f' }}>{dc.choice}</div>
-              <div style={{ font: '12.5px/1.55 Helvetica,Arial,sans-serif', color: '#57534b' }}>{dc.rationale}</div>
+              <div style={{ font: '700 10.5px Helvetica,Arial,sans-serif', color: 'var(--pri-soft-ink)', letterSpacing: '.8px' }}>REHBERİN KARAR ÖNERİSİ</div>
+              <div style={{ font: '600 13px/1.5 Helvetica,Arial,sans-serif', color: 'var(--ink)' }}>{dc.choice}</div>
+              <div style={{ font: '12.5px/1.55 Helvetica,Arial,sans-serif', color: 'var(--ink-3)' }}>{dc.rationale}</div>
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                 <HButton
                   onClick={() => updC(cc => { if (!cc.decisionCoach) return; cc.decision.choice = cc.decisionCoach.choice; cc.decision.rationale = cc.decisionCoach.rationale; })}
-                  style={{ padding: '8px 14px', border: '1px solid #35506e', borderRadius: 8, background: '#35506e', color: '#fff', font: '600 12px Helvetica,Arial,sans-serif', cursor: 'pointer' }}
+                  style={{ padding: '8px 14px', border: '1px solid var(--pri)', borderRadius: 8, background: 'var(--pri)', color: 'var(--on-pri)', font: '600 12px Helvetica,Arial,sans-serif', cursor: 'pointer' }}
                   hover={S.primaryHover}
                 >Karar alanlarına aktar</HButton>
                 <HButton onClick={runDecisionCoach} style={S.ghostBtn} hover={S.ghostHover}>Yeniden öner</HButton>
                 <HButton
                   onClick={() => updC(cc => { delete cc.decisionCoach; })}
-                  style={{ padding: '8px 14px', border: 'none', background: 'transparent', color: '#8a857c', font: '600 12px Helvetica,Arial,sans-serif', cursor: 'pointer' }}
-                  hover={{ color: '#57534b' }}
+                  style={{ padding: '8px 14px', border: 'none', background: 'transparent', color: 'var(--muted)', font: '600 12px Helvetica,Arial,sans-serif', cursor: 'pointer' }}
+                  hover={{ color: 'var(--ink-3)' }}
                 >Kapat</HButton>
               </div>
-              <div style={{ font: '11px/1.5 Helvetica,Arial,sans-serif', color: '#8a857c' }}>Öneri bir girdidir; karar sizindir. Aktardıktan sonra kendi akıl yürütmenizle düzenleyin.</div>
+              <div style={{ font: '11px/1.5 Helvetica,Arial,sans-serif', color: 'var(--muted)' }}>Öneri bir girdidir; karar sizindir. Aktardıktan sonra kendi akıl yürütmenizle düzenleyin.</div>
             </div>
           ) : null}
         </div>
@@ -241,36 +241,36 @@ export default function Step6Countermeasures() {
         <div style={S.cardSub}>Kararı hayata geçirecek somut adımları yazın; sorumlu ve süre atayın, etki/efora göre önceliklendirin.</div>
         <MethodBox margin="0 0 14px">Etki/Efor matrisi — yüksek etki + düşük efor "hızlı kazanım"dır, önce yapılır; yüksek etki + yüksek efor "stratejik"tir, planlanır; düşük etki + yüksek efor sorgulanmalıdır. Her aksiyonun ölçülebilir bir çıktısı ve tek bir sorumlusu olmalıdır.</MethodBox>
 
-        <div style={{ background: '#f2f6fb', border: '1px solid #b9cbe0', borderRadius: 8, padding: '12px 14px', margin: '0 0 14px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+        <div style={{ background: 'var(--pri-soft-2)', border: '1px solid var(--pri-border)', borderRadius: 8, padding: '12px 14px', margin: '0 0 14px', display: 'flex', flexDirection: 'column', gap: 10 }}>
           {acIdle ? (
             <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
-              <div style={{ font: '12.5px/1.5 Helvetica,Arial,sans-serif', color: '#3e4a5a', flex: 1, minWidth: 220 }}>
+              <div style={{ font: '12.5px/1.5 Helvetica,Arial,sans-serif', color: 'var(--pri-ink-2)', flex: 1, minWidth: 220 }}>
                 Rehber; kararınıza, kök nedenlerinize ve bulgularınıza bakarak önceliklendirilmiş aksiyonlar önerebilir.
-                {ac && ac.status === 'error' ? <span style={{ color: '#8c4a35' }}> Öneri hazırlanırken hata oluştu, tekrar deneyin.</span> : null}
+                {ac && ac.status === 'error' ? <span style={{ color: 'var(--alert)' }}> Öneri hazırlanırken hata oluştu, tekrar deneyin.</span> : null}
               </div>
-              <HButton onClick={runActionCoach} style={{ flex: 'none', padding: '8px 14px', border: '1px solid #35506e', borderRadius: 8, background: '#35506e', color: '#fff', font: '600 12px Helvetica,Arial,sans-serif', cursor: 'pointer' }} hover={S.primaryHover}>Rehberden aksiyon önerisi al</HButton>
+              <HButton onClick={runActionCoach} style={{ flex: 'none', padding: '8px 14px', border: '1px solid var(--pri)', borderRadius: 8, background: 'var(--pri)', color: 'var(--on-pri)', font: '600 12px Helvetica,Arial,sans-serif', cursor: 'pointer' }} hover={S.primaryHover}>Rehberden aksiyon önerisi al</HButton>
             </div>
           ) : null}
           {ac && ac.status === 'busy' ? (
             <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
               <Spinner />
-              <div style={{ font: '600 12.5px Helvetica,Arial,sans-serif', color: '#2c4159' }}>Rehber çalışıyor — karar ve kök nedenlerinize göre aksiyonlar hazırlanıyor…</div>
+              <div style={{ font: '600 12.5px Helvetica,Arial,sans-serif', color: 'var(--pri-ink)' }}>Rehber çalışıyor — karar ve kök nedenlerinize göre aksiyonlar hazırlanıyor…</div>
             </div>
           ) : null}
           {ac && ac.status === 'done' ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              <div style={{ font: '700 10.5px Helvetica,Arial,sans-serif', color: '#5f7897', letterSpacing: '.8px' }}>REHBERİN AKSİYON ÖNERİLERİ</div>
+              <div style={{ font: '700 10.5px Helvetica,Arial,sans-serif', color: 'var(--pri-soft-ink)', letterSpacing: '.8px' }}>REHBERİN AKSİYON ÖNERİLERİ</div>
               {(ac.items || []).map((it, i) => {
                 const p = prioMeta(it);
                 const sub = [it.sorumluRol, it.sure, (it.etki && it.efor) ? 'Etki ' + it.etki + ' · Efor ' + it.efor : '', it.gerekce].filter(Boolean).join(' · ');
                 return (
-                  <div key={i} style={{ display: 'flex', gap: 12, alignItems: 'flex-start', background: '#fff', border: '1px solid #d8e2ee', borderRadius: 8, padding: '11px 13px' }}>
+                  <div key={i} style={{ display: 'flex', gap: 12, alignItems: 'flex-start', background: 'var(--surface)', border: '1px solid var(--pri-border-4)', borderRadius: 8, padding: '11px 13px' }}>
                     <div style={{ flex: 1 }}>
                       <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
                         <span style={{ flex: 'none', padding: '4px 9px', borderRadius: 20, border: '1px solid ' + p.border, background: p.bg, color: p.color, font: '700 10px Helvetica,Arial,sans-serif' }}>{p.label}</span>
-                        <span style={{ font: '600 13px/1.4 Helvetica,Arial,sans-serif', color: '#26241f' }}>{it.aksiyon}</span>
+                        <span style={{ font: '600 13px/1.4 Helvetica,Arial,sans-serif', color: 'var(--ink)' }}>{it.aksiyon}</span>
                       </div>
-                      <div style={{ font: '12px/1.5 Helvetica,Arial,sans-serif', color: '#6d6860', marginTop: 4 }}>{sub}</div>
+                      <div style={{ font: '12px/1.5 Helvetica,Arial,sans-serif', color: 'var(--ink-4)', marginTop: 4 }}>{sub}</div>
                     </div>
                     <button
                       onClick={() => updC(cc => {
@@ -282,9 +282,9 @@ export default function Step6Countermeasures() {
                       })}
                       style={{
                         flex: 'none',
-                        border: '1px solid ' + (it.added ? '#cfe0cf' : '#35506e'),
-                        background: it.added ? '#eef4ee' : '#35506e',
-                        color: it.added ? '#4a6741' : '#fff',
+                        border: '1px solid ' + (it.added ? 'var(--ok-border)' : 'var(--pri)'),
+                        background: it.added ? 'var(--ok-soft)' : 'var(--pri)',
+                        color: it.added ? 'var(--ok)' : 'var(--on-pri)',
                         borderRadius: 6, padding: '7px 12px', font: '600 12px Helvetica,Arial,sans-serif', cursor: 'pointer'
                       }}
                     >{it.added ? 'Eklendi ✓' : 'Plana ekle'}</button>
@@ -292,8 +292,8 @@ export default function Step6Countermeasures() {
                 );
               })}
               <div style={{ display: 'flex', gap: 8 }}>
-                <HButton onClick={runActionCoach} style={{ padding: '7px 12px', border: '1px solid #b9cbe0', borderRadius: 7, background: '#fff', color: '#35506e', font: '600 11.5px Helvetica,Arial,sans-serif', cursor: 'pointer' }} hover={S.ghostHover}>Yeniden öner</HButton>
-                <HButton onClick={() => updC(cc => { delete cc.actionCoach; })} style={{ padding: '7px 12px', border: 'none', background: 'transparent', color: '#8a857c', font: '600 11.5px Helvetica,Arial,sans-serif', cursor: 'pointer' }} hover={{ color: '#57534b' }}>Kapat</HButton>
+                <HButton onClick={runActionCoach} style={{ padding: '7px 12px', border: '1px solid var(--pri-border)', borderRadius: 7, background: 'var(--surface)', color: 'var(--pri)', font: '600 11.5px Helvetica,Arial,sans-serif', cursor: 'pointer' }} hover={S.ghostHover}>Yeniden öner</HButton>
+                <HButton onClick={() => updC(cc => { delete cc.actionCoach; })} style={{ padding: '7px 12px', border: 'none', background: 'transparent', color: 'var(--muted)', font: '600 11.5px Helvetica,Arial,sans-serif', cursor: 'pointer' }} hover={{ color: 'var(--ink-3)' }}>Kapat</HButton>
               </div>
             </div>
           ) : null}
@@ -317,21 +317,21 @@ export default function Step6Countermeasures() {
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr .7fr .7fr', gap: 10 }}>
                     <div>
-                      <label style={{ display: 'block', font: '600 11px Helvetica,Arial,sans-serif', color: '#57534b', margin: '0 0 4px' }}>SORUMLU</label>
+                      <label style={{ display: 'block', font: '600 11px Helvetica,Arial,sans-serif', color: 'var(--ink-3)', margin: '0 0 4px' }}>SORUMLU</label>
                       <input className="pcx-field-sm" value={a.owner} onChange={inp('actions', i, 'owner')} placeholder="Rol / kişi" style={S.inputSm} />
                     </div>
                     <div>
-                      <label style={{ display: 'block', font: '600 11px Helvetica,Arial,sans-serif', color: '#57534b', margin: '0 0 4px' }}>SÜRE / TERMİN</label>
+                      <label style={{ display: 'block', font: '600 11px Helvetica,Arial,sans-serif', color: 'var(--ink-3)', margin: '0 0 4px' }}>SÜRE / TERMİN</label>
                       <input className="pcx-field-sm" value={a.due} onChange={inp('actions', i, 'due')} placeholder="Örn. 2 hafta" style={S.inputSm} />
                     </div>
                     <div>
-                      <label style={{ display: 'block', font: '600 11px Helvetica,Arial,sans-serif', color: '#57534b', margin: '0 0 4px' }}>ETKİ (1-5)</label>
+                      <label style={{ display: 'block', font: '600 11px Helvetica,Arial,sans-serif', color: 'var(--ink-3)', margin: '0 0 4px' }}>ETKİ (1-5)</label>
                       <select value={a.etki || ''} onChange={inp('actions', i, 'etki')} style={S.select}>
                         <option value="">—</option>{[1, 2, 3, 4, 5].map(v => <option key={v} value={String(v)}>{v}</option>)}
                       </select>
                     </div>
                     <div>
-                      <label style={{ display: 'block', font: '600 11px Helvetica,Arial,sans-serif', color: '#57534b', margin: '0 0 4px' }}>EFOR (1-5)</label>
+                      <label style={{ display: 'block', font: '600 11px Helvetica,Arial,sans-serif', color: 'var(--ink-3)', margin: '0 0 4px' }}>EFOR (1-5)</label>
                       <select value={a.efor || ''} onChange={inp('actions', i, 'efor')} style={S.select}>
                         <option value="">—</option>{[1, 2, 3, 4, 5].map(v => <option key={v} value={String(v)}>{v}</option>)}
                       </select>
@@ -351,8 +351,8 @@ export default function Step6Countermeasures() {
           {(c.actions || []).length ? (
             <HButton
               onClick={() => updC(cc => cc.actions.sort((x, y) => prioMeta(y).score - prioMeta(x).score))}
-              style={{ flex: 'none', padding: '10px 14px', border: '1px solid #d6d3ce', borderRadius: 8, background: '#fff', color: '#57534b', font: '600 13px Helvetica,Arial,sans-serif', cursor: 'pointer' }}
-              hover={{ background: '#f1efeb' }}
+              style={{ flex: 'none', padding: '10px 14px', border: '1px solid var(--field-border)', borderRadius: 8, background: 'var(--surface)', color: 'var(--ink-3)', font: '600 13px Helvetica,Arial,sans-serif', cursor: 'pointer' }}
+              hover={{ background: 'var(--surface-4)' }}
             >Önceliğe göre sırala</HButton>
           ) : null}
         </div>

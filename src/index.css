@@ -1,17 +1,221 @@
-html,body{margin:0;padding:0;background:#efedea;font-family:Helvetica,Arial,sans-serif;color:#26241f}
+/* Tema değişkenleri — açık tema referans paletidir (prototipteki renkler).
+   Koyu tema aynı token'ları yeniden tanımlar; bileşenler yalnızca var(--token) kullanır. */
+:root {
+  --bg: #efedea;
+  --surface-2: #fbfaf8;
+  --surface-3: #f7f6f3;
+  --surface-4: #f1efeb;
+  --line-4: #eeece7;
+  --line-3: #eceae5;
+  --line-2: #e8e5df;
+  --line: #e3e0da;
+  --line-strong: #e0ddd7;
+  --chip-neutral: #d9d5cd;
+  --field-border: #d6d3ce;
+  --dash-border: #b9b4ab;
+  --muted-2: #a9a49b;
+  --muted-3: #96918a;
+  --muted: #8a857c;
+  --ink-4: #6d6860;
+  --ink-3: #57534b;
+  --ink-2: #3d3a34;
+  --ink: #26241f;
+  --pri: #35506e;
+  --pri-hover: #2a4159;
+  --link-hover: #233b55;
+  --pri-ink: #2c4159;
+  --pri-ink-2: #3e4a5a;
+  --pri-soft-ink: #5f7897;
+  --pri-bar: #8fb0d4;
+  --on-pri-muted: #a9bdd6;
+  --pri-border: #b9cbe0;
+  --pri-border-2: #c9d4e2;
+  --pri-border-3: #c9d8e8;
+  --pri-border-4: #d8e2ee;
+  --pri-border-5: #dbe4ef;
+  --pri-border-6: #d3dce8;
+  --pri-border-7: #dde4ec;
+  --spinner-track: #dbe6f1;
+  --pri-soft-hover: #dfe7f0;
+  --pri-soft-3: #e3ecf5;
+  --tag-bg: #e8eef6;
+  --pri-soft: #eef2f7;
+  --chat-bubble: #f1f4f8;
+  --pri-soft-2: #f2f6fb;
+  --brand-grad: #f7f9fc;
+  --ok-ink: #3d5a3d;
+  --ok: #4a6741;
+  --ok-dot: #8fd0a0;
+  --ok-border: #cfe0cf;
+  --ok-soft-2: #e4ede4;
+  --ok-soft: #eef4ee;
+  --warn-ink-2: #7a6231;
+  --warn-ink-3: #7a6f57;
+  --warn-ink: #8c6a35;
+  --warn-border-2: #e8ddc7;
+  --warn-border: #eaddb8;
+  --warn-border-3: #ecd9b8;
+  --warn-soft-2: #f6f1e7;
+  --warn-soft: #faf3e3;
+  --warn-soft-3: #fdf6ec;
+  --alert: #8c4a35;
+  --danger: #b3432f;
+  --alert-border: #e5c8bf;
+  --alert-soft: #f6e9e5;
+  --alert-soft-2: #fdf9f5;
+  --surface: #ffffff;
+  --on-pri: #ffffff;
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  --bg: #1b1a18;
+  --surface-2: #272621;
+  --surface-3: #2a2924;
+  --surface-4: #2f2e28;
+  --line-4: #34322c;
+  --line-3: #322f2a;
+  --line-2: #38352f;
+  --line: #3b3832;
+  --line-strong: #403d36;
+  --chip-neutral: #4a473f;
+  --field-border: #4b473f;
+  --dash-border: #5a564d;
+  --muted-2: #8e897f;
+  --muted-3: #948f86;
+  --muted: #a09a90;
+  --ink-4: #b5afa4;
+  --ink-3: #c6c0b4;
+  --ink-2: #ded8cc;
+  --ink: #ece6da;
+  --pri: #8fb4dd;
+  --pri-hover: #a6c6e8;
+  --link-hover: #b7d2ee;
+  --pri-ink: #a9c7e6;
+  --pri-ink-2: #b3c3d6;
+  --pri-soft-ink: #93aecd;
+  --pri-bar: #5b82b0;
+  --on-pri-muted: #3a5a80;
+  --pri-border: #3f5c7d;
+  --pri-border-2: #3a5674;
+  --pri-border-3: #3d5a79;
+  --pri-border-4: #35506e;
+  --pri-border-5: #34506f;
+  --pri-border-6: #37536f;
+  --pri-border-7: #354f6b;
+  --spinner-track: #38506b;
+  --pri-soft-hover: #2d445e;
+  --pri-soft-3: #23364a;
+  --tag-bg: #24384c;
+  --pri-soft: #1f3145;
+  --chat-bubble: #23303d;
+  --pri-soft-2: #1d2c3d;
+  --brand-grad: #232a33;
+  --ok-ink: #9dc79d;
+  --ok: #7fae7a;
+  --ok-dot: #7fc492;
+  --ok-border: #3c5a3c;
+  --ok-soft-2: #2a3a2a;
+  --ok-soft: #1f2c1f;
+  --warn-ink-2: #d9bd80;
+  --warn-ink-3: #cfc39e;
+  --warn-ink: #dcb872;
+  --warn-border-2: #4c422c;
+  --warn-border: #514526;
+  --warn-border-3: #4e4227;
+  --warn-soft-2: #2e2a20;
+  --warn-soft: #332c1c;
+  --warn-soft-3: #302a1e;
+  --alert: #e0977f;
+  --danger: #e58b73;
+  --alert-border: #5c3a2f;
+  --alert-soft: #38261f;
+  --alert-soft-2: #2f221c;
+  --surface: #232220;
+  --on-pri: #14202b;
+  color-scheme: dark;
+}
+
+html,body{margin:0;padding:0;background:var(--bg);font-family:Helvetica,Arial,sans-serif;color:var(--ink)}
 #root{height:100vh}
-a{color:#35506e}
-a:hover{color:#233b55}
+a{color:var(--pri)}
+a:hover{color:var(--link-hover)}
 textarea,input,select,button{font-family:Helvetica,Arial,sans-serif}
+input,textarea,select{color-scheme:inherit}
 @keyframes pcxspin{to{transform:rotate(360deg)}}
 @keyframes pcxpulse{0%,100%{opacity:1}50%{opacity:.35}}
-::placeholder{color:#a9a49b}
+::placeholder{color:var(--muted-2)}
 
 /* Prototipteki style-focus davranışının CSS karşılığı */
-.pcx-field:focus{border-color:#35506e;box-shadow:0 0 0 2px rgba(53,80,110,.12)}
-.pcx-field-sm:focus{border-color:#35506e}
+.pcx-field:focus{border-color:var(--pri);box-shadow:0 0 0 2px rgba(53,80,110,.18)}
+.pcx-field-sm:focus{border-color:var(--pri)}
 
+/* Yazdırma her zaman açık temadır: rapor beyaz kâğıda basılır */
 @media print{
+  :root, :root[data-theme="dark"] { --bg: #efedea; }
+  :root, :root[data-theme="dark"] { --surface-2: #fbfaf8; }
+  :root, :root[data-theme="dark"] { --surface-3: #f7f6f3; }
+  :root, :root[data-theme="dark"] { --surface-4: #f1efeb; }
+  :root, :root[data-theme="dark"] { --line-4: #eeece7; }
+  :root, :root[data-theme="dark"] { --line-3: #eceae5; }
+  :root, :root[data-theme="dark"] { --line-2: #e8e5df; }
+  :root, :root[data-theme="dark"] { --line: #e3e0da; }
+  :root, :root[data-theme="dark"] { --line-strong: #e0ddd7; }
+  :root, :root[data-theme="dark"] { --chip-neutral: #d9d5cd; }
+  :root, :root[data-theme="dark"] { --field-border: #d6d3ce; }
+  :root, :root[data-theme="dark"] { --dash-border: #b9b4ab; }
+  :root, :root[data-theme="dark"] { --muted-2: #a9a49b; }
+  :root, :root[data-theme="dark"] { --muted-3: #96918a; }
+  :root, :root[data-theme="dark"] { --muted: #8a857c; }
+  :root, :root[data-theme="dark"] { --ink-4: #6d6860; }
+  :root, :root[data-theme="dark"] { --ink-3: #57534b; }
+  :root, :root[data-theme="dark"] { --ink-2: #3d3a34; }
+  :root, :root[data-theme="dark"] { --ink: #26241f; }
+  :root, :root[data-theme="dark"] { --pri: #35506e; }
+  :root, :root[data-theme="dark"] { --pri-hover: #2a4159; }
+  :root, :root[data-theme="dark"] { --link-hover: #233b55; }
+  :root, :root[data-theme="dark"] { --pri-ink: #2c4159; }
+  :root, :root[data-theme="dark"] { --pri-ink-2: #3e4a5a; }
+  :root, :root[data-theme="dark"] { --pri-soft-ink: #5f7897; }
+  :root, :root[data-theme="dark"] { --pri-bar: #8fb0d4; }
+  :root, :root[data-theme="dark"] { --on-pri-muted: #a9bdd6; }
+  :root, :root[data-theme="dark"] { --pri-border: #b9cbe0; }
+  :root, :root[data-theme="dark"] { --pri-border-2: #c9d4e2; }
+  :root, :root[data-theme="dark"] { --pri-border-3: #c9d8e8; }
+  :root, :root[data-theme="dark"] { --pri-border-4: #d8e2ee; }
+  :root, :root[data-theme="dark"] { --pri-border-5: #dbe4ef; }
+  :root, :root[data-theme="dark"] { --pri-border-6: #d3dce8; }
+  :root, :root[data-theme="dark"] { --pri-border-7: #dde4ec; }
+  :root, :root[data-theme="dark"] { --spinner-track: #dbe6f1; }
+  :root, :root[data-theme="dark"] { --pri-soft-hover: #dfe7f0; }
+  :root, :root[data-theme="dark"] { --pri-soft-3: #e3ecf5; }
+  :root, :root[data-theme="dark"] { --tag-bg: #e8eef6; }
+  :root, :root[data-theme="dark"] { --pri-soft: #eef2f7; }
+  :root, :root[data-theme="dark"] { --chat-bubble: #f1f4f8; }
+  :root, :root[data-theme="dark"] { --pri-soft-2: #f2f6fb; }
+  :root, :root[data-theme="dark"] { --brand-grad: #f7f9fc; }
+  :root, :root[data-theme="dark"] { --ok-ink: #3d5a3d; }
+  :root, :root[data-theme="dark"] { --ok: #4a6741; }
+  :root, :root[data-theme="dark"] { --ok-dot: #8fd0a0; }
+  :root, :root[data-theme="dark"] { --ok-border: #cfe0cf; }
+  :root, :root[data-theme="dark"] { --ok-soft-2: #e4ede4; }
+  :root, :root[data-theme="dark"] { --ok-soft: #eef4ee; }
+  :root, :root[data-theme="dark"] { --warn-ink-2: #7a6231; }
+  :root, :root[data-theme="dark"] { --warn-ink-3: #7a6f57; }
+  :root, :root[data-theme="dark"] { --warn-ink: #8c6a35; }
+  :root, :root[data-theme="dark"] { --warn-border-2: #e8ddc7; }
+  :root, :root[data-theme="dark"] { --warn-border: #eaddb8; }
+  :root, :root[data-theme="dark"] { --warn-border-3: #ecd9b8; }
+  :root, :root[data-theme="dark"] { --warn-soft-2: #f6f1e7; }
+  :root, :root[data-theme="dark"] { --warn-soft: #faf3e3; }
+  :root, :root[data-theme="dark"] { --warn-soft-3: #fdf6ec; }
+  :root, :root[data-theme="dark"] { --alert: #8c4a35; }
+  :root, :root[data-theme="dark"] { --danger: #b3432f; }
+  :root, :root[data-theme="dark"] { --alert-border: #e5c8bf; }
+  :root, :root[data-theme="dark"] { --alert-soft: #f6e9e5; }
+  :root, :root[data-theme="dark"] { --alert-soft-2: #fdf9f5; }
+  :root, :root[data-theme="dark"] { --surface: #ffffff; }
+  :root, :root[data-theme="dark"] { --on-pri: #ffffff; }
   html,body{background:#fff}
   #root{height:auto}
   [data-noprint]{display:none !important}

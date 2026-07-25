@@ -114,17 +114,17 @@ export default function SettingsModal() {
         flex: block ? 1 : 'none', minWidth: block ? 130 : undefined,
         padding: block ? '8px 10px' : '7px 12px',
         borderRadius: block ? 7 : 20,
-        border: '1px solid ' + (active ? '#35506e' : '#d6d3ce'),
-        background: active ? '#35506e' : '#fff',
-        color: active ? '#fff' : '#57534b',
+        border: '1px solid ' + (active ? 'var(--pri)' : 'var(--field-border)'),
+        background: active ? 'var(--pri)' : 'var(--surface)',
+        color: active ? 'var(--on-pri)' : 'var(--ink-3)',
         cursor: 'pointer', textAlign: block ? 'left' : 'center',
         font: block ? undefined : '600 11.5px Helvetica,Arial,sans-serif'
       }}
     >
       {block ? (
         <>
-          <div style={{ font: '700 12px Helvetica,Arial,sans-serif', color: active ? '#fff' : '#57534b' }}>{label}</div>
-          <div style={{ font: '10.5px/1.35 Helvetica,Arial,sans-serif', color: active ? '#fff' : '#57534b', opacity: .75, marginTop: 2 }}>{hint}</div>
+          <div style={{ font: '700 12px Helvetica,Arial,sans-serif', color: active ? 'var(--on-pri)' : 'var(--ink-3)' }}>{label}</div>
+          <div style={{ font: '10.5px/1.35 Helvetica,Arial,sans-serif', color: active ? 'var(--on-pri)' : 'var(--ink-3)', opacity: .75, marginTop: 2 }}>{hint}</div>
         </>
       ) : label}
     </button>
@@ -132,21 +132,21 @@ export default function SettingsModal() {
 
   return (
     <div data-noprint="1" style={{ position: 'fixed', inset: 0, background: 'rgba(38,36,31,.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 50, padding: 24 }}>
-      <div style={{ background: '#fff', borderRadius: 12, width: 620, maxWidth: '94vw', maxHeight: '84vh', display: 'flex', flexDirection: 'column', overflow: 'hidden', boxShadow: '0 18px 50px rgba(38,36,31,.3)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '16px 20px', borderBottom: '1px solid #eceae5' }}>
+      <div style={{ background: 'var(--surface)', borderRadius: 12, width: 620, maxWidth: '94vw', maxHeight: '84vh', display: 'flex', flexDirection: 'column', overflow: 'hidden', boxShadow: '0 18px 50px rgba(38,36,31,.3)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '16px 20px', borderBottom: '1px solid var(--line-3)' }}>
           <div style={{ flex: 1 }}>
-            <div style={{ font: '700 15px Helvetica,Arial,sans-serif', color: '#26241f' }}>Kurum Prensipleri</div>
-            <div style={{ font: '12px/1.5 Helvetica,Arial,sans-serif', color: '#8a857c', marginTop: 2 }}>Bu liste kök neden eşleştirmede, rehber önerilerinde ve raporda kullanılır. Kendi kurumunuzun prensiplerini/değerlerini yazabilirsiniz.</div>
+            <div style={{ font: '700 15px Helvetica,Arial,sans-serif', color: 'var(--ink)' }}>Kurum Prensipleri</div>
+            <div style={{ font: '12px/1.5 Helvetica,Arial,sans-serif', color: 'var(--muted)', marginTop: 2 }}>Bu liste kök neden eşleştirmede, rehber önerilerinde ve raporda kullanılır. Kendi kurumunuzun prensiplerini/değerlerini yazabilirsiniz.</div>
           </div>
           <HButton
             onClick={close}
-            style={{ flex: 'none', width: 28, height: 28, border: 'none', borderRadius: 6, background: 'transparent', color: '#a9a49b', font: '700 16px/1 Helvetica,Arial,sans-serif', cursor: 'pointer' }}
-            hover={{ background: '#f1efeb', color: '#57534b' }}
+            style={{ flex: 'none', width: 28, height: 28, border: 'none', borderRadius: 6, background: 'transparent', color: 'var(--muted-2)', font: '700 16px/1 Helvetica,Arial,sans-serif', cursor: 'pointer' }}
+            hover={{ background: 'var(--surface-4)', color: 'var(--ink-3)' }}
           >×</HButton>
         </div>
 
         <div style={{ flex: 1, overflow: 'auto', padding: '14px 20px', display: 'flex', flexDirection: 'column', gap: 8 }}>
-          <div style={{ font: '700 10.5px Helvetica,Arial,sans-serif', color: '#8a857c', letterSpacing: '.8px' }}>YZ SAĞLAYICI</div>
+          <div style={{ font: '700 10.5px Helvetica,Arial,sans-serif', color: 'var(--muted)', letterSpacing: '.8px' }}>YZ SAĞLAYICI</div>
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
             {PROVIDERS.map(p => {
               const act = (A.provider || 'auto') === p.key;
@@ -157,10 +157,10 @@ export default function SettingsModal() {
                   title={p.hint}
                   style={{
                     flex: 1, minWidth: 96, padding: '8px 10px', borderRadius: 7,
-                    border: '1px solid ' + (act ? '#35506e' : '#d6d3ce'),
-                    background: act ? '#35506e' : '#fff',
+                    border: '1px solid ' + (act ? 'var(--pri)' : 'var(--field-border)'),
+                    background: act ? 'var(--pri)' : 'var(--surface)',
                     cursor: 'pointer', textAlign: 'center',
-                    font: '700 12px Helvetica,Arial,sans-serif', color: act ? '#fff' : '#57534b'
+                    font: '700 12px Helvetica,Arial,sans-serif', color: act ? 'var(--on-pri)' : 'var(--ink-3)'
                   }}
                 >{p.label}</button>
               );
@@ -176,13 +176,13 @@ export default function SettingsModal() {
             else if (prov === 'ozel' && noUrl) warn = 'Özel sağlayıcı için aşağıya bir API adresi (OpenAI uyumlu sohbet uç noktası) girmeniz gerekir.';
             if (!warn) return null;
             return (
-              <div style={{ display: 'flex', gap: 9, alignItems: 'flex-start', background: '#faf3e3', border: '1px solid #eaddb8', borderRadius: 8, padding: '9px 12px' }}>
-                <div style={{ flex: 'none', width: 16, height: 16, borderRadius: '50%', background: '#8c6a35', color: '#fff', font: '700 11px/16px Helvetica,Arial,sans-serif', textAlign: 'center' }}>!</div>
-                <div style={{ flex: 1, font: '11.5px/1.5 Helvetica,Arial,sans-serif', color: '#7a6231' }}>{warn}</div>
+              <div style={{ display: 'flex', gap: 9, alignItems: 'flex-start', background: 'var(--warn-soft)', border: '1px solid var(--warn-border)', borderRadius: 8, padding: '9px 12px' }}>
+                <div style={{ flex: 'none', width: 16, height: 16, borderRadius: '50%', background: 'var(--warn-ink)', color: 'var(--on-pri)', font: '700 11px/16px Helvetica,Arial,sans-serif', textAlign: 'center' }}>!</div>
+                <div style={{ flex: 1, font: '11.5px/1.5 Helvetica,Arial,sans-serif', color: 'var(--warn-ink-2)' }}>{warn}</div>
                 <HButton
                   onClick={() => upd(n => { n.aiSettings.provider = 'auto'; })}
-                  style={{ flex: 'none', padding: '5px 10px', border: '1px solid #35506e', borderRadius: 6, background: '#fff', color: '#35506e', font: '600 11px Helvetica,Arial,sans-serif', cursor: 'pointer' }}
-                  hover={{ background: '#eef2f7' }}
+                  style={{ flex: 'none', padding: '5px 10px', border: '1px solid var(--pri)', borderRadius: 6, background: 'var(--surface)', color: 'var(--pri)', font: '600 11px Helvetica,Arial,sans-serif', cursor: 'pointer' }}
+                  hover={{ background: 'var(--pri-soft)' }}
                 >Otomatik'e dön</HButton>
               </div>
             );
@@ -190,113 +190,113 @@ export default function SettingsModal() {
 
           <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: 8 }}>
             <div>
-              <label style={{ display: 'block', font: '600 12px Helvetica,Arial,sans-serif', color: '#57534b', margin: '0 0 4px' }}>API anahtarı <span style={{ fontWeight: 400, color: '#8a857c' }}>— Otomatik modda gerekmez</span></label>
+              <label style={{ display: 'block', font: '600 12px Helvetica,Arial,sans-serif', color: 'var(--ink-3)', margin: '0 0 4px' }}>API anahtarı <span style={{ fontWeight: 400, color: 'var(--muted)' }}>— Otomatik modda gerekmez</span></label>
               <input
                 className="pcx-field-sm" type="password" value={A.apiKey || ''}
                 onChange={e => upd(n => { n.aiSettings.apiKey = e.target.value; })}
                 placeholder="sk-…"
-                style={{ width: '100%', boxSizing: 'border-box', padding: '8px 11px', border: '1px solid #d6d3ce', borderRadius: 6, font: '13px/1.4 Helvetica,Arial,sans-serif', color: '#26241f', background: '#fff', outline: 'none' }}
+                style={{ width: '100%', boxSizing: 'border-box', padding: '8px 11px', border: '1px solid var(--field-border)', borderRadius: 6, font: '13px/1.4 Helvetica,Arial,sans-serif', color: 'var(--ink)', background: 'var(--surface)', outline: 'none' }}
               />
             </div>
             <div>
-              <label style={{ display: 'block', font: '600 12px Helvetica,Arial,sans-serif', color: '#57534b', margin: '0 0 4px' }}>Model <span style={{ fontWeight: 400, color: '#8a857c' }}>— boşsa sunucu varsayılanı</span></label>
+              <label style={{ display: 'block', font: '600 12px Helvetica,Arial,sans-serif', color: 'var(--ink-3)', margin: '0 0 4px' }}>Model <span style={{ fontWeight: 400, color: 'var(--muted)' }}>— boşsa sunucu varsayılanı</span></label>
               <input
                 className="pcx-field-sm" value={A.model || ''}
                 onChange={e => upd(n => { n.aiSettings.model = e.target.value; })}
                 placeholder="Örn. MiniMax-Text-01"
-                style={{ width: '100%', boxSizing: 'border-box', padding: '8px 11px', border: '1px solid #d6d3ce', borderRadius: 6, font: '13px/1.4 Helvetica,Arial,sans-serif', color: '#26241f', background: '#fff', outline: 'none' }}
+                style={{ width: '100%', boxSizing: 'border-box', padding: '8px 11px', border: '1px solid var(--field-border)', borderRadius: 6, font: '13px/1.4 Helvetica,Arial,sans-serif', color: 'var(--ink)', background: 'var(--surface)', outline: 'none' }}
               />
             </div>
           </div>
 
           <div>
-            <label style={{ display: 'block', font: '600 12px Helvetica,Arial,sans-serif', color: '#57534b', margin: '0 0 4px' }}>API adresi <span style={{ fontWeight: 400, color: '#8a857c' }}>{A.provider === 'ozel' ? '— zorunlu: OpenAI uyumlu sohbet uç noktası' : '(isteğe bağlı — OpenAI uyumlu farklı bir uç nokta için)'}</span></label>
+            <label style={{ display: 'block', font: '600 12px Helvetica,Arial,sans-serif', color: 'var(--ink-3)', margin: '0 0 4px' }}>API adresi <span style={{ fontWeight: 400, color: 'var(--muted)' }}>{A.provider === 'ozel' ? '— zorunlu: OpenAI uyumlu sohbet uç noktası' : '(isteğe bağlı — OpenAI uyumlu farklı bir uç nokta için)'}</span></label>
             <input
               className="pcx-field-sm" value={A.baseUrl || ''}
               onChange={e => upd(n => { n.aiSettings.baseUrl = e.target.value; })}
               placeholder="https://…/v1/chat/completions"
-              style={{ width: '100%', boxSizing: 'border-box', padding: '8px 11px', border: '1px solid #d6d3ce', borderRadius: 6, font: '12.5px/1.4 Helvetica,Arial,sans-serif', color: '#26241f', background: '#fff', outline: 'none' }}
+              style={{ width: '100%', boxSizing: 'border-box', padding: '8px 11px', border: '1px solid var(--field-border)', borderRadius: 6, font: '12.5px/1.4 Helvetica,Arial,sans-serif', color: 'var(--ink)', background: 'var(--surface)', outline: 'none' }}
             />
           </div>
           {A.provider === 'ozel' ? (
-            <div style={{ background: '#f2f6fb', border: '1px solid #d8e2ee', borderRadius: 8, padding: '12px 13px', display: 'flex', flexDirection: 'column', gap: 8, margin: '2px 0 4px' }}>
-              <div style={{ font: '700 10.5px Helvetica,Arial,sans-serif', color: '#5f7897', letterSpacing: '.8px' }}>HAZIR PROFİLLER</div>
+            <div style={{ background: 'var(--pri-soft-2)', border: '1px solid var(--pri-border-4)', borderRadius: 8, padding: '12px 13px', display: 'flex', flexDirection: 'column', gap: 8, margin: '2px 0 4px' }}>
+              <div style={{ font: '700 10.5px Helvetica,Arial,sans-serif', color: 'var(--pri-soft-ink)', letterSpacing: '.8px' }}>HAZIR PROFİLLER</div>
               <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                 {CUSTOM_PRESETS.map(p => (
                   <HButton
                     key={p.label} title={p.hint}
                     onClick={() => upd(n => { Object.assign(n.aiSettings, p.fields); })}
-                    style={{ padding: '7px 12px', border: '1px solid #b9cbe0', borderRadius: 20, background: '#fff', color: '#35506e', font: '600 11.5px Helvetica,Arial,sans-serif', cursor: 'pointer' }}
-                    hover={{ background: '#e3ecf5' }}
+                    style={{ padding: '7px 12px', border: '1px solid var(--pri-border)', borderRadius: 20, background: 'var(--surface)', color: 'var(--pri)', font: '600 11.5px Helvetica,Arial,sans-serif', cursor: 'pointer' }}
+                    hover={{ background: 'var(--pri-soft-3)' }}
                   >{p.label}</HButton>
                 ))}
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
                 <div>
-                  <label style={{ display: 'block', font: '600 12px Helvetica,Arial,sans-serif', color: '#57534b', margin: '0 0 4px' }}>Kimlik başlığı adı</label>
+                  <label style={{ display: 'block', font: '600 12px Helvetica,Arial,sans-serif', color: 'var(--ink-3)', margin: '0 0 4px' }}>Kimlik başlığı adı</label>
                   <input
                     className="pcx-field-sm" value={A.headerName || ''}
                     onChange={e => upd(n => { n.aiSettings.headerName = e.target.value; })}
                     placeholder="Authorization"
-                    style={{ width: '100%', boxSizing: 'border-box', padding: '8px 11px', border: '1px solid #d6d3ce', borderRadius: 6, font: '12.5px/1.4 Helvetica,Arial,sans-serif', color: '#26241f', background: '#fff', outline: 'none' }}
+                    style={{ width: '100%', boxSizing: 'border-box', padding: '8px 11px', border: '1px solid var(--field-border)', borderRadius: 6, font: '12.5px/1.4 Helvetica,Arial,sans-serif', color: 'var(--ink)', background: 'var(--surface)', outline: 'none' }}
                   />
                 </div>
                 <div>
-                  <label style={{ display: 'block', font: '600 12px Helvetica,Arial,sans-serif', color: '#57534b', margin: '0 0 4px' }}>Ön ek <span style={{ fontWeight: 400, color: '#8a857c' }}>(Azure'da boş)</span></label>
+                  <label style={{ display: 'block', font: '600 12px Helvetica,Arial,sans-serif', color: 'var(--ink-3)', margin: '0 0 4px' }}>Ön ek <span style={{ fontWeight: 400, color: 'var(--muted)' }}>(Azure'da boş)</span></label>
                   <input
                     className="pcx-field-sm" value={A.headerPrefix === undefined ? 'Bearer ' : A.headerPrefix}
                     onChange={e => upd(n => { n.aiSettings.headerPrefix = e.target.value; })}
                     placeholder="Bearer "
-                    style={{ width: '100%', boxSizing: 'border-box', padding: '8px 11px', border: '1px solid #d6d3ce', borderRadius: 6, font: '12.5px/1.4 Helvetica,Arial,sans-serif', color: '#26241f', background: '#fff', outline: 'none' }}
+                    style={{ width: '100%', boxSizing: 'border-box', padding: '8px 11px', border: '1px solid var(--field-border)', borderRadius: 6, font: '12.5px/1.4 Helvetica,Arial,sans-serif', color: 'var(--ink)', background: 'var(--surface)', outline: 'none' }}
                   />
                 </div>
               </div>
 
               <div>
-                <label style={{ display: 'block', font: '600 12px Helvetica,Arial,sans-serif', color: '#57534b', margin: '0 0 4px' }}>Ek başlıklar <span style={{ fontWeight: 400, color: '#8a857c' }}>— her satıra "Ad: değer"</span></label>
+                <label style={{ display: 'block', font: '600 12px Helvetica,Arial,sans-serif', color: 'var(--ink-3)', margin: '0 0 4px' }}>Ek başlıklar <span style={{ fontWeight: 400, color: 'var(--muted)' }}>— her satıra "Ad: değer"</span></label>
                 <textarea
                   className="pcx-field-sm" value={A.extraHeaders || ''}
                   onChange={e => upd(n => { n.aiSettings.extraHeaders = e.target.value; })}
                   placeholder={'HTTP-Referer: https://siteniz\nX-Title: Problem Cozme Akisi'}
-                  style={{ width: '100%', boxSizing: 'border-box', padding: '8px 11px', border: '1px solid #d6d3ce', borderRadius: 6, font: '12.5px/1.45 Helvetica,Arial,sans-serif', color: '#26241f', background: '#fff', outline: 'none', resize: 'vertical', minHeight: 52 }}
+                  style={{ width: '100%', boxSizing: 'border-box', padding: '8px 11px', border: '1px solid var(--field-border)', borderRadius: 6, font: '12.5px/1.45 Helvetica,Arial,sans-serif', color: 'var(--ink)', background: 'var(--surface)', outline: 'none', resize: 'vertical', minHeight: 52 }}
                 />
               </div>
 
-              <div style={{ font: '11px/1.55 Helvetica,Arial,sans-serif', color: '#5f7897' }}>
+              <div style={{ font: '11px/1.55 Helvetica,Arial,sans-serif', color: 'var(--pri-soft-ink)' }}>
                 İstek tarayıcınızdan doğrudan bu adrese gider; uç noktanın <strong>CORS</strong> izni vermesi gerekir. Ollama için sunucuyu <code>OLLAMA_ORIGINS=*</code> ile başlatın. Abonelik hesapları (Claude Pro/Max, ChatGPT Plus) üçüncü taraf uygulamalara açılmaz — kredi/anahtar tabanlı bir servis ya da kurumunuzun ağ geçidini kullanın.
               </div>
             </div>
           ) : null}
 
-          <div style={{ font: '11px/1.5 Helvetica,Arial,sans-serif', color: '#8a857c', margin: '0 0 4px' }}>Anahtarınız yalnızca bu tarayıcıda saklanır ve doğrudan seçtiğiniz sağlayıcıya gönderilir; hiçbir sunucuda tutulmaz. Model alanı "Otomatik" modda da geçerlidir: boş bırakırsanız sunucudaki varsayılan model kullanılır.</div>
+          <div style={{ font: '11px/1.5 Helvetica,Arial,sans-serif', color: 'var(--muted)', margin: '0 0 4px' }}>Anahtarınız yalnızca bu tarayıcıda saklanır ve doğrudan seçtiğiniz sağlayıcıya gönderilir; hiçbir sunucuda tutulmaz. Model alanı "Otomatik" modda da geçerlidir: boş bırakırsanız sunucudaki varsayılan model kullanılır.</div>
 
-          <div style={{ borderTop: '1px solid #eceae5', margin: '2px 0 4px' }} />
-          <div style={{ font: '700 10.5px Helvetica,Arial,sans-serif', color: '#8a857c', letterSpacing: '.8px' }}>MODEL ÜRETİM AYARLARI</div>
+          <div style={{ borderTop: '1px solid var(--line-3)', margin: '2px 0 4px' }} />
+          <div style={{ font: '700 10.5px Helvetica,Arial,sans-serif', color: 'var(--muted)', letterSpacing: '.8px' }}>MODEL ÜRETİM AYARLARI</div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6, margin: '0 0 4px' }}>
-            <label style={{ font: '600 12px Helvetica,Arial,sans-serif', color: '#57534b' }}>Analiz derinliği <span style={{ fontWeight: 400, color: '#8a857c' }}>— daha derin analiz daha uzun sürer</span></label>
+            <label style={{ font: '600 12px Helvetica,Arial,sans-serif', color: 'var(--ink-3)' }}>Analiz derinliği <span style={{ fontWeight: 400, color: 'var(--muted)' }}>— daha derin analiz daha uzun sürer</span></label>
             <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
               {DEPTHS.map(d => seg((A.depth || 'standart') === d.key, d.label, d.hint, () => upd(n => { n.aiSettings.depth = d.key; }), true))}
             </div>
           </div>
 
           <div style={{ display: 'flex', gap: 10, alignItems: 'center', margin: '0 0 4px' }}>
-            <label style={{ flex: 1, font: '600 12px Helvetica,Arial,sans-serif', color: '#57534b' }}>Yaratıcılık <span style={{ fontWeight: 400, color: '#8a857c' }}>(temperature)</span></label>
+            <label style={{ flex: 1, font: '600 12px Helvetica,Arial,sans-serif', color: 'var(--ink-3)' }}>Yaratıcılık <span style={{ fontWeight: 400, color: 'var(--muted)' }}>(temperature)</span></label>
             <div style={{ display: 'flex', gap: 6 }}>
               {TEMPS.map(t => seg(Math.abs((parseFloat(A.temperature) || 0) - t.v) < 0.06, t.label, t.hint, () => upd(n => { n.aiSettings.temperature = t.v; }), false))}
             </div>
           </div>
 
           <div style={{ display: 'flex', gap: 10, alignItems: 'center', margin: '0 0 4px' }}>
-            <label style={{ flex: 1, font: '600 12px Helvetica,Arial,sans-serif', color: '#57534b' }}>İnce ayar <span style={{ fontWeight: 400, color: '#8a857c' }}>— boş bırakılabilir</span></label>
+            <label style={{ flex: 1, font: '600 12px Helvetica,Arial,sans-serif', color: 'var(--ink-3)' }}>İnce ayar <span style={{ fontWeight: 400, color: 'var(--muted)' }}>— boş bırakılabilir</span></label>
             <input
               className="pcx-field-sm" type="number" step="0.05" min="0" max="2"
               value={A.temperature === '' || A.temperature === undefined ? '' : A.temperature}
               onChange={e => upd(n => { n.aiSettings.temperature = e.target.value; })}
               placeholder="temperature"
               title="Sıcaklık: 0 = en tutarlı, 1+ = en yaratıcı"
-              style={{ flex: 'none', width: 116, boxSizing: 'border-box', padding: '7px 10px', border: '1px solid #d6d3ce', borderRadius: 6, font: '12.5px Helvetica,Arial,sans-serif', color: '#26241f', background: '#fff', outline: 'none' }}
+              style={{ flex: 'none', width: 116, boxSizing: 'border-box', padding: '7px 10px', border: '1px solid var(--field-border)', borderRadius: 6, font: '12.5px Helvetica,Arial,sans-serif', color: 'var(--ink)', background: 'var(--surface)', outline: 'none' }}
             />
             <input
               className="pcx-field-sm" type="number" step="0.05" min="0.01" max="1"
@@ -304,59 +304,59 @@ export default function SettingsModal() {
               onChange={e => upd(n => { n.aiSettings.topP = e.target.value; })}
               placeholder="top_p"
               title="top_p: sözcük çeşitliliği. Boşsa sağlayıcı varsayılanı kullanılır."
-              style={{ flex: 'none', width: 116, boxSizing: 'border-box', padding: '7px 10px', border: '1px solid #d6d3ce', borderRadius: 6, font: '12.5px Helvetica,Arial,sans-serif', color: '#26241f', background: '#fff', outline: 'none' }}
+              style={{ flex: 'none', width: 116, boxSizing: 'border-box', padding: '7px 10px', border: '1px solid var(--field-border)', borderRadius: 6, font: '12.5px Helvetica,Arial,sans-serif', color: 'var(--ink)', background: 'var(--surface)', outline: 'none' }}
             />
           </div>
-          <div style={{ font: '11px/1.5 Helvetica,Arial,sans-serif', color: '#8a857c', margin: '0 0 4px' }}>Yapılandırılmış çıktı (rehber kartları, rapor) için 0,3–0,7 arası önerilir; 1'in üzerinde model şemadan sapabilir. Bu ayarlar hem "Otomatik" modda hem de kendi anahtarınızla geçerlidir.</div>
+          <div style={{ font: '11px/1.5 Helvetica,Arial,sans-serif', color: 'var(--muted)', margin: '0 0 4px' }}>Yapılandırılmış çıktı (rehber kartları, rapor) için 0,3–0,7 arası önerilir; 1'in üzerinde model şemadan sapabilir. Bu ayarlar hem "Otomatik" modda hem de kendi anahtarınızla geçerlidir.</div>
 
-          <div style={{ borderTop: '1px solid #eceae5', margin: '2px 0 4px' }} />
-          <div style={{ font: '700 10.5px Helvetica,Arial,sans-serif', color: '#8a857c', letterSpacing: '.8px' }}>YZ REHBER AYARLARI</div>
+          <div style={{ borderTop: '1px solid var(--line-3)', margin: '2px 0 4px' }} />
+          <div style={{ font: '700 10.5px Helvetica,Arial,sans-serif', color: 'var(--muted)', letterSpacing: '.8px' }}>YZ REHBER AYARLARI</div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6, margin: '0 0 4px' }}>
-            <label style={{ font: '600 12px Helvetica,Arial,sans-serif', color: '#57534b' }}>Rehberlik seviyesi</label>
+            <label style={{ font: '600 12px Helvetica,Arial,sans-serif', color: 'var(--ink-3)' }}>Rehberlik seviyesi</label>
             <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
               {LEVELS.map(l => seg((A.level || 'dengeli') === l.key, l.label, l.hint, () => upd(n => { n.aiSettings.level = l.key; }), true))}
             </div>
           </div>
 
           <div style={{ display: 'flex', gap: 10, alignItems: 'center', margin: '0 0 4px' }}>
-            <label style={{ flex: 1, font: '600 12px Helvetica,Arial,sans-serif', color: '#57534b' }}>Adıma girince otomatik öneri hazırla</label>
+            <label style={{ flex: 1, font: '600 12px Helvetica,Arial,sans-serif', color: 'var(--ink-3)' }}>Adıma girince otomatik öneri hazırla</label>
             <HButton
               onClick={() => upd(n => { n.aiSettings.auto = !(n.aiSettings.auto !== false); })}
-              style={{ flex: 'none', padding: '7px 14px', border: '1px solid #35506e', borderRadius: 20, background: '#eef2f7', color: '#35506e', font: '600 12px Helvetica,Arial,sans-serif', cursor: 'pointer' }}
-              hover={{ background: '#dfe7f0' }}
+              style={{ flex: 'none', padding: '7px 14px', border: '1px solid var(--pri)', borderRadius: 20, background: 'var(--pri-soft)', color: 'var(--pri)', font: '600 12px Helvetica,Arial,sans-serif', cursor: 'pointer' }}
+              hover={{ background: 'var(--pri-soft-hover)' }}
             >{A.auto !== false ? 'Açık' : 'Kapalı'}</HButton>
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6, margin: '0 0 6px' }}>
-            <label style={{ font: '600 12px Helvetica,Arial,sans-serif', color: '#57534b' }}>Alan / sektör bağlamı <span style={{ fontWeight: 400, color: '#8a857c' }}>— tüm YZ yanıtları bu bağlama göre örnek verir</span></label>
+            <label style={{ font: '600 12px Helvetica,Arial,sans-serif', color: 'var(--ink-3)' }}>Alan / sektör bağlamı <span style={{ fontWeight: 400, color: 'var(--muted)' }}>— tüm YZ yanıtları bu bağlama göre örnek verir</span></label>
             <input
               className="pcx-field" value={A.context || ''}
               onChange={e => upd(n => { n.aiSettings.context = e.target.value; })}
               placeholder="Örn. perakende lojistiği, SaaS ürün ekibi, banka çağrı merkezi…"
-              style={{ width: '100%', boxSizing: 'border-box', padding: '8px 11px', border: '1px solid #d6d3ce', borderRadius: 6, font: '13px/1.4 Helvetica,Arial,sans-serif', color: '#26241f', background: '#fff', outline: 'none' }}
+              style={{ width: '100%', boxSizing: 'border-box', padding: '8px 11px', border: '1px solid var(--field-border)', borderRadius: 6, font: '13px/1.4 Helvetica,Arial,sans-serif', color: 'var(--ink)', background: 'var(--surface)', outline: 'none' }}
             />
           </div>
 
           {STYLE_ROWS.map(row => (
             <div key={row.key} style={{ display: 'flex', gap: 10, alignItems: 'center', margin: '0 0 2px' }}>
-              <label style={{ flex: 1, font: '600 12px Helvetica,Arial,sans-serif', color: '#57534b' }}>{row.label}</label>
+              <label style={{ flex: 1, font: '600 12px Helvetica,Arial,sans-serif', color: 'var(--ink-3)' }}>{row.label}</label>
               <div style={{ display: 'flex', gap: 6 }}>
                 {row.opts.map(o => seg((A[row.key] || row.opts[0].k) === o.k, o.l, '', () => upd(n => { n.aiSettings[row.key] = o.k; }), false))}
               </div>
             </div>
           ))}
 
-          <div style={{ borderTop: '1px solid #eceae5', margin: '2px 0 4px' }} />
-          <div style={{ font: '700 10.5px Helvetica,Arial,sans-serif', color: '#8a857c', letterSpacing: '.8px' }}>KURUM PRENSİPLERİ</div>
+          <div style={{ borderTop: '1px solid var(--line-3)', margin: '2px 0 4px' }} />
+          <div style={{ font: '700 10.5px Helvetica,Arial,sans-serif', color: 'var(--muted)', letterSpacing: '.8px' }}>KURUM PRENSİPLERİ</div>
           {principles.map((p, i) => (
             <div key={i} style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-              <div style={{ flex: 'none', width: 26, height: 26, borderRadius: '50%', background: '#e8e5df', color: '#6d6860', font: '700 11px/26px Helvetica,Arial,sans-serif', textAlign: 'center' }}>{i + 1}</div>
+              <div style={{ flex: 'none', width: 26, height: 26, borderRadius: '50%', background: 'var(--line-2)', color: 'var(--ink-4)', font: '700 11px/26px Helvetica,Arial,sans-serif', textAlign: 'center' }}>{i + 1}</div>
               <input
                 className="pcx-field" value={p}
                 onChange={e => upd(n => { n.principles[i] = e.target.value; })}
                 placeholder="Prensip metni"
-                style={{ flex: 1, boxSizing: 'border-box', padding: '8px 11px', border: '1px solid #d6d3ce', borderRadius: 6, font: '13px/1.4 Helvetica,Arial,sans-serif', color: '#26241f', background: '#fff', outline: 'none' }}
+                style={{ flex: 1, boxSizing: 'border-box', padding: '8px 11px', border: '1px solid var(--field-border)', borderRadius: 6, font: '13px/1.4 Helvetica,Arial,sans-serif', color: 'var(--ink)', background: 'var(--surface)', outline: 'none' }}
               />
               <HButton
                 title="Prensibi sil"
@@ -369,34 +369,34 @@ export default function SettingsModal() {
                     }));
                   });
                 }}
-                style={{ flex: 'none', width: 26, height: 26, border: 'none', borderRadius: 5, background: 'transparent', color: '#a9a49b', font: '700 14px/1 Helvetica,Arial,sans-serif', cursor: 'pointer' }}
-                hover={{ background: '#f6e9e5', color: '#b3432f' }}
+                style={{ flex: 'none', width: 26, height: 26, border: 'none', borderRadius: 5, background: 'transparent', color: 'var(--muted-2)', font: '700 14px/1 Helvetica,Arial,sans-serif', cursor: 'pointer' }}
+                hover={{ background: 'var(--alert-soft)', color: 'var(--danger)' }}
               >×</HButton>
             </div>
           ))}
         </div>
 
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', padding: '12px 20px', borderTop: '1px solid #eceae5', background: '#fbfaf8' }}>
-          <div style={{ flex: 1, minWidth: 220, font: '12px/1.5 Helvetica,Arial,sans-serif', color: '#8a857c' }}><strong style={{ color: '#57534b' }}>Veri yedekleme:</strong> tüm çalışmalarınızı JSON olarak indirin ya da bir yedeği / meslektaşınızın dosyasını içe aktarın.</div>
-          <HButton onClick={exportData} style={{ flex: 'none', padding: '8px 13px', border: '1px solid #35506e', borderRadius: 7, background: '#fff', color: '#35506e', font: '600 12px Helvetica,Arial,sans-serif', cursor: 'pointer' }} hover={{ background: '#eef2f7' }}>↓ Dışa aktar</HButton>
-          <HButton onClick={importData} style={{ flex: 'none', padding: '8px 13px', border: '1px solid #35506e', borderRadius: 7, background: '#fff', color: '#35506e', font: '600 12px Helvetica,Arial,sans-serif', cursor: 'pointer' }} hover={{ background: '#eef2f7' }}>↑ İçe aktar</HButton>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', padding: '12px 20px', borderTop: '1px solid var(--line-3)', background: 'var(--surface-2)' }}>
+          <div style={{ flex: 1, minWidth: 220, font: '12px/1.5 Helvetica,Arial,sans-serif', color: 'var(--muted)' }}><strong style={{ color: 'var(--ink-3)' }}>Veri yedekleme:</strong> tüm çalışmalarınızı JSON olarak indirin ya da bir yedeği / meslektaşınızın dosyasını içe aktarın.</div>
+          <HButton onClick={exportData} style={{ flex: 'none', padding: '8px 13px', border: '1px solid var(--pri)', borderRadius: 7, background: 'var(--surface)', color: 'var(--pri)', font: '600 12px Helvetica,Arial,sans-serif', cursor: 'pointer' }} hover={{ background: 'var(--pri-soft)' }}>↓ Dışa aktar</HButton>
+          <HButton onClick={importData} style={{ flex: 'none', padding: '8px 13px', border: '1px solid var(--pri)', borderRadius: 7, background: 'var(--surface)', color: 'var(--pri)', font: '600 12px Helvetica,Arial,sans-serif', cursor: 'pointer' }} hover={{ background: 'var(--pri-soft)' }}>↑ İçe aktar</HButton>
         </div>
 
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center', padding: '14px 20px', borderTop: '1px solid #eceae5' }}>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center', padding: '14px 20px', borderTop: '1px solid var(--line-3)' }}>
           <HButton
             onClick={() => upd(n => { n.principles.push(''); })}
-            style={{ padding: '9px 14px', border: '1px dashed #b9b4ab', borderRadius: 8, background: 'transparent', color: '#57534b', font: '600 12.5px Helvetica,Arial,sans-serif', cursor: 'pointer' }}
-            hover={{ background: '#f1efeb' }}
+            style={{ padding: '9px 14px', border: '1px dashed var(--dash-border)', borderRadius: 8, background: 'transparent', color: 'var(--ink-3)', font: '600 12.5px Helvetica,Arial,sans-serif', cursor: 'pointer' }}
+            hover={{ background: 'var(--surface-4)' }}
           >+ Prensip ekle</HButton>
           <HButton
             onClick={() => { if (confirm('Prensip listesi varsayılan 20 kurum prensibine döndürülecek. Emin misiniz?')) upd(n => { n.principles = defaultPrinciples(); }); }}
-            style={{ padding: '9px 14px', border: '1px solid #d6d3ce', borderRadius: 8, background: '#fff', color: '#57534b', font: '600 12.5px Helvetica,Arial,sans-serif', cursor: 'pointer' }}
-            hover={{ background: '#f1efeb' }}
+            style={{ padding: '9px 14px', border: '1px solid var(--field-border)', borderRadius: 8, background: 'var(--surface)', color: 'var(--ink-3)', font: '600 12.5px Helvetica,Arial,sans-serif', cursor: 'pointer' }}
+            hover={{ background: 'var(--surface-4)' }}
           >Varsayılanlara dön</HButton>
           <HButton
             onClick={close}
-            style={{ marginLeft: 'auto', padding: '9px 18px', border: '1px solid #35506e', borderRadius: 8, background: '#35506e', color: '#fff', font: '600 12.5px Helvetica,Arial,sans-serif', cursor: 'pointer' }}
-            hover={{ background: '#2a4159' }}
+            style={{ marginLeft: 'auto', padding: '9px 18px', border: '1px solid var(--pri)', borderRadius: 8, background: 'var(--pri)', color: 'var(--on-pri)', font: '600 12.5px Helvetica,Arial,sans-serif', cursor: 'pointer' }}
+            hover={{ background: 'var(--pri-hover)' }}
           >Kapat</HButton>
         </div>
       </div>

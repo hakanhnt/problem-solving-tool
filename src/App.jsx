@@ -39,11 +39,11 @@ export default function App() {
 
       <main ref={mainRef} data-main="1" style={{ flex: 1, overflow: 'auto' }}>
         <div style={{ maxWidth: 880, margin: '0 auto', padding: '34px 44px 90px' }}>
-          <div data-noprint="1" style={{ font: '700 11px Helvetica,Arial,sans-serif', color: '#8a857c', letterSpacing: '1px' }}>
+          <div data-noprint="1" style={{ font: '700 11px Helvetica,Arial,sans-serif', color: 'var(--muted)', letterSpacing: '1px' }}>
             ADIM {step} / 8 · {c.name || 'Çalışma'}
           </div>
-          <h1 data-noprint="1" style={{ font: '700 26px/1.25 Helvetica,Arial,sans-serif', margin: '8px 0 6px', color: '#26241f' }}>{STEPS[step - 1].title}</h1>
-          <p data-noprint="1" style={{ font: '14px/1.6 Helvetica,Arial,sans-serif', color: '#6d6860', margin: '0 0 22px', maxWidth: 640 }}>{STEPS[step - 1].desc}</p>
+          <h1 data-noprint="1" style={{ font: '700 26px/1.25 Helvetica,Arial,sans-serif', margin: '8px 0 6px', color: 'var(--ink)' }}>{STEPS[step - 1].title}</h1>
+          <p data-noprint="1" style={{ font: '14px/1.6 Helvetica,Arial,sans-serif', color: 'var(--ink-4)', margin: '0 0 22px', maxWidth: 640 }}>{STEPS[step - 1].desc}</p>
 
           <CoachPanel />
           <StepView />
@@ -53,15 +53,15 @@ export default function App() {
             {step > 1 ? (
               <HButton
                 onClick={() => goStep(step - 1)}
-                style={{ padding: '11px 18px', border: '1px solid #d6d3ce', borderRadius: 8, background: '#fff', color: '#57534b', font: '600 13px Helvetica,Arial,sans-serif', cursor: 'pointer' }}
-                hover={{ background: '#f1efeb' }}
+                style={{ padding: '11px 18px', border: '1px solid var(--field-border)', borderRadius: 8, background: 'var(--surface)', color: 'var(--ink-3)', font: '600 13px Helvetica,Arial,sans-serif', cursor: 'pointer' }}
+                hover={{ background: 'var(--surface-4)' }}
               >← {STEPS[step - 2].title}</HButton>
             ) : null}
             {step < 8 ? (
               <HButton
                 onClick={onNext}
-                style={{ padding: '11px 18px', border: '1px solid #35506e', borderRadius: 8, background: '#35506e', color: '#fff', font: '600 13px Helvetica,Arial,sans-serif', cursor: 'pointer' }}
-                hover={{ background: '#2a4159' }}
+                style={{ padding: '11px 18px', border: '1px solid var(--pri)', borderRadius: 8, background: 'var(--pri)', color: 'var(--on-pri)', font: '600 13px Helvetica,Arial,sans-serif', cursor: 'pointer' }}
+                hover={{ background: 'var(--pri-hover)' }}
               >{STEPS[step].title} →</HButton>
             ) : null}
           </div>

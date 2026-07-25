@@ -32,7 +32,7 @@ export default function Step5RootCause() {
           {c.whys.map((w, i) => (
             <div key={i} style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
               <div style={{ flex: 'none', width: 64, display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'flex-start', paddingTop: 10 }}>
-                <div style={{ font: '700 12px/1.3 Helvetica,Arial,sans-serif', color: '#35506e' }}>{i + 1}. Neden?</div>
+                <div style={{ font: '700 12px/1.3 Helvetica,Arial,sans-serif', color: 'var(--pri)' }}>{i + 1}. Neden?</div>
                 {aiReady ? <YZButton onClick={() => fieldHelp((i + 1) + '. Neden sorusu (5 Neden zinciri)', w)} title="YZ'den bu soru için yardım al" /> : null}
               </div>
               <textarea
@@ -52,7 +52,7 @@ export default function Step5RootCause() {
           {FISHBONE_CATS.map(f => (
             <div key={f.key}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, margin: '0 0 6px' }}>
-                <label style={{ font: '600 12px Helvetica,Arial,sans-serif', color: '#57534b' }}>{f.title}</label>
+                <label style={{ font: '600 12px Helvetica,Arial,sans-serif', color: 'var(--ink-3)' }}>{f.title}</label>
                 {aiReady ? <YZButton small onClick={() => fieldHelp('Balık kılçığı — ' + f.title, c.fishbone[f.key])} title="YZ'den bu kategori için yardım al" /> : null}
               </div>
               <textarea
@@ -66,27 +66,27 @@ export default function Step5RootCause() {
 
       {hasFbDiagram ? (
         <Card>
-          <div style={{ ...S.cardTitle, margin: '0 0 14px' }}>Balık Kılçığı <span style={{ font: '400 12px Helvetica,Arial,sans-serif', color: '#8a857c' }}>— diyagram</span></div>
+          <div style={{ ...S.cardTitle, margin: '0 0 14px' }}>Balık Kılçığı <span style={{ font: '400 12px Helvetica,Arial,sans-serif', color: 'var(--muted)' }}>— diyagram</span></div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 150px', gap: 10, alignItems: 'center' }}>
             {fbTop.map(f => (
-              <div key={f.key} style={{ alignSelf: 'end', border: '1px solid #c9d4e2', borderRadius: 8, background: '#f2f6fb', padding: '9px 11px', minHeight: 64 }}>
-                <div style={{ font: '700 10.5px Helvetica,Arial,sans-serif', color: '#35506e', letterSpacing: '.4px', margin: '0 0 4px' }}>{f.title}</div>
-                <div style={{ font: '11.5px/1.5 Helvetica,Arial,sans-serif', color: '#57534b' }}>{(c.fishbone[f.key] || '').trim() || '—'}</div>
-                <div style={{ width: 2, height: 14, background: '#b9cbe0', margin: '8px auto -23px' }} />
+              <div key={f.key} style={{ alignSelf: 'end', border: '1px solid var(--pri-border-2)', borderRadius: 8, background: 'var(--pri-soft-2)', padding: '9px 11px', minHeight: 64 }}>
+                <div style={{ font: '700 10.5px Helvetica,Arial,sans-serif', color: 'var(--pri)', letterSpacing: '.4px', margin: '0 0 4px' }}>{f.title}</div>
+                <div style={{ font: '11.5px/1.5 Helvetica,Arial,sans-serif', color: 'var(--ink-3)' }}>{(c.fishbone[f.key] || '').trim() || '—'}</div>
+                <div style={{ width: 2, height: 14, background: 'var(--pri-border)', margin: '8px auto -23px' }} />
               </div>
             ))}
             <div />
-            <div style={{ gridColumn: '1 / 4', height: 0, borderTop: '3px solid #35506e', position: 'relative' }}>
-              <div style={{ position: 'absolute', right: -12, top: -8, font: '700 14px Helvetica,Arial,sans-serif', color: '#35506e' }}>▶</div>
+            <div style={{ gridColumn: '1 / 4', height: 0, borderTop: '3px solid var(--pri)', position: 'relative' }}>
+              <div style={{ position: 'absolute', right: -12, top: -8, font: '700 14px Helvetica,Arial,sans-serif', color: 'var(--pri)' }}>▶</div>
             </div>
-            <div style={{ background: '#8c4a35', color: '#fff', borderRadius: 9, padding: '12px 13px', font: '700 12px/1.4 Helvetica,Arial,sans-serif', textAlign: 'center' }}>
+            <div style={{ background: 'var(--alert)', color: 'var(--on-pri)', borderRadius: 9, padding: '12px 13px', font: '700 12px/1.4 Helvetica,Arial,sans-serif', textAlign: 'center' }}>
               {(c.problem.kpiName || '').trim() || 'Problem'}
             </div>
             {fbBottom.map(f => (
-              <div key={f.key} style={{ alignSelf: 'start', border: '1px solid #c9d4e2', borderRadius: 8, background: '#f2f6fb', padding: '9px 11px', minHeight: 64 }}>
-                <div style={{ width: 2, height: 14, background: '#b9cbe0', margin: '-23px auto 8px' }} />
-                <div style={{ font: '700 10.5px Helvetica,Arial,sans-serif', color: '#35506e', letterSpacing: '.4px', margin: '0 0 4px' }}>{f.title}</div>
-                <div style={{ font: '11.5px/1.5 Helvetica,Arial,sans-serif', color: '#57534b' }}>{(c.fishbone[f.key] || '').trim() || '—'}</div>
+              <div key={f.key} style={{ alignSelf: 'start', border: '1px solid var(--pri-border-2)', borderRadius: 8, background: 'var(--pri-soft-2)', padding: '9px 11px', minHeight: 64 }}>
+                <div style={{ width: 2, height: 14, background: 'var(--pri-border)', margin: '-23px auto 8px' }} />
+                <div style={{ font: '700 10.5px Helvetica,Arial,sans-serif', color: 'var(--pri)', letterSpacing: '.4px', margin: '0 0 4px' }}>{f.title}</div>
+                <div style={{ font: '11.5px/1.5 Helvetica,Arial,sans-serif', color: 'var(--ink-3)' }}>{(c.fishbone[f.key] || '').trim() || '—'}</div>
               </div>
             ))}
             <div />
@@ -104,7 +104,7 @@ export default function Step5RootCause() {
             return (
               <div key={i} style={{ ...S.itemCard, gap: 12 }}>
                 <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
-                  <Badge bg="#8c4a35">KN{i + 1}</Badge>
+                  <Badge bg="var(--alert)">KN{i + 1}</Badge>
                   <textarea
                     className="pcx-field" value={rc.text} onChange={inp('rootCauses', i, 'text')}
                     placeholder="Kök neden — sapmanın altında yatan sistemik sebep"
@@ -115,7 +115,7 @@ export default function Step5RootCause() {
                 </div>
 
                 <div>
-                  <div style={{ font: '600 11px Helvetica,Arial,sans-serif', color: '#57534b', letterSpacing: '.4px', margin: '0 0 8px' }}>İLGİLİ KURUM PRENSİPLERİ</div>
+                  <div style={{ font: '600 11px Helvetica,Arial,sans-serif', color: 'var(--ink-3)', letterSpacing: '.4px', margin: '0 0 8px' }}>İLGİLİ KURUM PRENSİPLERİ</div>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                     {principles.map((p, pi) => {
                       const sel = (rc.principles || []).includes(pi);
@@ -131,9 +131,9 @@ export default function Step5RootCause() {
                           })}
                           style={{
                             padding: '5px 9px', borderRadius: 20,
-                            border: '1px solid ' + (sel ? '#35506e' : '#d6d3ce'),
-                            background: sel ? '#35506e' : '#fff',
-                            color: sel ? '#fff' : '#57534b',
+                            border: '1px solid ' + (sel ? 'var(--pri)' : 'var(--field-border)'),
+                            background: sel ? 'var(--pri)' : 'var(--surface)',
+                            color: sel ? 'var(--on-pri)' : 'var(--ink-3)',
                             font: '12px/1.3 Helvetica,Arial,sans-serif', cursor: 'pointer', textAlign: 'left'
                           }}
                         >{label}</button>
@@ -145,7 +145,7 @@ export default function Step5RootCause() {
                 <VerifyBadge meta={vm} onClick={() => updC(cc => { cc.rootCauses[i].verified = !cc.rootCauses[i].verified; })} />
 
                 <div>
-                  <label style={{ display: 'block', font: '600 11px Helvetica,Arial,sans-serif', color: '#57534b', letterSpacing: '.4px', margin: '0 0 6px' }}>YETKİNLİK GELİŞİM ALANI</label>
+                  <label style={{ display: 'block', font: '600 11px Helvetica,Arial,sans-serif', color: 'var(--ink-3)', letterSpacing: '.4px', margin: '0 0 6px' }}>YETKİNLİK GELİŞİM ALANI</label>
                   <textarea
                     className="pcx-field" value={rc.competency} onChange={inp('rootCauses', i, 'competency')}
                     placeholder="Örn. süreç yönetimi ve 'önemli olanı ölç' yetkinliği"

@@ -53,23 +53,23 @@ export default function Step2Drivers() {
 
       {c.drivers.some(d => (d.name || '').trim()) ? (
         <Card>
-          <div style={{ ...S.cardTitle, margin: '0 0 12px' }}>Driver Haritası <span style={{ font: '400 12px Helvetica,Arial,sans-serif', color: '#8a857c' }}>— görsel</span></div>
+          <div style={{ ...S.cardTitle, margin: '0 0 12px' }}>Driver Haritası <span style={{ font: '400 12px Helvetica,Arial,sans-serif', color: 'var(--muted)' }}>— görsel</span></div>
           <div style={{ display: 'flex', alignItems: 'center', overflowX: 'auto', padding: '4px 0' }}>
-            <div style={{ flex: 'none', background: '#35506e', color: '#fff', borderRadius: 9, padding: '14px 16px', font: '700 13px/1.4 Helvetica,Arial,sans-serif', maxWidth: 190, textAlign: 'center' }}>
+            <div style={{ flex: 'none', background: 'var(--pri)', color: 'var(--on-pri)', borderRadius: 9, padding: '14px 16px', font: '700 13px/1.4 Helvetica,Arial,sans-serif', maxWidth: 190, textAlign: 'center' }}>
               {(c.problem.kpiName || '').trim() || 'Sorunlu KPI'}
             </div>
-            <div style={{ flex: 'none', width: 28, height: 2, background: '#b9cbe0' }} />
-            <div style={{ flex: 1, minWidth: 280, display: 'flex', flexDirection: 'column', gap: 10, borderLeft: '2px solid #b9cbe0', padding: '6px 0 6px 28px' }}>
+            <div style={{ flex: 'none', width: 28, height: 2, background: 'var(--pri-border)' }} />
+            <div style={{ flex: 1, minWidth: 280, display: 'flex', flexDirection: 'column', gap: 10, borderLeft: '2px solid var(--pri-border)', padding: '6px 0 6px 28px' }}>
               {dmap.map((dn, i) => (
-                <div key={i} style={{ position: 'relative', background: '#eef2f7', border: '1px solid #c9d4e2', borderRadius: 8, padding: '10px 13px' }}>
-                  <div style={{ position: 'absolute', left: -28, top: '50%', width: 28, height: 2, background: '#b9cbe0' }} />
-                  <div style={{ font: '600 12.5px/1.4 Helvetica,Arial,sans-serif', color: '#2c4159' }}>{dn.name}</div>
-                  {dn.hasSub ? <div style={{ font: '11.5px/1.5 Helvetica,Arial,sans-serif', color: '#5f7897', marginTop: 4 }}>↳ {dn.sub}</div> : null}
+                <div key={i} style={{ position: 'relative', background: 'var(--pri-soft)', border: '1px solid var(--pri-border-2)', borderRadius: 8, padding: '10px 13px' }}>
+                  <div style={{ position: 'absolute', left: -28, top: '50%', width: 28, height: 2, background: 'var(--pri-border)' }} />
+                  <div style={{ font: '600 12.5px/1.4 Helvetica,Arial,sans-serif', color: 'var(--pri-ink)' }}>{dn.name}</div>
+                  {dn.hasSub ? <div style={{ font: '11.5px/1.5 Helvetica,Arial,sans-serif', color: 'var(--pri-soft-ink)', marginTop: 4 }}>↳ {dn.sub}</div> : null}
                 </div>
               ))}
             </div>
           </div>
-          <div style={{ font: '11px/1.5 Helvetica,Arial,sans-serif', color: '#a9a49b', marginTop: 8 }}>Driver ve alt bileşen girdilerinizden otomatik çizilir; Adım 3'te alt bileşen ekledikçe zenginleşir.</div>
+          <div style={{ font: '11px/1.5 Helvetica,Arial,sans-serif', color: 'var(--muted-2)', marginTop: 8 }}>Driver ve alt bileşen girdilerinizden otomatik çizilir; Adım 3'te alt bileşen ekledikçe zenginleşir.</div>
         </Card>
       ) : null}
     </div>

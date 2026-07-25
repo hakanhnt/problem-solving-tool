@@ -13,10 +13,10 @@ const QUESTIONS = [
 ];
 
 const STATUS_META = {
-  tamam: ['Tamamlandı', '#eef4ee', '#3d5a3d', '#cfe0cf'],
-  devam: ['Devam ediyor', '#eef2f7', '#35506e', '#c9d4e2'],
-  gecikti: ['Gecikti', '#f6e9e5', '#8c4a35', '#e5c8bf'],
-  bekliyor: ['Bekliyor', '#f1efeb', '#6d6860', '#e0ddd7']
+  tamam: ['Tamamlandı', 'var(--ok-soft)', 'var(--ok-ink)', 'var(--ok-border)'],
+  devam: ['Devam ediyor', 'var(--pri-soft)', 'var(--pri)', 'var(--pri-border-2)'],
+  gecikti: ['Gecikti', 'var(--alert-soft)', 'var(--alert)', 'var(--alert-border)'],
+  bekliyor: ['Bekliyor', 'var(--surface-4)', 'var(--ink-4)', 'var(--line-strong)']
 };
 
 export default function Step7Tracking() {
@@ -32,25 +32,25 @@ export default function Step7Tracking() {
 
       <Card>
         <div style={{ ...S.cardTitle, margin: '0 0 4px' }}>Aksiyon Durumu</div>
-        <div style={{ font: '12px/1.5 Helvetica,Arial,sans-serif', color: '#8a857c', margin: '0 0 12px' }}>Adım 6'daki aksiyon planının ilerlemesini işaretleyin.</div>
+        <div style={{ font: '12px/1.5 Helvetica,Arial,sans-serif', color: 'var(--muted)', margin: '0 0 12px' }}>Adım 6'daki aksiyon planının ilerlemesini işaretleyin.</div>
 
         {hasActions ? (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {actions.map((a, i) => {
               if (!(a.text || '').trim()) return null;
-              const m = STATUS_META[a.status || ''] || ['Durum seçin', '#f1efeb', '#8a857c', '#e0ddd7'];
+              const m = STATUS_META[a.status || ''] || ['Durum seçin', 'var(--surface-4)', 'var(--muted)', 'var(--line-strong)'];
               const meta = [a.owner, a.due].filter(Boolean).join(' · ');
               return (
-                <div key={i} style={{ display: 'flex', gap: 10, alignItems: 'center', border: '1px solid #e8e5df', borderRadius: 8, padding: '10px 12px', background: '#fbfaf8' }}>
-                  <div style={{ flex: 'none', background: '#35506e', color: '#fff', borderRadius: 5, font: '700 10px/1 Helvetica,Arial,sans-serif', padding: '4px 7px' }}>{i + 1}</div>
+                <div key={i} style={{ display: 'flex', gap: 10, alignItems: 'center', border: '1px solid var(--line-2)', borderRadius: 8, padding: '10px 12px', background: 'var(--surface-2)' }}>
+                  <div style={{ flex: 'none', background: 'var(--pri)', color: 'var(--on-pri)', borderRadius: 5, font: '700 10px/1 Helvetica,Arial,sans-serif', padding: '4px 7px' }}>{i + 1}</div>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ font: '600 12.5px/1.45 Helvetica,Arial,sans-serif', color: '#26241f' }}>{a.text}</div>
-                    <div style={{ font: '11px/1.4 Helvetica,Arial,sans-serif', color: '#8a857c', marginTop: 2 }}>{meta}</div>
+                    <div style={{ font: '600 12.5px/1.45 Helvetica,Arial,sans-serif', color: 'var(--ink)' }}>{a.text}</div>
+                    <div style={{ font: '11px/1.4 Helvetica,Arial,sans-serif', color: 'var(--muted)', marginTop: 2 }}>{meta}</div>
                   </div>
                   <div style={{ flex: 'none', padding: '4px 10px', borderRadius: 20, border: '1px solid ' + m[3], background: m[1], color: m[2], font: '700 10.5px Helvetica,Arial,sans-serif' }}>{m[0]}</div>
                   <select
                     value={a.status || ''} onChange={inp('actions', i, 'status')}
-                    style={{ flex: 'none', width: 130, boxSizing: 'border-box', padding: '7px 9px', border: '1px solid #d6d3ce', borderRadius: 6, font: '12px Helvetica,Arial,sans-serif', color: '#26241f', background: '#fff', outline: 'none' }}
+                    style={{ flex: 'none', width: 130, boxSizing: 'border-box', padding: '7px 9px', border: '1px solid var(--field-border)', borderRadius: 6, font: '12px Helvetica,Arial,sans-serif', color: 'var(--ink)', background: 'var(--surface)', outline: 'none' }}
                   >
                     <option value="">Durum seçin…</option>
                     <option value="bekliyor">Bekliyor</option>
@@ -63,7 +63,7 @@ export default function Step7Tracking() {
             })}
           </div>
         ) : (
-          <div style={{ font: '12.5px/1.5 Helvetica,Arial,sans-serif', color: '#8a857c', background: '#f7f6f3', border: '1px dashed #d6d3ce', borderRadius: 8, padding: '12px 14px' }}>
+          <div style={{ font: '12.5px/1.5 Helvetica,Arial,sans-serif', color: 'var(--muted)', background: 'var(--surface-3)', border: '1px dashed var(--field-border)', borderRadius: 8, padding: '12px 14px' }}>
             Henüz aksiyon yok — önce <strong>Adım 6</strong>'da aksiyon planınızı oluşturun.
           </div>
         )}
@@ -76,19 +76,19 @@ export default function Step7Tracking() {
 
         {hasBars ? (
           <>
-            <div style={{ display: 'flex', gap: 14, alignItems: 'flex-end', border: '1px solid #e8e5df', borderRadius: 8, background: '#fbfaf8', padding: '16px 16px 10px', margin: '0 0 8px', overflowX: 'auto' }}>
+            <div style={{ display: 'flex', gap: 14, alignItems: 'flex-end', border: '1px solid var(--line-2)', borderRadius: 8, background: 'var(--surface-2)', padding: '16px 16px 10px', margin: '0 0 8px', overflowX: 'auto' }}>
               {bars.map((tb, i) => (
                 <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, flex: 'none', minWidth: 56 }}>
-                  <div style={{ font: '700 12px Helvetica,Arial,sans-serif', color: '#26241f' }}>{tb.value}</div>
+                  <div style={{ font: '700 12px Helvetica,Arial,sans-serif', color: 'var(--ink)' }}>{tb.value}</div>
                   <div style={{ width: 34, height: tb.h, background: tb.bg, borderRadius: '5px 5px 2px 2px' }} />
-                  <div style={{ font: '10.5px/1.3 Helvetica,Arial,sans-serif', color: '#8a857c', textAlign: 'center', maxWidth: 76 }}>{tb.label}</div>
+                  <div style={{ font: '10.5px/1.3 Helvetica,Arial,sans-serif', color: 'var(--muted)', textAlign: 'center', maxWidth: 76 }}>{tb.label}</div>
                 </div>
               ))}
             </div>
             <div style={{ display: 'flex', gap: 14, alignItems: 'center', margin: '0 0 12px', flexWrap: 'wrap' }}>
-              <div style={{ font: '600 12px Helvetica,Arial,sans-serif', color: '#3d5a3d' }}><span style={{ display: 'inline-block', width: 10, height: 10, background: '#4a6741', borderRadius: 2, marginRight: 5 }} />Hedefte</div>
-              <div style={{ font: '600 12px Helvetica,Arial,sans-serif', color: '#5f7897' }}><span style={{ display: 'inline-block', width: 10, height: 10, background: '#8fb0d4', borderRadius: 2, marginRight: 5 }} />Hedef dışı</div>
-              <div style={{ font: '600 12.5px Helvetica,Arial,sans-serif', color: '#8c4a35' }}>{trackingGapText(c)}</div>
+              <div style={{ font: '600 12px Helvetica,Arial,sans-serif', color: 'var(--ok-ink)' }}><span style={{ display: 'inline-block', width: 10, height: 10, background: 'var(--ok)', borderRadius: 2, marginRight: 5 }} />Hedefte</div>
+              <div style={{ font: '600 12px Helvetica,Arial,sans-serif', color: 'var(--pri-soft-ink)' }}><span style={{ display: 'inline-block', width: 10, height: 10, background: 'var(--pri-bar)', borderRadius: 2, marginRight: 5 }} />Hedef dışı</div>
+              <div style={{ font: '600 12.5px Helvetica,Arial,sans-serif', color: 'var(--alert)' }}>{trackingGapText(c)}</div>
             </div>
           </>
         ) : null}
@@ -118,7 +118,7 @@ export default function Step7Tracking() {
 
         <div style={{ display: 'flex', gap: 8, alignItems: 'baseline', flexWrap: 'wrap', margin: '0 0 6px' }}>
           <label style={{ ...S.label, margin: 0 }}>Karar sonrası refleksiyon — süreç mi doğruydu, yoksa sadece sonuç mu iyi?</label>
-          <span style={{ font: '11px Helvetica,Arial,sans-serif', color: '#8c6a35', background: '#faf3e3', border: '1px solid #eaddb8', borderRadius: 20, padding: '2px 8px' }}>→ Sonuç yanlılığına karşı</span>
+          <span style={{ font: '11px Helvetica,Arial,sans-serif', color: 'var(--warn-ink)', background: 'var(--warn-soft)', border: '1px solid var(--warn-border)', borderRadius: 20, padding: '2px 8px' }}>→ Sonuç yanlılığına karşı</span>
         </div>
         <textarea
           className="pcx-field" value={(c.retro && c.retro.process) || ''} onChange={inp('retro', 'process')}
@@ -129,13 +129,13 @@ export default function Step7Tracking() {
         <label style={S.label}>Öğrendiklerimiz — standarda bağlanacaklar, bir dahaki sefere farklı yapacaklarımız</label>
         <textarea className="pcx-field" value={(c.retro && c.retro.lessons) || ''} onChange={inp('retro', 'lessons')} style={{ ...S.textarea, minHeight: 64 }} />
 
-        <div style={{ border: '1px solid #e8e5df', borderRadius: 8, background: '#fbfaf8', padding: '11px 13px', marginTop: 14 }}>
-          <div style={{ font: '700 10.5px Helvetica,Arial,sans-serif', color: '#8a857c', letterSpacing: '.8px', margin: '0 0 7px' }}>DÖNGÜYÜ AYAKTA TUTAN GÜNLÜK ALIŞKANLIKLAR</div>
+        <div style={{ border: '1px solid var(--line-2)', borderRadius: 8, background: 'var(--surface-2)', padding: '11px 13px', marginTop: 14 }}>
+          <div style={{ font: '700 10.5px Helvetica,Arial,sans-serif', color: 'var(--muted)', letterSpacing: '.8px', margin: '0 0 7px' }}>DÖNGÜYÜ AYAKTA TUTAN GÜNLÜK ALIŞKANLIKLAR</div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 10 }}>
             {DAILY_HABITS.map((h, i) => (
               <div key={i}>
-                <div style={{ font: '600 11.5px/1.4 Helvetica,Arial,sans-serif', color: '#26241f' }}>{h.ad} <span style={{ fontWeight: 400, color: '#8a857c' }}>→ {h.against}</span></div>
-                <div style={{ font: '11px/1.45 Helvetica,Arial,sans-serif', color: '#6d6860' }}>{h.not}</div>
+                <div style={{ font: '600 11.5px/1.4 Helvetica,Arial,sans-serif', color: 'var(--ink)' }}>{h.ad} <span style={{ fontWeight: 400, color: 'var(--muted)' }}>→ {h.against}</span></div>
+                <div style={{ font: '11px/1.45 Helvetica,Arial,sans-serif', color: 'var(--ink-4)' }}>{h.not}</div>
               </div>
             ))}
           </div>

@@ -16,9 +16,9 @@ export function statementChecks(problem) {
   const mk = (ok, okText, badText) => ({
     text: ok ? okText : badText,
     icon: ok ? '✓' : '!',
-    color: ok ? '#3d5a3d' : '#8c6a35',
-    bg: ok ? '#eef4ee' : '#faf3e3',
-    border: ok ? '#cfe0cf' : '#eaddb8'
+    color: ok ? 'var(--ok-ink)' : 'var(--warn-ink)',
+    bg: ok ? 'var(--ok-soft)' : 'var(--warn-soft)',
+    border: ok ? 'var(--ok-border)' : 'var(--warn-border)'
   });
   return [
     mk(/\d/.test(s), 'Sayısal / ölçülebilir ifade var', 'Sayı yok — sapmayı ölçülebilir yazın (hedef vs gerçekleşen)'),
@@ -63,7 +63,7 @@ export function trackingBars(c) {
   const max = Math.max(...rows.map(x => x.v), isFinite(t) ? t : 0) * 1.15 || 1;
   return rows.map(x => {
     const ok = isFinite(t) ? (lowerBetter ? x.v <= t : x.v >= t) : false;
-    return { label: x.label, value: String(x.v), h: Math.max(8, Math.round(x.v / max * 110)) + 'px', bg: ok ? '#4a6741' : '#8fb0d4' };
+    return { label: x.label, value: String(x.v), h: Math.max(8, Math.round(x.v / max * 110)) + 'px', bg: ok ? 'var(--ok)' : 'var(--pri-bar)' };
   });
 }
 

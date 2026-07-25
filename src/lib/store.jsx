@@ -30,6 +30,10 @@ function normalize(state) {
     temperature: 0.6, topP: '', depth: 'standart',
     headerName: '', headerPrefix: 'Bearer ', extraHeaders: ''
   }, s.aiSettings || {});
+  if (s.theme !== 'light' && s.theme !== 'dark') {
+    const prefersDark = typeof matchMedia === 'function' && matchMedia('(prefers-color-scheme: dark)').matches;
+    s.theme = prefersDark ? 'dark' : 'light';
+  }
   if (!Array.isArray(s.principles) || !s.principles.length) s.principles = defaultPrinciples();
   Object.keys(s.cases).forEach(k => {
     const cc = s.cases[k];
@@ -59,19 +63,19 @@ function persist(state) {
 /** Etki/efor puanlarından öncelik rozeti. */
 export function prioMeta(a) {
   const e = parseInt(a.etki, 10) || 0, f = parseInt(a.efor, 10) || 0;
-  if (!e || !f) return { label: 'Puanlayın', bg: '#f1efeb', color: '#8a857c', border: '#e0ddd7', score: -100 };
-  if (e >= 4 && f <= 2) return { label: 'Hızlı kazanım', bg: '#eef4ee', color: '#3d5a3d', border: '#cfe0cf', score: e * 2 - f + 20 };
-  if (e >= 4) return { label: 'Stratejik', bg: '#eef2f7', color: '#35506e', border: '#c9d4e2', score: e * 2 - f + 10 };
-  if (f <= 2) return { label: 'Ara kazanım', bg: '#faf3e3', color: '#8c6a35', border: '#eaddb8', score: e * 2 - f };
-  return { label: 'Sorgulanmalı', bg: '#f6e9e5', color: '#8c4a35', border: '#e5c8bf', score: e * 2 - f - 10 };
+  if (!e || !f) return { label: 'Puanlayın', bg: 'var(--surface-4)', color: 'var(--muted)', border: 'var(--line-strong)', score: -100 };
+  if (e >= 4 && f <= 2) return { label: 'Hızlı kazanım', bg: 'var(--ok-soft)', color: 'var(--ok-ink)', border: 'var(--ok-border)', score: e * 2 - f + 20 };
+  if (e >= 4) return { label: 'Stratejik', bg: 'var(--pri-soft)', color: 'var(--pri)', border: 'var(--pri-border-2)', score: e * 2 - f + 10 };
+  if (f <= 2) return { label: 'Ara kazanım', bg: 'var(--warn-soft)', color: 'var(--warn-ink)', border: 'var(--warn-border)', score: e * 2 - f };
+  return { label: 'Sorgulanmalı', bg: 'var(--alert-soft)', color: 'var(--alert)', border: 'var(--alert-border)', score: e * 2 - f - 10 };
 }
 
 /** YZ önerisiyle eklenen kayıtların doğrulama rozeti. */
 export function verMeta(x) {
   if (!x || x.src !== 'yz') return { hasVer: false, verLabel: '', verBg: '', verColor: '', verBorder: '' };
   return x.verified
-    ? { hasVer: true, verLabel: '✓ Doğrulandı', verBg: '#eef4ee', verColor: '#3d5a3d', verBorder: '#cfe0cf' }
-    : { hasVer: true, verLabel: '⚠ YZ önerisi — doğrulanmadı · doğruladıysanız tıklayın', verBg: '#faf3e3', verColor: '#8c6a35', verBorder: '#eaddb8' };
+    ? { hasVer: true, verLabel: '✓ Doğrulandı', verBg: 'var(--ok-soft)', verColor: 'var(--ok-ink)', verBorder: 'var(--ok-border)' }
+    : { hasVer: true, verLabel: '⚠ YZ önerisi — doğrulanmadı · doğruladıysanız tıklayın', verBg: 'var(--warn-soft)', verColor: 'var(--warn-ink)', verBorder: 'var(--warn-border)' };
 }
 
 export function StoreProvider({ children }) {
@@ -434,6 +438,14 @@ export function StoreProvider({ children }) {
   }, [upd, ensureCoach]);
 
   useEffect(() => {
+    document.documentElement.setAttribute('data-theme', state.theme === 'dark' ? 'dark' : 'light');
+  }, [state.theme]);
+
+  const toggleTheme = useCallback(() => {
+    upd(n => { n.theme = n.theme === 'dark' ? 'light' : 'dark'; });
+  }, [upd]);
+
+  useEffect(() => {
     const t = setTimeout(() => ensureCoach(), 60);
     return () => clearTimeout(t);
     // yalnızca ilk yüklemede
@@ -445,11 +457,11 @@ export function StoreProvider({ children }) {
     state, eff, c: state.cases[eff], step: state.step,
     principles: principlesOf(state),
     mainRef,
-    upd, updC, setC, inp, goStep,
+    upd, updC, setC, inp, goStep, toggleTheme,
     ensureCoach, runCoach, applyCoachItem, coachRefresh,
     runDecisionCoach, runActionCoach, runAudit, runBiasScan, runReportSummary,
     askAi, fieldHelp, addReference
-  }), [state, eff, upd, updC, setC, inp, goStep, ensureCoach, runCoach, applyCoachItem, coachRefresh, runDecisionCoach, runActionCoach, runAudit, runBiasScan, runReportSummary, askAi, fieldHelp, addReference]);
+  }), [state, eff, upd, updC, setC, inp, goStep, toggleTheme, ensureCoach, runCoach, applyCoachItem, coachRefresh, runDecisionCoach, runActionCoach, runAudit, runBiasScan, runReportSummary, askAi, fieldHelp, addReference]);
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

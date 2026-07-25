@@ -6,12 +6,12 @@ import { HButton, HA } from '../ui/primitives.jsx';
 /** Uygulama işareti: akışın daralarak karara inişini anlatan üç düğüm. */
 function BrandMark() {
   return (
-    <div style={{ flex: 'none', width: 38, height: 38, borderRadius: 10, background: '#35506e', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 1px 3px rgba(53,80,110,.35)' }}>
+    <div style={{ flex: 'none', width: 38, height: 38, borderRadius: 10, background: 'var(--pri)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 1px 3px rgba(53,80,110,.35)' }}>
       <svg width="21" height="21" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-        <path d="M4 5h16M7 12h10M10.5 19h3" stroke="#fff" strokeWidth="2" strokeLinecap="round" />
-        <circle cx="12" cy="5" r="1.6" fill="#8fb0d4" />
-        <circle cx="12" cy="12" r="1.6" fill="#c9d8e8" />
-        <circle cx="12" cy="19" r="1.9" fill="#fff" />
+        <path d="M4 5h16M7 12h10M10.5 19h3" stroke="var(--on-pri)" strokeWidth="2" strokeLinecap="round" />
+        <circle cx="12" cy="5" r="1.6" fill="var(--pri-bar)" />
+        <circle cx="12" cy="12" r="1.6" fill="var(--pri-border-3)" />
+        <circle cx="12" cy="19" r="1.9" fill="var(--on-pri)" />
       </svg>
     </div>
   );
@@ -31,7 +31,7 @@ function stepDone(c, n) {
 }
 
 export default function Sidebar() {
-  const { state, eff, c, step, upd, goStep, ensureCoach } = useStore();
+  const { state, eff, c, step, upd, goStep, ensureCoach, toggleTheme } = useStore();
   const doneSteps = [1, 2, 3, 4, 5, 6, 7, 8].filter(n => stepDone(c, n));
   const doneCount = doneSteps.length;
 
@@ -63,51 +63,51 @@ export default function Sidebar() {
   };
 
   return (
-    <aside data-noprint="1" style={{ width: 288, flex: 'none', background: '#fff', borderRight: '1px solid #e0ddd7', display: 'flex', flexDirection: 'column' }}>
-      <div style={{ padding: '18px 18px 14px', borderBottom: '1px solid #eceae5', background: 'linear-gradient(180deg,#f7f9fc 0%,#fff 100%)' }}>
+    <aside data-noprint="1" style={{ width: 288, flex: 'none', background: 'var(--surface)', borderRight: '1px solid var(--line-strong)', display: 'flex', flexDirection: 'column' }}>
+      <div style={{ padding: '18px 18px 14px', borderBottom: '1px solid var(--line-3)', background: 'linear-gradient(180deg,var(--brand-grad) 0%,var(--surface) 100%)' }}>
         <div style={{ display: 'flex', gap: 11, alignItems: 'center' }}>
           <BrandMark />
           <div style={{ minWidth: 0 }}>
-            <div style={{ font: '700 16px/1.25 Helvetica,Arial,sans-serif', color: '#26241f', letterSpacing: '-.2px' }}>Problem Çözme Akışı</div>
-            <div style={{ font: '11.5px/1.4 Helvetica,Arial,sans-serif', color: '#5f7897', marginTop: 2 }}>Rehberli problem çözme ve karar verme</div>
+            <div style={{ font: '700 16px/1.25 Helvetica,Arial,sans-serif', color: 'var(--ink)', letterSpacing: '-.2px' }}>Problem Çözme Akışı</div>
+            <div style={{ font: '11.5px/1.4 Helvetica,Arial,sans-serif', color: 'var(--pri-soft-ink)', marginTop: 2 }}>Rehberli problem çözme ve karar verme</div>
           </div>
         </div>
         <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', marginTop: 11 }}>
           {['8 adımlık akış', 'YZ destekli', 'Alan bağımsız'].map(t => (
-            <span key={t} style={{ font: '600 10px Helvetica,Arial,sans-serif', color: '#5f7897', background: '#eef2f7', border: '1px solid #dbe4ef', borderRadius: 20, padding: '3px 8px' }}>{t}</span>
+            <span key={t} style={{ font: '600 10px Helvetica,Arial,sans-serif', color: 'var(--pri-soft-ink)', background: 'var(--pri-soft)', border: '1px solid var(--pri-border-5)', borderRadius: 20, padding: '3px 8px' }}>{t}</span>
           ))}
         </div>
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '14px 16px 6px' }}>
-        <div style={{ flex: 1, font: '700 10.5px Helvetica,Arial,sans-serif', color: '#8a857c', letterSpacing: '.8px' }}>ÇALIŞMALAR</div>
+        <div style={{ flex: 1, font: '700 10.5px Helvetica,Arial,sans-serif', color: 'var(--muted)', letterSpacing: '.8px' }}>ÇALIŞMALAR</div>
         <HButton
           onClick={addCase}
-          style={{ flex: 'none', padding: '5px 10px', border: '1px solid #35506e', borderRadius: 6, background: '#35506e', color: '#fff', font: '600 11px Helvetica,Arial,sans-serif', cursor: 'pointer' }}
-          hover={{ background: '#2a4159' }}
+          style={{ flex: 'none', padding: '5px 10px', border: '1px solid var(--pri)', borderRadius: 6, background: 'var(--pri)', color: 'var(--on-pri)', font: '600 11px Helvetica,Arial,sans-serif', cursor: 'pointer' }}
+          hover={{ background: 'var(--pri-hover)' }}
         >+ Yeni</HButton>
       </div>
 
-      <div style={{ padding: '2px 12px 8px', display: 'flex', flexDirection: 'column', gap: 2, maxHeight: 190, overflow: 'auto', borderBottom: '1px solid #eceae5' }}>
+      <div style={{ padding: '2px 12px 8px', display: 'flex', flexDirection: 'column', gap: 2, maxHeight: 190, overflow: 'auto', borderBottom: '1px solid var(--line-3)' }}>
         {caseKeys.map(k => {
           const act = eff === k;
           return (
-            <div key={k} style={{ display: 'flex', gap: 4, alignItems: 'center', borderRadius: 7, background: act ? '#eef2f7' : 'transparent', padding: '7px 6px 7px 10px' }}>
+            <div key={k} style={{ display: 'flex', gap: 4, alignItems: 'center', borderRadius: 7, background: act ? 'var(--pri-soft)' : 'transparent', padding: '7px 6px 7px 10px' }}>
               <div
                 onClick={() => selectCase(k)}
-                style={{ flex: 1, minWidth: 0, cursor: 'pointer', font: '600 12.5px/1.3 Helvetica,Arial,sans-serif', color: act ? '#35506e' : '#57534b', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                style={{ flex: 1, minWidth: 0, cursor: 'pointer', font: '600 12.5px/1.3 Helvetica,Arial,sans-serif', color: act ? 'var(--pri)' : 'var(--ink-3)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
               >{state.cases[k].name || k}</div>
               {k !== 'ornek' ? (
                 <>
                   <HButton
                     onClick={() => renameCase(k)} title="Yeniden adlandır"
-                    style={{ flex: 'none', width: 22, height: 22, border: 'none', borderRadius: 5, background: 'transparent', color: '#a9a49b', font: '12px/1 Helvetica,Arial,sans-serif', cursor: 'pointer' }}
-                    hover={{ background: '#eceae5', color: '#57534b' }}
+                    style={{ flex: 'none', width: 22, height: 22, border: 'none', borderRadius: 5, background: 'transparent', color: 'var(--muted-2)', font: '12px/1 Helvetica,Arial,sans-serif', cursor: 'pointer' }}
+                    hover={{ background: 'var(--line-3)', color: 'var(--ink-3)' }}
                   >✎</HButton>
                   <HButton
                     onClick={() => deleteCase(k)} title="Çalışmayı sil"
-                    style={{ flex: 'none', width: 22, height: 22, border: 'none', borderRadius: 5, background: 'transparent', color: '#a9a49b', font: '700 13px/1 Helvetica,Arial,sans-serif', cursor: 'pointer' }}
-                    hover={{ background: '#f6e9e5', color: '#b3432f' }}
+                    style={{ flex: 'none', width: 22, height: 22, border: 'none', borderRadius: 5, background: 'transparent', color: 'var(--muted-2)', font: '700 13px/1 Helvetica,Arial,sans-serif', cursor: 'pointer' }}
+                    hover={{ background: 'var(--alert-soft)', color: 'var(--danger)' }}
                   >×</HButton>
                 </>
               ) : null}
@@ -117,32 +117,32 @@ export default function Sidebar() {
       </div>
 
       {state.trash ? (
-        <div style={{ margin: '8px 12px 0', background: '#f6f1e7', border: '1px solid #e8ddc7', borderRadius: 8, padding: '9px 11px', display: 'flex', gap: 8, alignItems: 'center' }}>
-          <div style={{ flex: 1, minWidth: 0, font: '12px/1.4 Helvetica,Arial,sans-serif', color: '#7a6f57', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>"{state.trash.name}" silindi</div>
+        <div style={{ margin: '8px 12px 0', background: 'var(--warn-soft-2)', border: '1px solid var(--warn-border-2)', borderRadius: 8, padding: '9px 11px', display: 'flex', gap: 8, alignItems: 'center' }}>
+          <div style={{ flex: 1, minWidth: 0, font: '12px/1.4 Helvetica,Arial,sans-serif', color: 'var(--warn-ink-3)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>"{state.trash.name}" silindi</div>
           <HButton
             onClick={() => upd(n => { if (!n.trash) return; n.cases[n.trash.key] = n.trash.data; n.activeCase = n.trash.key; n.trash = null; })}
-            style={{ flex: 'none', padding: '5px 10px', border: '1px solid #35506e', borderRadius: 6, background: '#35506e', color: '#fff', font: '600 11px Helvetica,Arial,sans-serif', cursor: 'pointer' }}
-            hover={{ background: '#2a4159' }}
+            style={{ flex: 'none', padding: '5px 10px', border: '1px solid var(--pri)', borderRadius: 6, background: 'var(--pri)', color: 'var(--on-pri)', font: '600 11px Helvetica,Arial,sans-serif', cursor: 'pointer' }}
+            hover={{ background: 'var(--pri-hover)' }}
           >Geri al</HButton>
           <HButton
             onClick={() => upd(n => { n.trash = null; })} title="Kalıcı olarak kaldır"
-            style={{ flex: 'none', width: 20, height: 20, border: 'none', background: 'transparent', color: '#a9a49b', font: '700 12px/1 Helvetica,Arial,sans-serif', cursor: 'pointer' }}
-            hover={{ color: '#57534b' }}
+            style={{ flex: 'none', width: 20, height: 20, border: 'none', background: 'transparent', color: 'var(--muted-2)', font: '700 12px/1 Helvetica,Arial,sans-serif', cursor: 'pointer' }}
+            hover={{ color: 'var(--ink-3)' }}
           >×</HButton>
         </div>
       ) : null}
 
       <div style={{ padding: '12px 16px 8px' }}>
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, margin: '0 0 6px' }}>
-          <div style={{ flex: 1, font: '700 10.5px Helvetica,Arial,sans-serif', color: '#8a857c', letterSpacing: '.8px' }}>ÇALIŞMA İLERLEMESİ</div>
-          <div style={{ font: '700 11px Helvetica,Arial,sans-serif', color: doneCount === 8 ? '#3d5a3d' : '#35506e' }}>{doneCount}/8</div>
+          <div style={{ flex: 1, font: '700 10.5px Helvetica,Arial,sans-serif', color: 'var(--muted)', letterSpacing: '.8px' }}>ÇALIŞMA İLERLEMESİ</div>
+          <div style={{ font: '700 11px Helvetica,Arial,sans-serif', color: doneCount === 8 ? 'var(--ok-ink)' : 'var(--pri)' }}>{doneCount}/8</div>
         </div>
         <div style={{ display: 'flex', gap: 3 }}>
           {[1, 2, 3, 4, 5, 6, 7, 8].map(n => (
             <div
               key={n}
               title={n + '. ' + STEPS[n - 1].title + (doneSteps.includes(n) ? ' — dolduruldu' : ' — boş')}
-              style={{ flex: 1, height: 4, borderRadius: 2, background: doneSteps.includes(n) ? (doneCount === 8 ? '#4a6741' : '#35506e') : '#e3e0da' }}
+              style={{ flex: 1, height: 4, borderRadius: 2, background: doneSteps.includes(n) ? (doneCount === 8 ? 'var(--ok)' : 'var(--pri)') : 'var(--line)' }}
             />
           ))}
         </div>
@@ -155,42 +155,54 @@ export default function Sidebar() {
             <div
               key={n}
               onClick={() => goStep(n)}
-              style={{ display: 'flex', gap: 10, alignItems: 'flex-start', padding: 10, borderRadius: 8, cursor: 'pointer', background: active ? '#eef2f7' : 'transparent' }}
+              style={{ display: 'flex', gap: 10, alignItems: 'flex-start', padding: 10, borderRadius: 8, cursor: 'pointer', background: active ? 'var(--pri-soft)' : 'transparent' }}
             >
               <div style={{
                 width: 22, height: 22, flex: 'none', borderRadius: '50%',
-                background: active ? '#35506e' : (done ? '#e4ede4' : '#e8e5df'),
-                color: active ? '#fff' : (done ? '#4a6741' : '#6d6860'),
+                background: active ? 'var(--pri)' : (done ? 'var(--ok-soft-2)' : 'var(--line-2)'),
+                color: active ? 'var(--on-pri)' : (done ? 'var(--ok)' : 'var(--ink-4)'),
                 font: '700 11px/22px Helvetica,Arial,sans-serif', textAlign: 'center'
               }}>{!active && done ? '✓' : n}</div>
               <div>
-                <div style={{ font: '600 13px/1.35 Helvetica,Arial,sans-serif', color: active ? '#35506e' : '#3d3a34' }}>{s.title}</div>
-                <div style={{ font: '11px/1.4 Helvetica,Arial,sans-serif', color: active ? '#5f7897' : '#96918a', marginTop: 1 }}>{s.sub}</div>
+                <div style={{ font: '600 13px/1.35 Helvetica,Arial,sans-serif', color: active ? 'var(--pri)' : 'var(--ink-2)' }}>{s.title}</div>
+                <div style={{ font: '11px/1.4 Helvetica,Arial,sans-serif', color: active ? 'var(--pri-soft-ink)' : 'var(--muted-3)', marginTop: 1 }}>{s.sub}</div>
               </div>
             </div>
           );
         })}
       </nav>
 
-      <div style={{ padding: '14px 16px', borderTop: '1px solid #eceae5', display: 'flex', flexDirection: 'column', gap: 10 }}>
+      <div style={{ padding: '14px 16px', borderTop: '1px solid var(--line-3)', display: 'flex', flexDirection: 'column', gap: 10 }}>
         {eff === 'ornek' ? (
           <HButton
             onClick={() => { if (confirm('Örnek çalışma ilk haline döndürülecek. Emin misiniz?')) upd(n => { n.cases.ornek = exampleCase(); }); }}
-            style={{ padding: '8px 10px', border: '1px solid #d6d3ce', borderRadius: 6, background: '#fff', color: '#57534b', font: '600 12px Helvetica,Arial,sans-serif', cursor: 'pointer' }}
-            hover={{ background: '#f1efeb' }}
+            style={{ padding: '8px 10px', border: '1px solid var(--field-border)', borderRadius: 6, background: 'var(--surface)', color: 'var(--ink-3)', font: '600 12px Helvetica,Arial,sans-serif', cursor: 'pointer' }}
+            hover={{ background: 'var(--surface-4)' }}
           >Örnek çalışmayı sıfırla</HButton>
         ) : null}
         <HA
-          href="/rehber.html" target="_blank" rel="noreferrer"
-          style={{ display: 'block', boxSizing: 'border-box', padding: '8px 10px', border: '1px solid #d6d3ce', borderRadius: 6, background: '#fff', color: '#57534b', font: '600 12px Helvetica,Arial,sans-serif', textDecoration: 'none', textAlign: 'left' }}
-          hover={{ background: '#f1efeb' }}
+          href={'/rehber.html' + (state.theme === 'dark' ? '?tema=koyu' : '')} target="_blank" rel="noreferrer"
+          style={{ display: 'block', boxSizing: 'border-box', padding: '8px 10px', border: '1px solid var(--field-border)', borderRadius: 6, background: 'var(--surface)', color: 'var(--ink-3)', font: '600 12px Helvetica,Arial,sans-serif', textDecoration: 'none', textAlign: 'left' }}
+          hover={{ background: 'var(--surface-4)' }}
         >📖 Kullanım Rehberi</HA>
         <HButton
+          onClick={toggleTheme}
+          title={state.theme === 'dark' ? 'Aydınlık temaya geç' : 'Karanlık temaya geç'}
+          style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', border: '1px solid var(--field-border)', borderRadius: 6, background: 'var(--surface)', color: 'var(--ink-3)', font: '600 12px Helvetica,Arial,sans-serif', cursor: 'pointer', textAlign: 'left' }}
+          hover={{ background: 'var(--surface-4)' }}
+        >
+          <span style={{ flex: 'none', font: '13px/1 Helvetica,Arial,sans-serif' }}>{state.theme === 'dark' ? '☀' : '☾'}</span>
+          <span style={{ flex: 1 }}>{state.theme === 'dark' ? 'Aydınlık tema' : 'Karanlık tema'}</span>
+          <span style={{ flex: 'none', display: 'flex', alignItems: 'center', width: 30, height: 16, borderRadius: 20, background: state.theme === 'dark' ? 'var(--pri)' : 'var(--line-strong)', padding: 2, boxSizing: 'border-box', transition: 'background .15s' }}>
+            <span style={{ width: 12, height: 12, borderRadius: '50%', background: state.theme === 'dark' ? 'var(--on-pri)' : 'var(--surface)', marginLeft: state.theme === 'dark' ? 14 : 0, transition: 'margin-left .15s' }} />
+          </span>
+        </HButton>
+        <HButton
           onClick={() => upd(n => { n.showSettings = true; })}
-          style={{ padding: '8px 10px', border: '1px solid #d6d3ce', borderRadius: 6, background: '#fff', color: '#57534b', font: '600 12px Helvetica,Arial,sans-serif', cursor: 'pointer', textAlign: 'left' }}
-          hover={{ background: '#f1efeb' }}
+          style={{ padding: '8px 10px', border: '1px solid var(--field-border)', borderRadius: 6, background: 'var(--surface)', color: 'var(--ink-3)', font: '600 12px Helvetica,Arial,sans-serif', cursor: 'pointer', textAlign: 'left' }}
+          hover={{ background: 'var(--surface-4)' }}
         >⚙ Ayarlar · Kurum prensipleri</HButton>
-        <div style={{ font: '11px/1.5 Helvetica,Arial,sans-serif', color: '#a9a49b' }}>Girdileriniz bu tarayıcıda otomatik kaydedilir; sayfayı kapatıp açtığınızda kaldığınız yerden devam edersiniz.</div>
+        <div style={{ font: '11px/1.5 Helvetica,Arial,sans-serif', color: 'var(--muted-2)' }}>Girdileriniz bu tarayıcıda otomatik kaydedilir; sayfayı kapatıp açtığınızda kaldığınız yerden devam edersiniz.</div>
       </div>
     </aside>
   );

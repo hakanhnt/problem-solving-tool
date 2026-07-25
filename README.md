@@ -48,6 +48,7 @@ kök neden dış paydaşta aranır. Bu araç akışı disipline eder ve her adı
 | **Düşünme denetimi** | Düşünme yöntemi ↔ bilişsel yanılgı eşleşmesi, karar öncesi üç soru ve yanılgı taraması. |
 | **Döngüyü kapatır** | Aksiyon durumu + KPI trendi; hedefe kapanmıyorsa analize geri döndürür (PDCA). |
 | **Paylaşılabilir çıktı** | Tek sayfa rapor: yönetici özeti, seçilebilir bölümler, yazdır/PDF. |
+| **Aydınlık / karanlık tema** | İlk açılışta sistem tercihini izler, kenar çubuğundaki anahtarla değiştirilir; yazdırma her zaman açık temadır. |
 
 Birden çok çalışma (vaka) aynı anda yürütülebilir; silinen çalışma geri alınabilir; tüm veri
 JSON olarak dışa/içe aktarılabilir.
@@ -229,6 +230,19 @@ Kurallar: `ornek` vakası silinemez (yalnız sıfırlanır); silinen vaka `trash
 kayıtlar `src:'yz', verified:false` ile işaretlenir.
 
 ![Adım 8 — çalışma raporu](docs/screenshots/readme-04-report.png)
+
+### Tema
+
+Tüm renkler `src/index.css` içindeki CSS değişkenlerinde tanımlıdır (64 token); bileşenler
+sabit hex yerine yalnızca `var(--token)` kullanır. `:root` açık temayı (prototipin referans
+paleti), `:root[data-theme="dark"]` koyu temayı tanımlar. Tema `state.theme` içinde saklanır,
+ilk açılışta `prefers-color-scheme` ile belirlenir ve `<html data-theme>` özniteliğine yazılır.
+
+`@media print` bloğu her iki temada da açık paleti geri yükler — rapor daima beyaz kâğıda basılır.
+Kullanım rehberi sayfası da aynı mantıkla çalışır; uygulamadan açıldığında tema `?tema=koyu`
+parametresiyle taşınır.
+
+![Koyu tema — Adım 5](docs/screenshots/readme-06-dark.png)
 
 ## Geliştirirken bilinmesi gerekenler
 

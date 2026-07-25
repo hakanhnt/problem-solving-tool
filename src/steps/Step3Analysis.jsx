@@ -68,7 +68,7 @@ export default function Step3Analysis() {
 
         <div style={{ display: 'grid', gridTemplateColumns: GRID, gap: 8, margin: '0 0 8px' }}>
           {SIPOC_COLS.map(col => (
-            <div key={col.key} style={{ font: '700 11px Helvetica,Arial,sans-serif', color: '#57534b', letterSpacing: '.4px' }}>{col.head[0]}<br />{col.head[1]}</div>
+            <div key={col.key} style={{ font: '700 11px Helvetica,Arial,sans-serif', color: 'var(--ink-3)', letterSpacing: '.4px' }}>{col.head[0]}<br />{col.head[1]}</div>
           ))}
           <div />
         </div>
@@ -79,7 +79,7 @@ export default function Step3Analysis() {
               {SIPOC_COLS.map(col => (
                 <textarea
                   key={col.key} className="pcx-field-sm" value={r[col.key]} onChange={inp('sipoc', i, col.key)}
-                  style={{ width: '100%', boxSizing: 'border-box', padding: '8px 9px', border: '1px solid #d6d3ce', borderRadius: 6, font: '12px/1.4 Helvetica,Arial,sans-serif', color: '#26241f', background: '#fff', outline: 'none', resize: 'vertical', minHeight: 58 }}
+                  style={{ width: '100%', boxSizing: 'border-box', padding: '8px 9px', border: '1px solid var(--field-border)', borderRadius: 6, font: '12px/1.4 Helvetica,Arial,sans-serif', color: 'var(--ink)', background: 'var(--surface)', outline: 'none', resize: 'vertical', minHeight: 58 }}
                 />
               ))}
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'center', paddingTop: 4 }}>

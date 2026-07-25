@@ -5,26 +5,58 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Problem Çözme Akışı · Kullanıcı Rehberi</title>
 <style>
-  html,body{margin:0;padding:0;background:#e8e6e1}
-  a{color:#35506e}a:hover{color:#233b55}
+  /* Sayfa, uygulamadaki temayı izler: bağlantı ?tema=koyu ile gelir, yoksa sistem tercihi. */
+  :root{
+    --desk:#e8e6e1; --sheet:#fff; --ink:#26241f; --muted:#8a857c;
+    --line:#eceae5; --pri:#35506e; --pri-soft:#5f7897; --link-hover:#233b55;
+    --table-head:#eef2f7; --table-line:#d3dce8; --shadow:rgba(38,36,31,.14);
+    color-scheme:light;
+  }
+  :root[data-theme="dark"]{
+    --desk:#151513; --sheet:#232220; --ink:#ece6da; --muted:#a09a90;
+    --line:#322f2a; --pri:#8fb4dd; --pri-soft:#93aecd; --link-hover:#b7d2ee;
+    --table-head:#1f3145; --table-line:#37536f; --shadow:rgba(0,0,0,.5);
+    color-scheme:dark;
+  }
+  html,body{margin:0;padding:0;background:var(--desk)}
+  a{color:var(--pri)}a:hover{color:var(--link-hover)}
   .sheet{
-    box-sizing:border-box;width:8.27in;min-height:11.69in;margin:32px auto;background:#fff;
-    padding:.85in;box-shadow:0 4px 18px rgba(38,36,31,.14);
-    display:flex;flex-direction:column;font-family:Helvetica,Arial,sans-serif;color:#26241f
+    box-sizing:border-box;width:8.27in;min-height:11.69in;margin:32px auto;background:var(--sheet);
+    padding:.85in;box-shadow:0 4px 18px var(--shadow);
+    display:flex;flex-direction:column;font-family:Helvetica,Arial,sans-serif;color:var(--ink)
   }
   .sheet-body{flex:1}
+  .sheet [style*="color:#26241f"], .sheet [style*="color:#3d3a34"]{color:var(--ink) !important}
+  .sheet [style*="color:#6d6860"], .sheet [style*="color:#8a857c"]{color:var(--muted) !important}
+  .sheet [style*="color:#35506e"]{color:var(--pri) !important}
+  .sheet [style*="color:#5f7897"]{color:var(--pri-soft) !important}
+  .sheet [style*="border-bottom:3px solid #35506e"]{border-bottom-color:var(--pri) !important}
+  .sheet table th{background:var(--table-head) !important;border-color:var(--table-line) !important;color:var(--ink) !important}
+  .sheet table td{border-color:var(--line) !important;color:var(--ink) !important}
   .doc-footer{
-    display:flex;justify-content:space-between;font:10px Helvetica,Arial,sans-serif;color:#8a857c;
-    border-top:1px solid #eceae5;padding-top:6px;margin-top:28px
+    display:flex;justify-content:space-between;font:10px Helvetica,Arial,sans-serif;color:var(--muted);
+    border-top:1px solid var(--line);padding-top:6px;margin-top:28px
   }
   h1,h2,h3{text-wrap:balance}
   p,li{orphans:3;widows:3;text-wrap:pretty}
+  /* Yazdırma her zaman açık tema: belge beyaz kâğıda basılır */
   @media print{
     @page{size:a4;margin:0}
+    :root,:root[data-theme="dark"]{
+      --desk:#fff; --sheet:#fff; --ink:#26241f; --muted:#8a857c; --line:#eceae5;
+      --pri:#35506e; --pri-soft:#5f7897; --table-head:#eef2f7; --table-line:#d3dce8;
+    }
     html,body{background:#fff}
     .sheet{width:auto;min-height:0;margin:0;box-shadow:none;padding:.85in}
   }
 </style>
+<script>
+  (function () {
+    var q = new URLSearchParams(location.search).get('tema');
+    var dark = q ? q === 'koyu' : (window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches);
+    document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+  })();
+</script>
 </head>
 <body>
 <div class="sheet">

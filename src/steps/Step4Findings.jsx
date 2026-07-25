@@ -19,7 +19,7 @@ export default function Step4Findings() {
     <div>
       <GuidanceBox items={QUESTIONS} margin="0 0 16px" />
 
-      <div style={{ background: '#f6f1e7', border: '1px solid #e8ddc7', borderRadius: 8, padding: '12px 14px', margin: '0 0 16px', font: '12.5px/1.6 Helvetica,Arial,sans-serif', color: '#7a6f57' }}>
+      <div style={{ background: 'var(--warn-soft-2)', border: '1px solid var(--warn-border-2)', borderRadius: 8, padding: '12px 14px', margin: '0 0 16px', font: '12.5px/1.6 Helvetica,Arial,sans-serif', color: 'var(--warn-ink-3)' }}>
         <strong>Unutmayın:</strong> Problem başka şeydir, problem bulgusu başka şeydir, kök neden başka şeydir. Bulgu, veriye dayalı ölçülmüş spesifik bir sapmadır; kök neden bu sapmanın altında yatan sebeptir.
       </div>
 
@@ -45,7 +45,7 @@ export default function Step4Findings() {
                 <textarea
                   className="pcx-field" value={f.evidence} onChange={inp('findings', i, 'evidence')}
                   placeholder="Veri / kanıt kaynağı — örn. forwarder milestone raporu, son 30 yükleme"
-                  style={{ ...S.textarea, font: '12.5px/1.45 Helvetica,Arial,sans-serif', color: '#57534b', minHeight: 40 }}
+                  style={{ ...S.textarea, font: '12.5px/1.45 Helvetica,Arial,sans-serif', color: 'var(--ink-3)', minHeight: 40 }}
                 />
                 <VerifyBadge meta={vm} onClick={() => updC(cc => { cc.findings[i].verified = !cc.findings[i].verified; })} />
               </div>
