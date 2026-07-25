@@ -3,6 +3,7 @@ import { useStore } from '../lib/store.jsx';
 import { gapInfo, statementChecks } from '../lib/derive.js';
 import { Card, CardHead, GuidanceBox, MethodBox, HButton, RemoveButton, S, YZButton } from '../ui/primitives.jsx';
 import WelcomeCard from '../components/WelcomeCard.jsx';
+import { extractFileText } from '../lib/extract.js';
 
 const QUESTIONS = [
   'Ne oldu? Hedef neydi, gerçekleşen ne?',
@@ -20,6 +21,7 @@ export default function Step1Problem() {
   const { hasGap, kpiGapText } = gapInfo(p);
   const refs = c.references || [];
   const form = state.refForm;
+  const [extracting, setExtracting] = React.useState('');
 
   const dims = [
     { key: 'geo', label: 'Yer / Birim — coğrafya, cluster, ülke, mağaza, depo, departman, sistem/kanal', ph: 'Sapma nerede oluşuyor? Örn. Bangladeş çıkışlı yüklemeler / X deposu / mobil uygulama / Y departmanı', helpLabel: 'Problem boyutu — Yer / Birim (coğrafya, mağaza, depo, departman, sistem, kanal)' },
@@ -37,14 +39,27 @@ export default function Step1Problem() {
 
   const addRefFile = () => {
     const el = document.createElement('input');
-    el.type = 'file'; el.accept = '.txt,.md,text/plain,text/markdown';
-    el.onchange = () => {
+    el.type = 'file'; el.accept = '.txt,.md,.pdf,.docx';
+    el.onchange = async () => {
       const f = el.files && el.files[0];
       if (!f) return;
-      if (!/\.(txt|md)$/i.test(f.name)) { alert('Şimdilik .txt / .md destekleniyor — diğer türlerde metni kopyalayıp "Not ekle" ile yapıştırın.'); return; }
-      const rd = new FileReader();
-      rd.onload = () => addReference({ type: 'dosya', title: f.name, url: '', text: String(rd.result || '') });
-      rd.readAsText(f);
+      if (!/\.(txt|md|pdf|docx)$/i.test(f.name)) {
+        alert('.txt, .md, .pdf ve .docx destekleniyor — diğer türlerde metni kopyalayıp "Not ekle" ile yapıştırın.');
+        return;
+      }
+      setExtracting(f.name);
+      try {
+        const text = await extractFileText(f);
+        if (!(text || '').trim()) {
+          alert('"' + f.name + '" içinden metin çıkarılamadı. Belge taranmış görüntüden oluşuyorsa (OCR gerekir) metni kopyalayıp "Not ekle" ile yapıştırın.');
+        } else {
+          addReference({ type: 'dosya', title: f.name, url: '', text });
+        }
+      } catch (e) {
+        alert('Dosya okunamadı: ' + ((e && e.message) || e));
+      } finally {
+        setExtracting('');
+      }
     };
     el.click();
   };
@@ -188,11 +203,17 @@ export default function Step1Problem() {
           </div>
         ) : null}
 
+        {extracting ? (
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center', margin: '0 0 10px', font: '600 12px Helvetica,Arial,sans-serif', color: 'var(--pri)' }}>
+            <span style={{ width: 13, height: 13, border: '2px solid var(--spinner-track)', borderTopColor: 'var(--pri)', borderRadius: '50%', display: 'inline-block', animation: 'pcxspin .8s linear infinite' }} />
+            "{extracting}" içinden metin çıkarılıyor…
+          </div>
+        ) : null}
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           {[
             { label: '+ Not / alıntı', onClick: () => upd(n => { n.refForm = { type: 'not', title: '', url: '', text: '' }; }) },
             { label: '+ Link', onClick: () => upd(n => { n.refForm = { type: 'link', title: '', url: '', text: '' }; }) },
-            { label: '+ Dosya (.txt / .md)', onClick: addRefFile }
+            { label: '+ Dosya (.txt / .md / .pdf / .docx)', onClick: addRefFile }
           ].map(b => (
             <HButton
               key={b.label} onClick={b.onClick}

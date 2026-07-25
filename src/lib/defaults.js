@@ -134,6 +134,69 @@ export function exampleCase() {
   };
 }
 
+/** "+ Yeni" ekranındaki vaka şablonları — blankCase üzerine uygulanan kısmi ön dolgular. */
+export const CASE_TEMPLATES = [
+  {
+    key: 'bos', ad: 'Boş çalışma', desc: 'Hiçbir ön dolgu yok; her alanı kendiniz yazarsınız.',
+    fill: null
+  },
+  {
+    key: 'operasyon', ad: 'Operasyonel sapma', desc: 'Süre, verimlilik ya da maliyet KPI\'ında hedeften sapma (üretim, lojistik, hizmet operasyonu).',
+    fill: {
+      problem: { kpiName: 'Süreç süresi / verimlilik KPI\'ı' },
+      drivers: [
+        { name: 'Süreç adımları ve el değiştirmeler', note: 'Hangi adımda bekleme/tekrar var? İşi yapanlarla ve süreç metrikleriyle doğrulayın.' },
+        { name: 'Girdi kalitesi', note: 'Sürece giren malzeme/veri/evrak ilk seferde doğru mu? SIPOC ile inceleyin.' },
+        { name: 'Kapasite ve kaynak planlama', note: 'Darboğaz kaynak hangisi; talep dalgalanmasıyla uyumlu mu?' },
+        { name: 'Dış paydaş performansı', note: 'Tedarikçi/taşeron/servis sağlayıcı adımları — ama kök nedeni önce kendi sürecinizde arayın.' }
+      ]
+    }
+  },
+  {
+    key: 'musteri', ad: 'Müşteri şikâyeti / memnuniyet düşüşü', desc: 'Şikâyet adedi, NPS ya da memnuniyet skorunda bozulma.',
+    fill: {
+      problem: { kpiName: 'Şikâyet adedi / NPS' },
+      drivers: [
+        { name: 'Ürün / hizmet kalitesi', note: 'Şikâyet kategorilerine kırın; en büyük iki kategori neyi işaret ediyor?' },
+        { name: 'Hizmet ve çözüm süreci', note: 'İlk temas çözüm oranı, çözüm süresi, tekrar arama oranı.' },
+        { name: 'İletişim ve beklenti yönetimi', note: 'Vaat edilen ile yaşatılan arasındaki fark; bilgilendirme anları.' },
+        { name: 'Fiyat / değer algısı', note: 'Rakip karşılaştırması ve segment bazlı algı — varsayım değil veri.' }
+      ],
+      criteria: [
+        { name: 'Etki (şikâyeti azaltma potansiyeli)', weight: '35' },
+        { name: 'Uygulama hızı', weight: '25' },
+        { name: 'Maliyet / kaynak ihtiyacı', weight: '20' },
+        { name: 'Müşteri deneyimi riski', weight: '20' }
+      ]
+    }
+  },
+  {
+    key: 'proje', ad: 'Proje gecikmesi', desc: 'Kilometre taşı ya da teslim tarihinde plandan sapma.',
+    fill: {
+      problem: { kpiName: 'Plandan sapma (gün)' },
+      drivers: [
+        { name: 'Kapsam netliği ve değişiklikler', note: 'Kapsam ne kadar değişti; değişiklik talepleri nasıl yönetiliyor?' },
+        { name: 'Kaynak planlama ve tahsis', note: 'Kritik yol üzerindeki işlerde kaynak çakışması var mı?' },
+        { name: 'Bağımlılıklar ve paydaşlar', note: 'Dış bağımlılıklar (onay, tedarik, başka ekip) planda görünür mü?' },
+        { name: 'Karar ve onay süreçleri', note: 'Kararlar kaç günde alınıyor; bekleyen karar sayısı.' }
+      ]
+    }
+  },
+  {
+    key: 'kalite', ad: 'Kalite problemi / hata oranı', desc: 'Hata, iade, yeniden işleme ya da fire oranında artış.',
+    fill: {
+      problem: { kpiName: 'Hata oranı (%)' },
+      drivers: [
+        { name: 'Girdi / malzeme kalitesi', note: 'Girdi partileriyle hata oranı korelasyonu; SIPOC ile inceleyin.' },
+        { name: 'Yöntem ve standart iş', note: 'Standart tanımlı mı, güncel mi, gerçekten uygulanıyor mu (Gemba)?' },
+        { name: 'Ekipman / sistem', note: 'Bakım kayıtları, kalibrasyon, sistem kaynaklı hatalar.' },
+        { name: 'İnsan / yetkinlik', note: 'Eğitim ve deneyim kırılımında hata dağılımı — kişiyi değil sistemi sorgulayın.' },
+        { name: 'Ölçüm sistemi', note: 'Hata tanımı net mi; ölçüm kendisi güvenilir mi?' }
+      ]
+    }
+  }
+];
+
 export const STEPS = [
   { title: 'Problem Tanımı', sub: 'Statement + kapsam + KPI farkı', desc: '"Ne oldu?" sorusunun cevabını, sapmanın hangi kırılımda oluştuğunu ve ölçülmüş KPI farkını netleştirin. Çözüm ve neden bu adıma girmez.' },
   { title: 'Business Driver Haritalama', sub: 'Ana etkenler ve süreçler', desc: 'Sonucu sürükleyen ana iş sürücülerini ve ilgili süreçleri haritalayın. İşi yapanlara sorun, mümkünse yerinde gözlem yapın.' },

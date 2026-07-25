@@ -1,6 +1,6 @@
 import React from 'react';
 import { useStore } from '../lib/store.jsx';
-import { STEPS, blankCase, exampleCase } from '../lib/defaults.js';
+import { STEPS, blankCase, exampleCase, CASE_TEMPLATES } from '../lib/defaults.js';
 import { HButton, HA } from '../ui/primitives.jsx';
 
 /** Uygulama işareti: akışın daralarak karara inişini anlatan üç düğüm. */
@@ -55,11 +55,24 @@ export default function Sidebar() {
     });
   };
 
-  const addCase = () => {
-    const name = prompt('Yeni çalışmanın adı:', 'Yeni Çalışma');
-    if (name === null) return;
+  const [tplOpen, setTplOpen] = React.useState(false);
+  const [tplName, setTplName] = React.useState('');
+
+  const createCase = tpl => {
     const id = 'c' + Date.now();
-    upd(n => { n.cases[id] = blankCase((name || '').trim() || 'Yeni Çalışma'); n.activeCase = id; n.step = 1; });
+    upd(n => {
+      const nc = blankCase((tplName || '').trim() || (tpl.key === 'bos' ? 'Yeni Çalışma' : tpl.ad));
+      if (tpl.fill) {
+        if (tpl.fill.problem) Object.assign(nc.problem, tpl.fill.problem);
+        if (tpl.fill.drivers) nc.drivers = structuredClone(tpl.fill.drivers);
+        if (tpl.fill.criteria) nc.criteria = structuredClone(tpl.fill.criteria);
+      }
+      n.cases[id] = nc;
+      n.activeCase = id;
+      n.step = 1;
+    });
+    setTplOpen(false);
+    setTplName('');
   };
 
   return (
@@ -82,7 +95,7 @@ export default function Sidebar() {
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '14px 16px 6px' }}>
         <div style={{ flex: 1, font: '700 10.5px Helvetica,Arial,sans-serif', color: 'var(--muted)', letterSpacing: '.8px' }}>ÇALIŞMALAR</div>
         <HButton
-          onClick={addCase}
+          onClick={() => setTplOpen(true)}
           style={{ flex: 'none', padding: '5px 10px', border: '1px solid var(--pri)', borderRadius: 6, background: 'var(--pri)', color: 'var(--on-pri)', font: '600 11px Helvetica,Arial,sans-serif', cursor: 'pointer' }}
           hover={{ background: 'var(--pri-hover)' }}
         >+ Yeni</HButton>
@@ -171,6 +184,39 @@ export default function Sidebar() {
           );
         })}
       </nav>
+
+      {tplOpen ? (
+        <div data-noprint="1" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 60, padding: 24 }} onClick={() => setTplOpen(false)}>
+          <div style={{ background: 'var(--surface)', borderRadius: 12, width: 480, maxWidth: '94vw', maxHeight: '84vh', overflow: 'auto', padding: '18px 20px', boxShadow: '0 18px 50px rgba(0,0,0,.3)' }} onClick={e => e.stopPropagation()}>
+            <div style={{ font: '700 15px Helvetica,Arial,sans-serif', color: 'var(--ink)', margin: '0 0 4px' }}>Yeni çalışma</div>
+            <div style={{ font: '12px/1.5 Helvetica,Arial,sans-serif', color: 'var(--muted)', margin: '0 0 12px' }}>Şablonlar yalnızca KPI adı, aday driver'lar ve karar kriterlerini ön doldurur — hepsi düzenlenebilir. Problem ifadesini her durumda siz yazarsınız.</div>
+            <input
+              className="pcx-field" value={tplName} onChange={e => setTplName(e.target.value)}
+              placeholder="Çalışma adı (boşsa şablon adı kullanılır)"
+              style={{ width: '100%', boxSizing: 'border-box', padding: '9px 11px', border: '1px solid var(--field-border)', borderRadius: 6, font: '13px/1.4 Helvetica,Arial,sans-serif', color: 'var(--ink)', background: 'var(--surface)', outline: 'none', margin: '0 0 12px' }}
+            />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {CASE_TEMPLATES.map(t => (
+                <HButton
+                  key={t.key} onClick={() => createCase(t)}
+                  style={{ textAlign: 'left', padding: '11px 13px', border: '1px solid ' + (t.key === 'bos' ? 'var(--field-border)' : 'var(--pri-border-2)'), borderRadius: 9, background: t.key === 'bos' ? 'var(--surface)' : 'var(--pri-soft-2)', cursor: 'pointer' }}
+                  hover={{ background: 'var(--pri-soft)' }}
+                >
+                  <div style={{ font: '700 13px Helvetica,Arial,sans-serif', color: 'var(--ink)' }}>{t.ad}</div>
+                  <div style={{ font: '11.5px/1.5 Helvetica,Arial,sans-serif', color: 'var(--muted)', marginTop: 2 }}>{t.desc}</div>
+                </HButton>
+              ))}
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 12 }}>
+              <HButton
+                onClick={() => setTplOpen(false)}
+                style={{ padding: '8px 14px', border: '1px solid var(--field-border)', borderRadius: 7, background: 'var(--surface)', color: 'var(--ink-3)', font: '600 12px Helvetica,Arial,sans-serif', cursor: 'pointer' }}
+                hover={{ background: 'var(--surface-4)' }}
+              >Vazgeç</HButton>
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       <div style={{ padding: '14px 16px', borderTop: '1px solid var(--line-3)', display: 'flex', flexDirection: 'column', gap: 10 }}>
         {eff === 'ornek' ? (

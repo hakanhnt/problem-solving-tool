@@ -1,0 +1,59 @@
+// Paylaşım linkinden açılan salt-okunur görünüm: yalnız raporu gösterir.
+// Alıcı isterse çalışmayı kendi listesine kopyalayıp düzenlemeye devam eder.
+
+import React from 'react';
+import { useStore } from '../lib/store.jsx';
+import ReportBody from './ReportBody.jsx';
+import { HButton } from '../ui/primitives.jsx';
+
+export default function SharedView({ payload, onExit }) {
+  const { upd } = useStore();
+
+  const copyToMine = () => {
+    const id = 'c' + Date.now();
+    upd(n => {
+      const copy = structuredClone(payload.c);
+      copy.name = (copy.name || 'Çalışma') + ' (paylaşılan kopya)';
+      n.cases[id] = copy;
+      n.activeCase = id;
+      n.step = 1;
+      if (Array.isArray(payload.principles) && payload.principles.length && (!Array.isArray(n.principles) || !n.principles.length)) {
+        n.principles = payload.principles;
+      }
+    });
+    onExit();
+  };
+
+  return (
+    <div data-app-root="1" style={{ minHeight: '100vh', background: 'var(--bg)', overflow: 'auto' }} data-main="1">
+      <div style={{ maxWidth: 880, margin: '0 auto', padding: '26px 24px 90px' }}>
+        <div data-noprint="1" style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap', background: 'var(--pri-soft)', border: '1px solid var(--pri-border-5)', borderRadius: 10, padding: '12px 16px', margin: '0 0 18px' }}>
+          <div style={{ flex: 1, minWidth: 240 }}>
+            <div style={{ font: '700 13px Helvetica,Arial,sans-serif', color: 'var(--pri-ink)' }}>🔗 Paylaşılan çalışma — salt okunur</div>
+            <div style={{ font: '12px/1.5 Helvetica,Arial,sans-serif', color: 'var(--pri-soft-ink)', marginTop: 2 }}>
+              Bu rapor bir paylaşım linkinden görüntüleniyor; veri yalnızca linkin içindedir, sunucuda tutulmaz.
+            </div>
+          </div>
+          <HButton
+            onClick={() => window.print()}
+            style={{ flex: 'none', padding: '9px 14px', border: '1px solid var(--pri-border)', borderRadius: 8, background: 'var(--surface)', color: 'var(--pri)', font: '600 12.5px Helvetica,Arial,sans-serif', cursor: 'pointer' }}
+            hover={{ background: 'var(--pri-soft-hover)' }}
+          >Yazdır / PDF</HButton>
+          <HButton
+            onClick={copyToMine}
+            style={{ flex: 'none', padding: '9px 14px', border: '1px solid var(--pri)', borderRadius: 8, background: 'var(--pri)', color: 'var(--on-pri)', font: '600 12.5px Helvetica,Arial,sans-serif', cursor: 'pointer' }}
+            hover={{ background: 'var(--pri-hover)' }}
+          >Çalışmalarıma kopyala ve düzenle</HButton>
+          <HButton
+            onClick={onExit}
+            title="Paylaşımı kapatıp kendi çalışmalarınıza dönün"
+            style={{ flex: 'none', padding: '9px 12px', border: 'none', background: 'transparent', color: 'var(--muted)', font: '600 12.5px Helvetica,Arial,sans-serif', cursor: 'pointer' }}
+            hover={{ color: 'var(--ink-3)' }}
+          >Kapat ×</HButton>
+        </div>
+
+        <ReportBody c={payload.c} principles={payload.principles} companyName={payload.company} />
+      </div>
+    </div>
+  );
+}

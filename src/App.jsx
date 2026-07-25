@@ -1,5 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useStore } from './lib/store.jsx';
+import { parseShareHash } from './lib/share.js';
+import SharedView from './components/SharedView.jsx';
 import { STEPS } from './lib/defaults.js';
 import Sidebar from './components/Sidebar.jsx';
 import CoachPanel from './components/CoachPanel.jsx';
@@ -19,8 +21,18 @@ const STEP_VIEWS = [Step1Problem, Step2Drivers, Step3Analysis, Step4Findings, St
 
 export default function App() {
   const { c, step, mainRef, goStep } = useStore();
+  const [shared, setShared] = useState(() => parseShareHash(location.hash));
   const StepView = STEP_VIEWS[step - 1];
   const aiReady = (c.problem.statement || '').trim().length > 0;
+
+  if (shared) {
+    return (
+      <SharedView
+        payload={shared}
+        onExit={() => { history.replaceState(null, '', location.pathname); setShared(null); }}
+      />
+    );
+  }
 
   const onNext = () => {
     if (step === 1 && !aiReady) {
