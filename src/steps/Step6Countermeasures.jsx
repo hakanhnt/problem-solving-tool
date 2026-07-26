@@ -4,7 +4,7 @@ import { THINKING_METHODS } from '../lib/defaults.js';
 import { THINKING_METHOD_INFO } from '../lib/thinking.js';
 import { decisionMatrix, isOverdue } from '../lib/derive.js';
 import ThinkingCheck from '../components/ThinkingCheck.jsx';
-import { Card, CardHead, GuidanceBox, MethodBox, AddButton, RemoveButton, YZButton, Badge, HButton, Spinner, S, useNarrow } from '../ui/primitives.jsx';
+import { Card, CardHead, GuidanceBox, MethodBox, AddButton, RemoveButton, YZButton, Badge, HButton, Spinner, AdvancedSection, S, useNarrow } from '../ui/primitives.jsx';
 
 /**
  * Seçilen düşünme yönteminin karşı çalıştığı yanılgı ve ekip soruları.
@@ -279,8 +279,14 @@ export default function Step6Countermeasures() {
         </Card>
       ) : null}
 
-      {/* Karar öncesi düşünme kontrolü */}
-      <ThinkingCheck />
+      {/* Karar öncesi düşünme kontrolü — ileri analiz */}
+      <AdvancedSection
+        id="s6-thinking"
+        title="İleri analiz — Karar öncesi düşünme kontrolü"
+        sub="Kararı yazmadan önce varsayımlarınızı, alternatif açıklamaları ve bedelin kime düşeceğini sorgulayın; bilişsel yanılgı taraması da burada."
+      >
+        <ThinkingCheck />
+      </AdvancedSection>
 
       {/* Karar */}
       <Card>
@@ -532,7 +538,7 @@ export default function Step6Countermeasures() {
                       Eski termin kaydı: "<strong>{a.due}</strong>" — takip ve gecikme uyarısı için lütfen gerçek bir termin tarihi seçin.
                     </div>
                   ) : null}
-                  <div style={{ display: 'grid', gridTemplateColumns: narrow ? '1fr' : '1fr 1fr', gap: 10 }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: narrow ? '1fr' : '1fr 1fr 1fr', gap: 10 }}>
                     <div>
                       <label style={{ display: 'block', font: '600 11px Helvetica,Arial,sans-serif', color: 'var(--ink-3)', margin: '0 0 4px' }}>HANGİ KÖK NEDENİ GİDERİYOR?</label>
                       <select value={String(a.rcIdx ?? '')} onChange={inp('actions', i, 'rcIdx')} aria-label={(i + 1) + '. aksiyonun bağlı olduğu kök neden'} style={S.select}>
@@ -542,13 +548,30 @@ export default function Step6Countermeasures() {
                       </select>
                     </div>
                     <div>
-                      <label style={{ display: 'block', font: '600 11px Helvetica,Arial,sans-serif', color: 'var(--ink-3)', margin: '0 0 4px' }}>BAŞARI ÖLÇÜTÜ</label>
-                      <input
-                        className="pcx-field-sm" value={a.successCriteria || ''} onChange={inp('actions', i, 'successCriteria')}
-                        placeholder="Ne olursa bu aksiyon başarılı sayılır? (ölçülebilir)"
-                        aria-label={(i + 1) + '. aksiyonun başarı ölçütü'} style={S.inputSm}
-                      />
+                      <label style={{ display: 'block', font: '600 11px Helvetica,Arial,sans-serif', color: 'var(--ink-3)', margin: '0 0 4px' }}>HANGİ BULGUYU KAPATIYOR?</label>
+                      <select value={String(a.findingIdx ?? '')} onChange={inp('actions', i, 'findingIdx')} aria-label={(i + 1) + '. aksiyonun bağlı olduğu bulgu'} style={S.select}>
+                        <option value="">— seçilmedi —</option>
+                        {(c.findings || []).map((f, fi) => (f.text || '').trim()
+                          ? <option key={fi} value={String(fi)}>B{fi + 1} — {f.text.slice(0, 60)}</option> : null)}
+                      </select>
                     </div>
+                    <div>
+                      <label style={{ display: 'block', font: '600 11px Helvetica,Arial,sans-serif', color: 'var(--ink-3)', margin: '0 0 4px' }}>ÖNCELİK</label>
+                      <select value={a.priority || ''} onChange={inp('actions', i, 'priority')} aria-label={(i + 1) + '. aksiyonun önceliği'} style={S.select}>
+                        <option value="">Etki/efora göre otomatik</option>
+                        <option value="yuksek">Yüksek — hemen</option>
+                        <option value="orta">Orta — planlı</option>
+                        <option value="dusuk">Düşük — sıra gelince</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', font: '600 11px Helvetica,Arial,sans-serif', color: 'var(--ink-3)', margin: '0 0 4px' }}>BAŞARI ÖLÇÜTÜ</label>
+                    <input
+                      className="pcx-field-sm" value={a.successCriteria || ''} onChange={inp('actions', i, 'successCriteria')}
+                      placeholder="Ne olursa bu aksiyon başarılı sayılır? (ölçülebilir)"
+                      aria-label={(i + 1) + '. aksiyonun başarı ölçütü'} style={S.inputSm}
+                    />
                   </div>
                   {String(a.rcIdx ?? '') === '' ? (
                     <div style={{ font: '11.5px/1.5 Helvetica,Arial,sans-serif', color: 'var(--muted)' }}>

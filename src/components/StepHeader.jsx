@@ -7,10 +7,21 @@ import { STEPS } from '../lib/defaults.js';
 import { stepChecklist, traceability } from '../lib/derive.js';
 import { HButton } from '../ui/primitives.jsx';
 
-export default function StepHeader() {
+export default function StepHeader({ openSignal }) {
   const { c, step } = useStore();
   const [open, setOpen] = React.useState(false);
+  const boxRef = React.useRef(null);
   const ck = stepChecklist(c, step);
+
+  // Alt çubuktaki "Eksikleri göster" düğmesi bu paneli açıp odağı buraya taşır.
+  React.useEffect(() => {
+    if (!openSignal) return;
+    setOpen(true);
+    if (boxRef.current) {
+      boxRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      boxRef.current.focus();
+    }
+  }, [openSignal]);
   const issues = step === 8 ? traceability(c).issues : [];
   const ready = ck.missing === 0;
 
@@ -22,11 +33,15 @@ export default function StepHeader() {
       <h1 style={{ font: '700 26px/1.25 Helvetica,Arial,sans-serif', margin: '8px 0 6px', color: 'var(--ink)' }}>{STEPS[step - 1].title}</h1>
       <p style={{ font: '14px/1.6 Helvetica,Arial,sans-serif', color: 'var(--ink-4)', margin: '0 0 12px', maxWidth: 640 }}>{STEPS[step - 1].desc}</p>
 
-      <div style={{
-        border: '1px solid ' + (ready ? 'var(--ok-border)' : 'var(--line-2)'),
-        background: ready ? 'var(--ok-soft)' : 'var(--surface-2)',
-        borderRadius: 10, padding: '10px 14px'
-      }}>
+      <div
+        ref={boxRef} tabIndex={-1}
+        aria-label={'Adım ' + step + ' tamamlanma durumu'}
+        style={{
+          border: '1px solid ' + (ready ? 'var(--ok-border)' : 'var(--line-2)'),
+          background: ready ? 'var(--ok-soft)' : 'var(--surface-2)',
+          borderRadius: 10, padding: '10px 14px'
+        }}
+      >
         <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
           <div style={{ flex: 1, minWidth: 220, font: '600 12.5px/1.5 Helvetica,Arial,sans-serif', color: ready ? 'var(--ok-ink)' : 'var(--ink-3)' }}>
             {ready

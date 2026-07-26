@@ -127,7 +127,7 @@ export default function Step1Problem() {
 
       <Card>
         <CardHead
-          title="KPI Farkı (Gap)"
+          title="KPI Farkı"
           sub="Hedef ile gerçekleşen arasındaki ölçülmüş fark."
           aiReady={aiReady}
           onHelp={() => fieldHelp('KPI farkı (hedef vs gerçekleşen)', (p.kpiName || '') + ' | hedef: ' + p.target + ' | gerçekleşen: ' + p.actual)}

@@ -47,6 +47,8 @@ export default function App() {
   const StepView = STEP_VIEWS[step - 1];
   const aiReady = (c.problem.statement || '').trim().length > 0;
   const missing = stepChecklist(c, step).missing;
+  // Sayaç artınca StepHeader eksik listesini açar ve odağı oraya taşır.
+  const [showMissing, setShowMissing] = useState(0);
 
   if (shared) {
     return (
@@ -101,7 +103,14 @@ export default function App() {
       <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
       <main ref={mainRef} data-main="1" style={{ flex: 1, overflow: 'auto' }}>
         <div style={{ maxWidth: 880, margin: '0 auto', padding: narrow ? '20px 16px 90px' : '34px 44px 90px' }}>
-          <StepHeader />
+          {/* Adım değişimi ve kayıt durumu ekran okuyucuya duyurulur */}
+          <div className="pcx-sr-only" role="status" aria-live="polite">
+            {'Adım ' + step + ' / 8: ' + STEPS[step - 1].title + '. '}
+            {missing > 0 ? missing + ' tamamlanma ölçütü eksik.' : 'Bu adımın ölçütleri tamam.'}
+            {state.saveError ? ' Uyarı: değişiklikler kaydedilemedi.' : ''}
+          </div>
+
+          <StepHeader openSignal={showMissing} />
 
           <CoachPanel />
           <StepView />
@@ -124,10 +133,19 @@ export default function App() {
           >← {narrow ? 'Önceki' : STEPS[step - 2].title}</HButton>
         ) : null}
 
-        <div style={{ flex: 1, minWidth: 120, font: '11.5px/1.4 Helvetica,Arial,sans-serif', color: state.saveError ? 'var(--alert)' : 'var(--muted)' }}>
-          {state.saveError
-            ? '⚠ Kaydedilemedi'
-            : (missing > 0 ? missing + ' ölçüt eksik · otomatik kaydedildi' : 'Bu adım tamam · otomatik kaydedildi')}
+        <div style={{ flex: 1, minWidth: 120, display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+          <span style={{ font: '11.5px/1.4 Helvetica,Arial,sans-serif', color: state.saveError ? 'var(--alert)' : 'var(--muted)' }}>
+            {state.saveError
+              ? '⚠ Kaydedilemedi'
+              : (missing > 0 ? missing + ' ölçüt eksik · otomatik kaydedildi' : 'Bu adım tamam · otomatik kaydedildi')}
+          </span>
+          {missing > 0 ? (
+            <HButton
+              onClick={() => setShowMissing(n => n + 1)}
+              style={{ flex: 'none', padding: '6px 11px', border: '1px solid var(--warn-border)', borderRadius: 7, background: 'var(--warn-soft)', color: 'var(--warn-ink)', font: '600 11.5px Helvetica,Arial,sans-serif', cursor: 'pointer' }}
+              hover={{ background: 'var(--warn-soft-2)' }}
+            >Eksikleri göster</HButton>
+          ) : null}
         </div>
 
         {step < 8 ? (

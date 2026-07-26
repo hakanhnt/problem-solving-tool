@@ -255,7 +255,7 @@ export const CASE_TEMPLATES = [
 ];
 
 export const STEPS = [
-  { title: 'Problem Tanımı', sub: 'Statement + kapsam + KPI farkı', desc: '"Ne oldu?" sorusunun cevabını, sapmanın hangi kırılımda oluştuğunu ve ölçülmüş KPI farkını netleştirin. Çözüm ve neden bu adıma girmez.' },
+  { title: 'Problem Tanımı', sub: 'Problem ifadesi + kapsam + KPI farkı', desc: '"Ne oldu?" sorusunun cevabını, sapmanın hangi kırılımda oluştuğunu ve ölçülmüş KPI farkını netleştirin. Çözüm ve neden bu adıma girmez.' },
   { title: 'İş Sürücüsü Haritalama', sub: 'Ana etkenler ve süreçler', desc: 'Sonucu sürükleyen ana iş sürücülerini (business driver) ve ilgili süreçleri haritalayın. İşi yapanlara sorun, mümkünse yerinde gözlem yapın.' },
   { title: 'İş Sürücüsü Analizi', sub: 'Alt bileşenler + SIPOC', desc: 'Etkisi en büyük iş sürücülerinin hangi alt bileşeninde sorun olduğunu, SIPOC (tedarikçi-girdi-süreç-çıktı-müşteri) analiziyle girdi kalitesini de kontrol ederek belirleyin.' },
   { title: 'Problem Bulguları', sub: 'Veriye dayalı sapmalar', desc: 'Varsayımları bırakıp veriye dayalı, ölçülmüş ve doğrulanmış spesifik sapmaları (alt problemleri) ortaya koyun.' },

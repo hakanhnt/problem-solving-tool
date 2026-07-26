@@ -93,8 +93,14 @@ function persist(state) {
   }
 }
 
-/** Etki/efor puanlarından öncelik rozeti. */
+/** Öncelik rozeti — kullanıcı elle seçtiyse o geçerli, yoksa etki/efor puanlarından türetilir. */
 export function prioMeta(a) {
+  const MANUAL = {
+    yuksek: { label: 'Yüksek öncelik', bg: 'var(--alert-soft)', color: 'var(--alert)', border: 'var(--alert-border)', score: 100 },
+    orta: { label: 'Orta öncelik', bg: 'var(--pri-soft)', color: 'var(--pri)', border: 'var(--pri-border-2)', score: 50 },
+    dusuk: { label: 'Düşük öncelik', bg: 'var(--surface-4)', color: 'var(--ink-4)', border: 'var(--line-strong)', score: 10 }
+  };
+  if (a.priority && MANUAL[a.priority]) return MANUAL[a.priority];
   const e = parseInt(a.etki, 10) || 0, f = parseInt(a.efor, 10) || 0;
   if (!e || !f) return { label: 'Puanlayın', bg: 'var(--surface-4)', color: 'var(--muted)', border: 'var(--line-strong)', score: -100 };
   if (e >= 4 && f <= 2) return { label: 'Hızlı kazanım', bg: 'var(--ok-soft)', color: 'var(--ok-ink)', border: 'var(--ok-border)', score: e * 2 - f + 20 };

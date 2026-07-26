@@ -74,6 +74,13 @@ export default function CoachPanel() {
         ) : null}
       </div>
 
+      {/* Durum ekran okuyucuya da duyurulur — görsel gösterge tek başına yeterli değil */}
+      <div className="pcx-sr-only" role="status" aria-live="polite">
+        {busy ? 'Rehber çalışıyor, öneriler hazırlanıyor.' : null}
+        {done ? (ck.items || []).length + ' öneri hazır. Her öneri bir hipotezdir, veriyle doğrulayın.' : null}
+        {error ? 'Öneriler hazırlanamadı: ' + (ck.errMsg || 'bilinmeyen hata') + '. Tekrar deneyebilirsiniz.' : null}
+      </div>
+
       <div style={{ padding: '14px 18px', display: 'flex', flexDirection: 'column', gap: 12 }}>
         {idle ? (
           <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>

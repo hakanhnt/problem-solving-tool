@@ -1,6 +1,6 @@
 import React from 'react';
 import { useStore, verMeta } from '../lib/store.jsx';
-import { Card, GuidanceBox, MethodBox, AddButton, RemoveButton, VerifyBadge, YZButton, S } from '../ui/primitives.jsx';
+import { Card, GuidanceBox, MethodBox, AddButton, RemoveButton, VerifyBadge, YZButton, AdvancedSection, S } from '../ui/primitives.jsx';
 
 const QUESTIONS = [
   "O etkenin hangi alt bileşeni bozuk? İş sürücüsünün hangi alt bileşeninde problem var?",
@@ -61,6 +61,11 @@ export default function Step3Analysis() {
         </div>
       </Card>
 
+      <AdvancedSection
+        id="s3"
+        title="İleri analiz — SIPOC (Tedarikçi → Girdi → Süreç → Çıktı → Müşteri)"
+        sub="Alt bileşen analizi sorunun hangi adımda olduğunu gösterir; SIPOC o adımın girdi kalitesini sorgular. Girdiden şüpheleniyorsanız açın."
+      >
       <Card>
         <div style={{ ...S.cardTitle, margin: '0 0 4px' }}>SIPOC Analizi</div>
         <div style={S.cardSub}>Sorunlu süreç adımları için Tedarikçi → Girdi → Süreç → Çıktı → Müşteri zincirini doldurun.</div>
@@ -95,6 +100,7 @@ export default function Step3Analysis() {
         </div>
         </div>
       </Card>
+      </AdvancedSection>
     </div>
   );
 }
