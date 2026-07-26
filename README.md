@@ -122,6 +122,7 @@ npm install
 npm run dev        # http://localhost:5173
 npm run build      # dist/
 npm run preview    # üretim çıktısını yerelde dener
+npm test           # hesaplama katmanının otomatik testleri (node --test)
 ```
 
 > `npm run dev` ile "Otomatik" YZ modu çalışmaz (Netlify uçları yok). Yerelde denemek için
@@ -216,21 +217,52 @@ altına yazılır (prototiple aynı şema — eski kullanıcı verisi olduğu gi
                 depth:'standart'|'genis'|'derin' },
   cases: { <id>: CASE } }
 
-CASE = { name, problem{statement,geo,time,brand,kpiName,target,actual},
+CASE = { name,
+  problem{statement,geo,time,brand,kpiName,target,actual,
+          direction:'dusuk'|'yuksek'|'aralik', unit, targetHigh},
   drivers[{name,note,src?,verified?}], driverAnalysis[…], sipoc[{s,i,p,o,c}],
-  findings[{text,evidence,…}], whys[5], fishbone{insan,metot,sistem,girdi,olcum,cevre},
-  rootCauses[{text,principles[int],competency,…}], alternatives[{name,method,note}],
-  criteria[{name,weight}], scores{'ai_ci':val}, decision{choice,rationale},
-  thinking{assume,alt,cost}, actions[{text,owner,due,etki,efor,status}],
+  findings[{text,evidence,share,…}],          // share = KPI ile AYNI birimde sapma katkısı
+  whys[5], whyChains[{label,whys[5]}],        // dallanabilen 5 Neden
+  fishbone{insan,metot,sistem,girdi,olcum,cevre},
+  rootCauses[{text,principles[int],competency,
+              status:'hipotez'|'destekleniyor'|'test-planlandi'|'test-edildi'|'dogrulandi'|'elendi',
+              findings[int],                  // hangi bulguları açıklıyor (B indeksleri)
+              evidence, explainsSpec, testPlan, testResult, kpiExpected}],
+  alternatives[{name,method,note}],
+  criteria[{name,weight,yon:'yuksek'|'dusuk',d1,d3,d5,source}],
+  scores{'ai_ci':val}, decision{choice,rationale}, thinking{assume,alt,cost},
+  spec{nerede,zaman,kirilim,buyukluk,degisiklik}, containment{action,owner,until,removed},
+  actions[{text,owner,startDate,dueDate,due,status,etki,efor,
+           rcIdx,findingIdx,successCriteria,evidence,delayReason,priority}],
   tracking[{label,value}], retro{valid,worked,process,lessons},
   references[{id,title,type,url,text,summary,…}],
   ai{step:[msg]}, coach{step:{status,intro,items,questions}},
-  decisionCoach{…}, actionCoach{…}, biasScan{…}, audit{…}, report{…} }
+  decisionCoach{…}, actionCoach{…}, biasScan{…}, premortem{…}, audit{…}, report{…} }
 ```
+
+Üst düzeyde ayrıca `lastSaved` ve `lastBackup` (ISO tarih) tutulur; Ayarlar bunları gösterir
+ve bir haftadan eski yedek için hatırlatma çıkarır.
 
 Kurallar: `ornek` vakası silinemez (yalnız sıfırlanır); silinen vaka `trash`e alınır ve
 "Geri al" ile kurtarılır; problem ifadesi boşken sonraki adıma geçilemez; rehberden eklenen
 kayıtlar `src:'yz', verified:false` ile işaretlenir.
+
+**Geriye uyumluluk:** `store.jsx` içindeki `normalize()` her yüklemede eksik alanları
+varsayılanlarıyla tamamlar; eski kayıtlar hiçbir veri kaybı olmadan açılır. Yön seçilmemiş
+eski KPI'larda `derive.js/effDirection()` hedef ile gerçekleşene bakarak eski davranışı
+korur; serbest metin terminler (`due`) silinmez, kullanıcıdan gerçek tarih (`dueDate`)
+girmesi istenir.
+
+### Hesaplama katmanı ve testler
+
+Tüm sayısal türetmeler arayüzden ayrı, saf fonksiyonlar olarak `src/lib/derive.js`
+içindedir: `gapInfo` (yöne duyarlı KPI sapması), `paretoData` (KPI sapmasına göre
+açıklanan/açıklanamayan pay ve aşım uyarısı), `decisionMatrix` (ağırlık geçerliliği,
+kazanan farkı, en etkili kriter, hassasiyet), `traceability` (bulgu→kök neden→aksiyon→KPI
+zinciri ve kopukluk denetimi), `isOverdue`, `caseMaturity`, `stepChecklist`,
+`confidenceScore`. `tests/derive.test.mjs` bu fonksiyonları `node --test` ile doğrular
+(`npm test`) — Pareto oranları, hedef 0, KPI yönü, ağırlık geçersizliği, izlenebilirlik
+boşlukları ve eski veri şekliyle null-güvenlik dahil.
 
 ![Adım 8 — çalışma raporu](docs/screenshots/readme-04-report.png)
 
