@@ -27,16 +27,26 @@ export default function Step8Report() {
   const auditIdle = !audit || audit.status === 'idle' || audit.status === 'error' || audit.status === 'done';
 
   const shareLink = async () => {
+    const onay = confirm(
+      'Paylaşım linki nasıl çalışır?\n\n'
+      + '• Çalışmanızın TÜM içeriği sıkıştırılıp linkin kendisine gömülür; sunucuya yüklenmez.\n'
+      + '• Link kimde varsa raporun tamamını görebilir — şifre ya da erişim kontrolü yoktur.\n'
+      + '• Linki geri çekemez, sonradan iptal edemezsiniz.\n'
+      + '• Uzun linkler e-posta/mesajlaşma geçmişinde ve tarayıcı kayıtlarında kalabilir.\n\n'
+      + 'Ticari sır, kişisel veri ya da gizli bilgi içeriyorsa link yerine PDF paylaşmayı tercih edin.\n\n'
+      + 'Linki yine de oluşturmak istiyor musunuz?'
+    );
+    if (!onay) return;
     const hash = buildShareHash(c, principles, cfg.company);
     const url = location.origin + location.pathname + hash;
     try {
       await navigator.clipboard.writeText(url);
-      setShareMsg('Link kopyalandı (' + Math.round(url.length / 1024) + ' KB) — alıcı salt-okunur raporu görür');
+      setShareMsg('Link kopyalandı (' + Math.round(url.length / 1024) + ' KB) — veriler linkin içinde taşınır, alıcı salt-okunur raporu görür');
     } catch (e) {
       prompt('Linki kopyalayın:', url);
       setShareMsg('');
     }
-    setTimeout(() => setShareMsg(''), 6000);
+    setTimeout(() => setShareMsg(''), 9000);
   };
 
   return (

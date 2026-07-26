@@ -5,6 +5,7 @@ import SharedView from './components/SharedView.jsx';
 import { STEPS } from './lib/defaults.js';
 import Sidebar from './components/Sidebar.jsx';
 import CoachPanel from './components/CoachPanel.jsx';
+import StepHeader from './components/StepHeader.jsx';
 import AssistantChat from './components/AssistantChat.jsx';
 import SettingsModal from './components/SettingsModal.jsx';
 import Step1Problem from './steps/Step1Problem.jsx';
@@ -15,6 +16,7 @@ import Step5RootCause from './steps/Step5RootCause.jsx';
 import Step6Countermeasures from './steps/Step6Countermeasures.jsx';
 import Step7Tracking from './steps/Step7Tracking.jsx';
 import Step8Report from './steps/Step8Report.jsx';
+import { stepChecklist } from './lib/derive.js';
 import { HButton, useNarrow } from './ui/primitives.jsx';
 
 const STEP_VIEWS = [Step1Problem, Step2Drivers, Step3Analysis, Step4Findings, Step5RootCause, Step6Countermeasures, Step7Tracking, Step8Report];
@@ -44,6 +46,7 @@ export default function App() {
   stepRef.current = step;
   const StepView = STEP_VIEWS[step - 1];
   const aiReady = (c.problem.statement || '').trim().length > 0;
+  const missing = stepChecklist(c, step).missing;
 
   if (shared) {
     return (
@@ -95,36 +98,48 @@ export default function App() {
         <Sidebar />
       )}
 
+      <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
       <main ref={mainRef} data-main="1" style={{ flex: 1, overflow: 'auto' }}>
         <div style={{ maxWidth: 880, margin: '0 auto', padding: narrow ? '20px 16px 90px' : '34px 44px 90px' }}>
-          <div data-noprint="1" style={{ font: '700 11px Helvetica,Arial,sans-serif', color: 'var(--muted)', letterSpacing: '1px' }}>
-            ADIM {step} / 8 · {c.name || 'Çalışma'}
-          </div>
-          <h1 data-noprint="1" style={{ font: '700 26px/1.25 Helvetica,Arial,sans-serif', margin: '8px 0 6px', color: 'var(--ink)' }}>{STEPS[step - 1].title}</h1>
-          <p data-noprint="1" style={{ font: '14px/1.6 Helvetica,Arial,sans-serif', color: 'var(--ink-4)', margin: '0 0 22px', maxWidth: 640 }}>{STEPS[step - 1].desc}</p>
+          <StepHeader />
 
           <CoachPanel />
           <StepView />
           <AssistantChat />
-
-          <div data-noprint="1" style={{ display: 'flex', gap: 12, justifyContent: 'flex-end', marginTop: 26 }}>
-            {step > 1 ? (
-              <HButton
-                onClick={() => goStep(step - 1)}
-                style={{ padding: '11px 18px', border: '1px solid var(--field-border)', borderRadius: 8, background: 'var(--surface)', color: 'var(--ink-3)', font: '600 13px Helvetica,Arial,sans-serif', cursor: 'pointer' }}
-                hover={{ background: 'var(--surface-4)' }}
-              >← {STEPS[step - 2].title}</HButton>
-            ) : null}
-            {step < 8 ? (
-              <HButton
-                onClick={onNext}
-                style={{ padding: '11px 18px', border: '1px solid var(--pri)', borderRadius: 8, background: 'var(--pri)', color: 'var(--on-pri)', font: '600 13px Helvetica,Arial,sans-serif', cursor: 'pointer' }}
-                hover={{ background: 'var(--pri-hover)' }}
-              >{STEPS[step].title} →</HButton>
-            ) : null}
-          </div>
         </div>
       </main>
+
+      {/* Alt eylem çubuğu — uzun formlarda gezinme ve kaydetme durumu her zaman erişilebilir */}
+      <div data-noprint="1" style={{
+        flex: 'none', display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap',
+        padding: narrow ? '10px 14px' : '10px 24px',
+        borderTop: '1px solid var(--line-strong)', background: 'var(--surface)'
+      }}>
+        {step > 1 ? (
+          <HButton
+            onClick={() => goStep(step - 1)}
+            aria-label={'Önceki adım: ' + STEPS[step - 2].title}
+            style={{ flex: 'none', padding: '9px 14px', border: '1px solid var(--field-border)', borderRadius: 8, background: 'var(--surface)', color: 'var(--ink-3)', font: '600 12.5px Helvetica,Arial,sans-serif', cursor: 'pointer' }}
+            hover={{ background: 'var(--surface-4)' }}
+          >← {narrow ? 'Önceki' : STEPS[step - 2].title}</HButton>
+        ) : null}
+
+        <div style={{ flex: 1, minWidth: 120, font: '11.5px/1.4 Helvetica,Arial,sans-serif', color: state.saveError ? 'var(--alert)' : 'var(--muted)' }}>
+          {state.saveError
+            ? '⚠ Kaydedilemedi'
+            : (missing > 0 ? missing + ' ölçüt eksik · otomatik kaydedildi' : 'Bu adım tamam · otomatik kaydedildi')}
+        </div>
+
+        {step < 8 ? (
+          <HButton
+            onClick={onNext}
+            aria-label={'Sonraki adım: ' + STEPS[step].title}
+            style={{ flex: 'none', padding: '9px 14px', border: '1px solid var(--pri)', borderRadius: 8, background: 'var(--pri)', color: 'var(--on-pri)', font: '600 12.5px Helvetica,Arial,sans-serif', cursor: 'pointer' }}
+            hover={{ background: 'var(--pri-hover)' }}
+          >{narrow ? 'Sonraki' : STEPS[step].title} →</HButton>
+        ) : null}
+      </div>
+      </div>
 
       {state.undoToast ? (
         <div data-noprint="1" style={{ position: 'fixed', left: '50%', bottom: 22, transform: 'translateX(-50%)', zIndex: 70, display: 'flex', gap: 10, alignItems: 'center', background: 'var(--ink)', color: 'var(--bg)', borderRadius: 10, padding: '10px 14px', boxShadow: '0 8px 26px rgba(0,0,0,.3)' }}>

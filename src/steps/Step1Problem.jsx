@@ -33,9 +33,9 @@ export default function Step1Problem() {
   const narrow = useNarrow();
 
   const dims = [
-    { key: 'geo', label: 'Yer / Birim — coğrafya, cluster, ülke, mağaza, depo, departman, sistem/kanal', ph: 'Sapma nerede oluşuyor? Örn. Bangladeş çıkışlı yüklemeler / X deposu / mobil uygulama / Y departmanı', helpLabel: 'Problem boyutu — Yer / Birim (coğrafya, mağaza, depo, departman, sistem, kanal)' },
-    { key: 'time', label: 'Zaman aralığı / Dönem', ph: 'Hangi dönemde? Örn. 2026 Q1, kampanya haftaları, gece vardiyası', helpLabel: 'Problem boyutu — Zaman aralığı / Dönem' },
-    { key: 'brand', label: 'Segment / Kırılım — marka, kategori, müşteri segmenti, süreç, proje, kampanya', ph: 'Hangi kırılımda? Örn. temel giyim / yeni müşteriler / iade süreci / X projesi', helpLabel: 'Problem boyutu — Segment / Kırılım (marka, kategori, müşteri segmenti, süreç, proje)' }
+    { key: 'geo', aria: 'Yer / Birim boyutu', label: 'Yer / Birim — coğrafya, cluster, ülke, mağaza, depo, departman, sistem/kanal', ph: 'Sapma nerede oluşuyor? Örn. Bangladeş çıkışlı yüklemeler / X deposu / mobil uygulama / Y departmanı', helpLabel: 'Problem boyutu — Yer / Birim (coğrafya, mağaza, depo, departman, sistem, kanal)' },
+    { key: 'time', aria: 'Zaman aralığı / Dönem boyutu', label: 'Zaman aralığı / Dönem', ph: 'Hangi dönemde? Örn. 2026 Q1, kampanya haftaları, gece vardiyası', helpLabel: 'Problem boyutu — Zaman aralığı / Dönem' },
+    { key: 'brand', aria: 'Segment / Kırılım boyutu', label: 'Segment / Kırılım — marka, kategori, müşteri segmenti, süreç, proje, kampanya', ph: 'Hangi kırılımda? Örn. temel giyim / yeni müşteriler / iade süreci / X projesi', helpLabel: 'Problem boyutu — Segment / Kırılım (marka, kategori, müşteri segmenti, süreç, proje)' }
   ];
 
   const saveRef = () => {
@@ -116,10 +116,10 @@ export default function Step1Problem() {
           {dims.map(d => (
             <div key={d.key}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, margin: '0 0 6px' }}>
-                <label style={{ font: '600 12px Helvetica,Arial,sans-serif', color: 'var(--ink-3)' }}>{d.label}</label>
-                {aiReady ? <YZButton small onClick={() => fieldHelp(d.helpLabel, p[d.key])} /> : null}
+                <label htmlFor={'pcx-dim-' + d.key} style={{ font: '600 12px Helvetica,Arial,sans-serif', color: 'var(--ink-3)' }}>{d.label}</label>
+                {aiReady ? <YZButton small title={"YZ'den " + d.aria + " için yardım al"} onClick={() => fieldHelp(d.helpLabel, p[d.key])} /> : null}
               </div>
-              <input className="pcx-field" value={p[d.key]} onChange={inp('problem', d.key)} placeholder={d.ph} style={S.input} />
+              <input id={'pcx-dim-' + d.key} className="pcx-field" value={p[d.key]} onChange={inp('problem', d.key)} placeholder={d.ph} style={S.input} />
             </div>
           ))}
         </div>

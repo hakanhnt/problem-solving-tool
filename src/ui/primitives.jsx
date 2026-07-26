@@ -86,7 +86,7 @@ export function CardHead({ title, sub, onHelp, helpTitle, aiReady }) {
     <>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '0 0 4px' }}>
         <div style={S.cardTitle}>{title}</div>
-        {aiReady && onHelp ? <YZButton onClick={onHelp} title={helpTitle || "YZ'den bu alan için yardım al"} /> : null}
+        {aiReady && onHelp ? <YZButton onClick={onHelp} title={helpTitle || ("YZ'den \"" + title + "\" için yardım al")} /> : null}
       </div>
       {sub ? <div style={S.cardSub}>{sub}</div> : null}
     </>

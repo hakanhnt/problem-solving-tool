@@ -62,13 +62,15 @@ export default function SettingsModal() {
   const close = () => upd(n => { n.showSettings = false; });
 
   const exportData = () => {
-    const data = JSON.stringify({ app: 'pcx', version: 1, exportedAt: new Date().toISOString(), principles: state.principles, cases: state.cases }, null, 2);
+    const now = new Date();
+    const data = JSON.stringify({ app: 'pcx', version: 1, exportedAt: now.toISOString(), principles: state.principles, cases: state.cases }, null, 2);
     const b = new Blob([data], { type: 'application/json' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(b);
-    a.download = 'problem-cozme-calismalari.json';
+    a.download = 'problem-cozme-calismalari-' + now.toISOString().slice(0, 10) + '.json';
     a.click();
     setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    upd(n => { n.lastBackup = now.toISOString(); });
   };
 
   const importData = () => {
@@ -376,8 +378,35 @@ export default function SettingsModal() {
           ))}
         </div>
 
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', padding: '12px 20px', borderTop: '1px solid var(--line-3)', background: 'var(--surface-2)' }}>
-          <div style={{ flex: 1, minWidth: 220, font: '12px/1.5 Helvetica,Arial,sans-serif', color: 'var(--muted)' }}><strong style={{ color: 'var(--ink-3)' }}>Veri yedekleme:</strong> tüm çalışmalarınızı JSON olarak indirin ya da bir yedeği / meslektaşınızın dosyasını içe aktarın.</div>
+        <div style={{ padding: '12px 20px', borderTop: '1px solid var(--line-3)', background: 'var(--surface-2)' }}>
+          <div style={{ font: '700 10.5px Helvetica,Arial,sans-serif', color: 'var(--muted)', letterSpacing: '.8px', margin: '0 0 8px' }}>VERİ VE YEDEKLEME</div>
+          <div style={{ background: 'var(--warn-soft)', border: '1px solid var(--warn-border)', borderRadius: 8, padding: '10px 12px', font: '12px/1.6 Helvetica,Arial,sans-serif', color: 'var(--warn-ink-3)', margin: '0 0 10px' }}>
+            <strong>Çalışmalarınız yalnızca bu tarayıcıda saklanır.</strong> Hiçbir sunucuya gönderilmez ve otomatik yedeği yoktur.
+            Tarayıcı verilerini temizlerseniz, gizli sekme kullanırsanız ya da başka bir cihaza geçerseniz çalışmalarınıza erişemezsiniz — düzenli olarak JSON yedeği alın.
+          </div>
+          {state.saveError ? (
+            <div role="alert" style={{ background: 'var(--alert-soft)', border: '1px solid var(--alert-border)', borderRadius: 8, padding: '10px 12px', font: '12px/1.6 Helvetica,Arial,sans-serif', color: 'var(--alert)', margin: '0 0 10px' }}>
+              <strong>⚠ Kaydedilemedi:</strong> {state.saveError}
+            </div>
+          ) : null}
+          {(() => {
+            const fmt = iso => { try { return new Date(iso).toLocaleString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' }); } catch (e) { return '—'; } };
+            const days = iso => Math.floor((Date.now() - new Date(iso).getTime()) / 86400000);
+            const stale = !state.lastBackup || days(state.lastBackup) >= 7;
+            return (
+              <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', margin: '0 0 10px', font: '12px/1.6 Helvetica,Arial,sans-serif', color: 'var(--ink-3)' }}>
+                <div><strong>Son kayıt:</strong> {state.lastSaved ? fmt(state.lastSaved) : 'henüz kaydedilmedi'}</div>
+                <div style={{ color: stale ? 'var(--warn-ink)' : 'var(--ink-3)' }}>
+                  <strong>Son yedek:</strong> {state.lastBackup ? fmt(state.lastBackup) : 'hiç alınmadı'}
+                  {stale ? ' — yedek almanız önerilir' : ''}
+                </div>
+              </div>
+            );
+          })()}
+        </div>
+
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', padding: '0 20px 12px', background: 'var(--surface-2)' }}>
+          <div style={{ flex: 1, minWidth: 220, font: '12px/1.5 Helvetica,Arial,sans-serif', color: 'var(--muted)' }}>Tüm çalışmalarınızı JSON olarak indirin ya da bir yedeği / meslektaşınızın dosyasını içe aktarın.</div>
           <HButton onClick={exportData} style={{ flex: 'none', padding: '8px 13px', border: '1px solid var(--pri)', borderRadius: 7, background: 'var(--surface)', color: 'var(--pri)', font: '600 12px Helvetica,Arial,sans-serif', cursor: 'pointer' }} hover={{ background: 'var(--pri-soft)' }}>↓ Dışa aktar</HButton>
           <HButton onClick={importData} style={{ flex: 'none', padding: '8px 13px', border: '1px solid var(--pri)', borderRadius: 7, background: 'var(--surface)', color: 'var(--pri)', font: '600 12px Helvetica,Arial,sans-serif', cursor: 'pointer' }} hover={{ background: 'var(--pri-soft)' }}>↑ İçe aktar</HButton>
         </div>

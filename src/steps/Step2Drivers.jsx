@@ -35,7 +35,7 @@ export default function Step2Drivers() {
                     placeholder="Driver / ana etken adı"
                     style={{ ...S.textarea, flex: 1, width: 'auto', font: '600 14px/1.45 Helvetica,Arial,sans-serif', minHeight: 44 }}
                   />
-                  {aiReady ? <YZButton onClick={() => fieldHelp('Ana driver / iş sürücüsü ' + (i + 1), (d.name || '') + (d.note ? ' — ' + d.note : ''))} /> : null}
+                  {aiReady ? <YZButton title={"YZ'den " + (i + 1) + ". iş sürücüsü için yardım al"} onClick={() => fieldHelp('Ana driver / iş sürücüsü ' + (i + 1), (d.name || '') + (d.note ? ' — ' + d.note : ''))} /> : null}
                   <RemoveButton onClick={() => removeC('driver', cc => cc.drivers.splice(i, 1))} />
                 </div>
                 <textarea

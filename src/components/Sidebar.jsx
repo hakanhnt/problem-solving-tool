@@ -36,6 +36,8 @@ export default function Sidebar({ onNavigate }) {
   const doneSteps = [1, 2, 3, 4, 5, 6, 7, 8].filter(n => stepDone(c, n));
   const doneCount = doneSteps.length;
   const maturity = caseMaturity(c);
+  // Hiç yedek alınmadıysa ya da üzerinden bir haftadan fazla geçtiyse hatırlat.
+  const backupStale = !state.lastBackup || (Date.now() - new Date(state.lastBackup).getTime()) > 7 * 86400000;
 
   const caseKeys = Object.keys(state.cases);
   caseKeys.sort((a, b) => (a === 'ornek' ? -1 : b === 'ornek' ? 1 : 0));
@@ -265,7 +267,15 @@ export default function Sidebar({ onNavigate }) {
           style={{ padding: '8px 10px', border: '1px solid var(--field-border)', borderRadius: 6, background: 'var(--surface)', color: 'var(--ink-3)', font: '600 12px Helvetica,Arial,sans-serif', cursor: 'pointer', textAlign: 'left' }}
           hover={{ background: 'var(--surface-4)' }}
         >⚙ Ayarlar · Kurum prensipleri</HButton>
-        <div style={{ font: '11px/1.5 Helvetica,Arial,sans-serif', color: 'var(--muted-2)' }}>Girdileriniz bu tarayıcıda otomatik kaydedilir; sayfayı kapatıp açtığınızda kaldığınız yerden devam edersiniz.</div>
+        {state.saveError ? (
+          <div role="alert" style={{ font: '11.5px/1.5 Helvetica,Arial,sans-serif', color: 'var(--alert)', background: 'var(--alert-soft)', border: '1px solid var(--alert-border)', borderRadius: 6, padding: '7px 9px' }}>
+            ⚠ {state.saveError}
+          </div>
+        ) : null}
+        <div style={{ font: '11px/1.5 Helvetica,Arial,sans-serif', color: 'var(--muted-2)' }}>
+          Girdileriniz <strong>yalnızca bu tarayıcıda</strong> saklanır — sunucuya gönderilmez, otomatik yedeği yoktur.
+          {backupStale ? <span style={{ color: 'var(--warn-ink)' }}> Yedek almadınız; Ayarlar'dan JSON yedeği indirin.</span> : null}
+        </div>
       </div>
     </aside>
   );

@@ -45,7 +45,7 @@ export default function Step3Analysis() {
                     className="pcx-field" value={d.component} onChange={inp('driverAnalysis', i, 'component')} placeholder="Sorunlu alt bileşen"
                     style={{ ...S.textarea, flex: 1.4, width: 'auto', minHeight: 58 }}
                   />
-                  {aiReady ? <YZButton onClick={() => fieldHelp('Driver alt bileşen analizi ' + (i + 1), [d.driver, d.component, d.issue].filter(Boolean).join(' | '))} /> : null}
+                  {aiReady ? <YZButton title={"YZ'den " + (i + 1) + ". alt bileşen analizi için yardım al"} onClick={() => fieldHelp('Driver alt bileşen analizi ' + (i + 1), [d.driver, d.component, d.issue].filter(Boolean).join(' | '))} /> : null}
                   <RemoveButton onClick={() => removeC('alt bileşen analizi', cc => cc.driverAnalysis.splice(i, 1))} />
                 </div>
                 <textarea

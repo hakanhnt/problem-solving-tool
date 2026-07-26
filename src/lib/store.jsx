@@ -22,6 +22,9 @@ function normalize(state) {
   s.showSettings = false;
   s.refForm = null;
   s.undoToast = null;
+  s.saveError = '';
+  if (typeof s.lastSaved !== 'string') s.lastSaved = '';
+  if (typeof s.lastBackup !== 'string') s.lastBackup = '';
   s.reportCfg = Object.assign({ company: '', sections: {} }, s.reportCfg || {});
   s.reportCfg.sections = Object.assign({ tanim: true, driver: true, analiz: true, bulgu: true, kok: true, karar: true, izleme: true, dusunme: true, referans: true }, s.reportCfg.sections);
   s.aiSettings = Object.assign({
@@ -78,7 +81,16 @@ function loadState() {
 }
 
 function persist(state) {
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) { /* kota dolu olabilir */ }
+  try {
+    state.lastSaved = new Date().toISOString();
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    state.saveError = '';
+  } catch (e) {
+    // Kota dolduğunda sessizce veri kaybetmeyelim — kullanıcıya söylenir.
+    state.saveError = (e && e.name === 'QuotaExceededError')
+      ? 'Tarayıcı depolama alanı dolu — değişiklikler kaydedilemiyor. Ayarlar\'dan yedek alıp gereksiz çalışmaları silin.'
+      : 'Değişiklikler bu tarayıcıya kaydedilemedi (' + ((e && e.message) || 'bilinmeyen hata') + ').';
+  }
 }
 
 /** Etki/efor puanlarından öncelik rozeti. */
@@ -254,7 +266,8 @@ export function StoreProvider({ children }) {
     runCoach(step);
   }, [effCase, runCoach]);
 
-  const applyCoachItem = useCallback((step, idx) => {
+  // override: kullanıcı öneriyi eklemeden önce düzenlediyse onun metni kullanılır.
+  const applyCoachItem = useCallback((step, idx, override) => {
     // Üzerine yazan öneriler (ifade / karar) geri alınabilsin
     const s0 = stateRef.current;
     const eff0 = effCase(s0);
@@ -271,6 +284,7 @@ export function StoreProvider({ children }) {
     updC(cc => {
       const it = cc.coach && cc.coach[step] && cc.coach[step].items[idx];
       if (!it || it.added) return;
+      if (override !== undefined && override !== null) it.payload = override;
       if (it.kind === 'driver' || it.kind === 'da' || it.kind === 'finding' || it.kind === 'rootcause') { it.payload.src = 'yz'; it.payload.verified = false; }
       if (it.kind === 'statement') cc.problem.statement = it.payload;
       else if (it.kind === 'dim') cc.problem[it.payload.key] = it.payload.value;
