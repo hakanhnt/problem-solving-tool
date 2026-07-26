@@ -1,4 +1,4 @@
-# Netlify yapılandırması — Problem Çözme Akışı
+# Netlify yapılandırması — ProblemLab
 # Ortam değişkenleri (Site settings > Environment variables):
 #   MINIMAX_API_KEY   (zorunlu) — MiniMax API anahtarınız
 #   MINIMAX_MODEL     (isteğe bağlı, varsayılan: MiniMax-Text-01)

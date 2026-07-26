@@ -18,6 +18,7 @@ import Step7Tracking from './steps/Step7Tracking.jsx';
 import Step8Report from './steps/Step8Report.jsx';
 import { stepChecklist } from './lib/derive.js';
 import { HButton, useNarrow } from './ui/primitives.jsx';
+import { LogoMark, Wordmark } from './ui/Logo.jsx';
 
 const STEP_VIEWS = [Step1Problem, Step2Drivers, Step3Analysis, Step4Findings, Step5RootCause, Step6Countermeasures, Step7Tracking, Step8Report];
 
@@ -80,8 +81,12 @@ export default function App() {
             style={{ flex: 'none', width: 38, height: 38, border: '1px solid var(--field-border)', borderRadius: 8, background: 'var(--surface)', color: 'var(--ink-3)', font: '18px/1 Helvetica,Arial,sans-serif', cursor: 'pointer' }}
             hover={{ background: 'var(--surface-4)' }}
           >☰</HButton>
+          <LogoMark size={30} />
           <div style={{ minWidth: 0 }}>
-            <div style={{ font: '700 13.5px/1.3 Helvetica,Arial,sans-serif', color: 'var(--ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{STEPS[step - 1].title}</div>
+            <div style={{ display: 'flex', gap: 6, alignItems: 'baseline', minWidth: 0 }}>
+              <Wordmark size={13.5} />
+              <span style={{ font: '13px/1.3 Helvetica,Arial,sans-serif', color: 'var(--muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>· {STEPS[step - 1].title}</span>
+            </div>
             <div style={{ font: '10.5px/1.3 Helvetica,Arial,sans-serif', color: 'var(--muted)' }}>Adım {step}/8 · {c.name || 'Çalışma'}</div>
           </div>
         </div>

@@ -1,9 +1,9 @@
 {
-  "name": "problem-cozme-akisi",
+  "name": "problemlab",
   "private": true,
   "version": "1.0.0",
   "type": "module",
-  "description": "YZ destekli, rehberli problem çözme ve karar verme çalışma aracı",
+  "description": "ProblemLab — YZ destekli, rehberli problem çözme ve karar verme çalışma aracı",
   "scripts": {
     "dev": "vite",
     "build": "vite build",

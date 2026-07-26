@@ -1,4 +1,4 @@
-# Problem Çözme Akışı
+# ProblemLab
 
 **Bir iş problemini ölçülmüş sapmadan kök nedene, karardan aksiyona kadar tek akışta çözdüren,
 yapay zekâ destekli çalışma aracı.**

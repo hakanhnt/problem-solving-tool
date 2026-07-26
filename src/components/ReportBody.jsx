@@ -5,6 +5,7 @@ import React from 'react';
 import { prioMeta } from '../lib/store.jsx';
 import { gapInfo, decisionMatrix, trackingBars, paretoData, traceability, confidenceScore, caseMaturity, rcStatusMeta, isOverdue } from '../lib/derive.js';
 import { PRE_DECISION_QUESTIONS } from '../lib/thinking.js';
+import { LogoMark, Wordmark } from '../ui/Logo.jsx';
 
 const secTitle = { font: '700 12px Helvetica,Arial,sans-serif', color: 'var(--pri)', letterSpacing: '.6px', borderBottom: '1px solid var(--line-3)', paddingBottom: 5, margin: '0 0 8px' };
 const body = { font: '12.5px/1.55 Helvetica,Arial,sans-serif', color: 'var(--ink)' };
@@ -61,10 +62,16 @@ export default function ReportBody({ c, principles, sections, companyName, summa
 
   return (
     <div style={{ background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 10, padding: '34px 40px' }}>
-      <div style={{ borderBottom: '2px solid var(--pri)', paddingBottom: 14, margin: '0 0 20px' }}>
-        <div style={{ font: '700 10.5px Helvetica,Arial,sans-serif', color: 'var(--pri-soft-ink)', letterSpacing: '1.2px', margin: '0 0 6px' }}>PROBLEM ÇÖZME ÇALIŞMA RAPORU</div>
-        <div style={{ font: '700 21px/1.3 Helvetica,Arial,sans-serif', color: 'var(--ink)' }}>{(c.problem.kpiName || '').trim() || 'Problem Çözme Çalışması'}</div>
-        <div style={{ font: '12px Helvetica,Arial,sans-serif', color: 'var(--muted)', marginTop: 5 }}>{metaLine}{reportDate}</div>
+      <div style={{ borderBottom: '2px solid var(--pri)', paddingBottom: 14, margin: '0 0 20px', display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ font: '700 10.5px Helvetica,Arial,sans-serif', color: 'var(--pri-soft-ink)', letterSpacing: '1.2px', margin: '0 0 6px' }}>PROBLEM ÇÖZME ÇALIŞMA RAPORU</div>
+          <div style={{ font: '700 21px/1.3 Helvetica,Arial,sans-serif', color: 'var(--ink)' }}>{(c.problem.kpiName || '').trim() || 'Problem Çözme Çalışması'}</div>
+          <div style={{ font: '12px Helvetica,Arial,sans-serif', color: 'var(--muted)', marginTop: 5 }}>{metaLine}{reportDate}</div>
+        </div>
+        <div style={{ flex: 'none', display: 'flex', gap: 8, alignItems: 'center', paddingTop: 2 }}>
+          <LogoMark size={30} />
+          <Wordmark size={14} />
+        </div>
       </div>
 
       {/* Tek sayfalık yönetici özeti — raporun en başında, tek bakışta durum */}

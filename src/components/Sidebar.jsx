@@ -3,20 +3,7 @@ import { useStore } from '../lib/store.jsx';
 import { STEPS, blankCase, exampleCase, CASE_TEMPLATES } from '../lib/defaults.js';
 import { stepChecklist, caseMaturity } from '../lib/derive.js';
 import { HButton, HA } from '../ui/primitives.jsx';
-
-/** Uygulama işareti: akışın daralarak karara inişini anlatan üç düğüm. */
-function BrandMark() {
-  return (
-    <div style={{ flex: 'none', width: 38, height: 38, borderRadius: 10, background: 'var(--pri)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 1px 3px rgba(53,80,110,.35)' }}>
-      <svg width="21" height="21" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-        <path d="M4 5h16M7 12h10M10.5 19h3" stroke="var(--on-pri)" strokeWidth="2" strokeLinecap="round" />
-        <circle cx="12" cy="5" r="1.6" fill="var(--pri-bar)" />
-        <circle cx="12" cy="12" r="1.6" fill="var(--pri-border-3)" />
-        <circle cx="12" cy="19" r="1.9" fill="var(--on-pri)" />
-      </svg>
-    </div>
-  );
-}
+import Logo from '../ui/Logo.jsx';
 
 /** Aktif çalışmanın hangi adımlarında içerik var — ilerleme göstergesi için. */
 function stepDone(c, n) {
@@ -82,13 +69,7 @@ export default function Sidebar({ onNavigate }) {
   return (
     <aside data-noprint="1" style={{ width: 288, flex: 'none', background: 'var(--surface)', borderRight: '1px solid var(--line-strong)', display: 'flex', flexDirection: 'column' }}>
       <div style={{ padding: '18px 18px 14px', borderBottom: '1px solid var(--line-3)', background: 'linear-gradient(180deg,var(--brand-grad) 0%,var(--surface) 100%)' }}>
-        <div style={{ display: 'flex', gap: 11, alignItems: 'center' }}>
-          <BrandMark />
-          <div style={{ minWidth: 0 }}>
-            <div style={{ font: '700 16px/1.25 Helvetica,Arial,sans-serif', color: 'var(--ink)', letterSpacing: '-.2px' }}>Problem Çözme Akışı</div>
-            <div style={{ font: '11.5px/1.4 Helvetica,Arial,sans-serif', color: 'var(--pri-soft-ink)', marginTop: 2 }}>Rehberli problem çözme ve karar verme</div>
-          </div>
-        </div>
+        <Logo sub="Rehberli problem çözme ve karar verme" />
         <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', marginTop: 11 }}>
           {['8 adımlık akış', 'YZ destekli', 'Alan bağımsız'].map(t => (
             <span key={t} style={{ font: '600 10px Helvetica,Arial,sans-serif', color: 'var(--pri-soft-ink)', background: 'var(--pri-soft)', border: '1px solid var(--pri-border-5)', borderRadius: 20, padding: '3px 8px' }}>{t}</span>
