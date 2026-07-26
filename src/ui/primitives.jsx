@@ -140,6 +140,41 @@ export function MethodBox({ children, margin }) {
   );
 }
 
+/**
+ * "İleri analiz" bölümü — adımın temel alanlarından sonra gelen, isteğe bağlı
+ * derinleşme kartlarını gruplar. Varsayılan kapalıdır; tercih adım bazında saklanır.
+ */
+export function AdvancedSection({ id, title, sub, children, defaultOpen }) {
+  const key = 'pcx_adv_' + id;
+  const [open, setOpen] = useState(() => {
+    try { const v = localStorage.getItem(key); return v === null ? !!defaultOpen : v === '1'; } catch (e) { return !!defaultOpen; }
+  });
+  const toggle = () => setOpen(o => {
+    const v = !o;
+    try { localStorage.setItem(key, v ? '1' : '0'); } catch (e) { /* yoksay */ }
+    return v;
+  });
+  return (
+    <div style={{ margin: '18px 0 0' }}>
+      <button
+        type="button" onClick={toggle} aria-expanded={open}
+        style={{
+          display: 'flex', gap: 10, alignItems: 'center', width: '100%', cursor: 'pointer', textAlign: 'left',
+          border: '1px dashed var(--dash-border)', borderRadius: 9, background: 'transparent', padding: '10px 14px'
+        }}
+      >
+        <span aria-hidden="true" style={{ flex: 'none', font: '11px Helvetica,Arial,sans-serif', color: 'var(--muted)' }}>{open ? '▲' : '▼'}</span>
+        <span style={{ flex: 1, minWidth: 0 }}>
+          <span style={{ display: 'block', font: '700 12.5px Helvetica,Arial,sans-serif', color: 'var(--ink-3)' }}>{title}</span>
+          {sub ? <span style={{ display: 'block', font: '11.5px/1.45 Helvetica,Arial,sans-serif', color: 'var(--muted)', marginTop: 2 }}>{sub}</span> : null}
+        </span>
+        <span style={{ flex: 'none', font: '600 11px Helvetica,Arial,sans-serif', color: 'var(--pri)' }}>{open ? 'Gizle' : 'Aç'}</span>
+      </button>
+      {open ? <div style={{ marginTop: 14 }}>{children}</div> : null}
+    </div>
+  );
+}
+
 /** Mavi "KENDİNİZE / PAYDAŞLARINIZA SORUN" kutusu. */
 export function GuidanceBox({ items, margin }) {
   return (

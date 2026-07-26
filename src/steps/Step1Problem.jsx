@@ -1,7 +1,7 @@
 import React from 'react';
 import { useStore } from '../lib/store.jsx';
 import { gapInfo, statementChecks } from '../lib/derive.js';
-import { Card, CardHead, GuidanceBox, MethodBox, HButton, RemoveButton, S, YZButton, useNarrow } from '../ui/primitives.jsx';
+import { Card, CardHead, GuidanceBox, MethodBox, HButton, RemoveButton, S, YZButton, AdvancedSection, useNarrow } from '../ui/primitives.jsx';
 import WelcomeCard from '../components/WelcomeCard.jsx';
 import { extractFileText } from '../lib/extract.js';
 
@@ -203,6 +203,11 @@ export default function Step1Problem() {
         ) : null}
       </Card>
 
+      <AdvancedSection
+        id="s1"
+        title="İleri analiz — VAR/YOK belirtimi ve referanslar"
+        sub="İsteğe bağlı ama kök neden analizini en çok güçlendiren bölüm. Temel alanları doldurduktan sonra açın."
+      >
       <Card>
         <CardHead
           title="VAR / YOK Belirtimi"
@@ -329,6 +334,7 @@ export default function Step1Problem() {
           ))}
         </div>
       </Card>
+      </AdvancedSection>
     </div>
   );
 }

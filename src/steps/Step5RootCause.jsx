@@ -2,7 +2,7 @@ import React from 'react';
 import { useStore, verMeta } from '../lib/store.jsx';
 import { FISHBONE_CATS, WHY_PLACEHOLDERS } from '../lib/defaults.js';
 import { RC_STATUSES } from '../lib/derive.js';
-import { Card, GuidanceBox, MethodBox, AddButton, RemoveButton, VerifyBadge, YZButton, Badge, S, useNarrow } from '../ui/primitives.jsx';
+import { Card, GuidanceBox, MethodBox, AddButton, RemoveButton, VerifyBadge, YZButton, Badge, AdvancedSection, S, useNarrow } from '../ui/primitives.jsx';
 
 const STATUS_COLORS = {
   hipotez: { bg: 'var(--warn-soft)', border: 'var(--warn-border)', ink: 'var(--warn-ink)' },
@@ -89,6 +89,11 @@ export default function Step5RootCause() {
         </div>
       </Card>
 
+      <AdvancedSection
+        id="s5"
+        title="İleri analiz — Balık kılçığı (Ishikawa)"
+        sub="5 Neden tek bir zinciri derinleştirir; balık kılçığı olası nedenleri kategorilere yayarak gözden kaçanı yakalar. İkisi birbirini tamamlar."
+      >
       <Card>
         <div style={{ ...S.cardTitle, margin: '0 0 4px' }}>Balık Kılçığı (Ishikawa)</div>
         <div style={S.cardSub}>Olası nedenleri kategorilere göre listeleyin.</div>
@@ -138,6 +143,7 @@ export default function Step5RootCause() {
           </div>
         </Card>
       ) : null}
+      </AdvancedSection>
 
       <Card>
         <div style={{ ...S.cardTitle, margin: '0 0 4px' }}>Kök Nedenler + Prensip / Yetkinlik Eşleştirme</div>
