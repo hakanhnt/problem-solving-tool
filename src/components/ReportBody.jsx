@@ -3,7 +3,7 @@
 
 import React from 'react';
 import { prioMeta } from '../lib/store.jsx';
-import { gapInfo, decisionMatrix, trackingBars, paretoData } from '../lib/derive.js';
+import { gapInfo, decisionMatrix, trackingBars, paretoData, traceability, confidenceScore, caseMaturity, rcStatusMeta, isOverdue } from '../lib/derive.js';
 import { PRE_DECISION_QUESTIONS } from '../lib/thinking.js';
 
 const secTitle = { font: '700 12px Helvetica,Arial,sans-serif', color: 'var(--pri)', letterSpacing: '.6px', borderBottom: '1px solid var(--line-3)', paddingBottom: 5, margin: '0 0 8px' };
@@ -13,8 +13,12 @@ const th = { ...td, background: 'var(--pri-soft)', color: 'var(--pri-ink)', font
 
 export default function ReportBody({ c, principles, sections, companyName, summaryText }) {
   const on = k => !sections || sections[k] !== false;
-  const { hasGap, kpiGapText } = gapInfo(c.problem);
+  const g = gapInfo(c.problem);
+  const { hasGap, kpiGapText } = g;
   const M = decisionMatrix(c);
+  const trace = traceability(c);
+  const conf = confidenceScore(c);
+  const maturity = caseMaturity(c);
   const bars = trackingBars(c);
   const pareto = paretoData(c);
   const spec = c.spec || {};
@@ -63,12 +67,61 @@ export default function ReportBody({ c, principles, sections, companyName, summa
         <div style={{ font: '12px Helvetica,Arial,sans-serif', color: 'var(--muted)', marginTop: 5 }}>{metaLine}{reportDate}</div>
       </div>
 
-      {summary ? (
-        <div style={{ background: 'var(--pri-soft-2)', border: '1px solid var(--pri-border-4)', borderRadius: 8, padding: '14px 16px', margin: '0 0 20px' }}>
-          <div style={{ font: '700 10.5px Helvetica,Arial,sans-serif', color: 'var(--pri-soft-ink)', letterSpacing: '.8px', margin: '0 0 6px' }}>YÖNETİCİ ÖZETİ</div>
-          <div style={{ font: '13px/1.65 Helvetica,Arial,sans-serif', color: 'var(--ink)', whiteSpace: 'pre-wrap' }}>{summary}</div>
+      {/* Tek sayfalık yönetici özeti — raporun en başında, tek bakışta durum */}
+      <div style={{ background: 'var(--pri-soft-2)', border: '1px solid var(--pri-border-4)', borderRadius: 8, padding: '14px 16px', margin: '0 0 20px' }}>
+        <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap', margin: '0 0 8px' }}>
+          <div style={{ font: '700 10.5px Helvetica,Arial,sans-serif', color: 'var(--pri-soft-ink)', letterSpacing: '.8px' }}>YÖNETİCİ ÖZETİ</div>
+          <span style={{ font: '600 10.5px Helvetica,Arial,sans-serif', color: 'var(--pri-ink)', background: 'var(--pri-soft)', border: '1px solid var(--pri-border-5)', borderRadius: 20, padding: '3px 9px' }}>Durum: {maturity.label}</span>
+          <span title="Çalışmanın bütünlüğünü ölçer; bilimsel doğruluk garantisi değildir." style={{ font: '600 10.5px Helvetica,Arial,sans-serif', color: conf.total >= 80 ? 'var(--ok-ink)' : conf.total >= 50 ? 'var(--pri-ink)' : 'var(--warn-ink)', background: conf.total >= 80 ? 'var(--ok-soft)' : conf.total >= 50 ? 'var(--pri-soft)' : 'var(--warn-soft)', border: '1px solid ' + (conf.total >= 80 ? 'var(--ok-border)' : conf.total >= 50 ? 'var(--pri-border-5)' : 'var(--warn-border)'), borderRadius: 20, padding: '3px 9px' }}>
+            Analiz güven seviyesi: %{conf.total} · {conf.label}
+          </span>
         </div>
-      ) : null}
+
+        <table style={{ borderCollapse: 'collapse', width: '100%', margin: '0 0 8px' }}>
+          <tbody>
+            {[
+              ['Problem', (c.problem.statement || '').trim() || '—'],
+              ['KPI durumu', hasGap ? (c.problem.kpiName || 'KPI') + ': hedef ' + (c.problem.target || '—') + ' / gerçekleşen ' + (c.problem.actual || '—') + ' · ' + kpiGapText : 'Ölçülmüş KPI farkı girilmemiş'],
+              ['Ana kök neden(ler)', rootCauses.length
+                ? rootCauses.map((rc, i) => 'KN' + (i + 1) + ' (' + rcStatusMeta(rc.status).label.toLowerCase() + ')').join(' · ')
+                : 'Kök neden yazılmamış'],
+              ['Karar', (c.decision.choice || '').trim() || 'Karar yazılmamış'],
+              ['Aksiyonlar', actions.length
+                ? actions.length + ' aksiyon · ' + actions.filter(a => a.status === 'tamam').length + ' tamam · ' + actions.filter(a => isOverdue(a)).length + ' gecikmiş'
+                : 'Aksiyon planlanmamış'],
+              ['Sonuç', trackRows.length ? 'Son ölçüm: ' + (trackRows[trackRows.length - 1].value || '—') + ' (' + (trackRows[trackRows.length - 1].label || 'son dönem') + ')' : 'Henüz KPI ölçümü girilmemiş']
+            ].map(([k, v]) => (
+              <tr key={k}>
+                <td style={{ ...td, border: 'none', padding: '3px 8px 3px 0', width: 148, verticalAlign: 'top', fontWeight: 700, color: 'var(--pri-soft-ink)' }}>{k}</td>
+                <td style={{ ...td, border: 'none', padding: '3px 0' }}>{v}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+
+        {(() => {
+          const warn = [];
+          const hypo = rootCauses.filter(rc => !['dogrulandi', 'test-edildi', 'destekleniyor'].includes(rc.status || 'hipotez'));
+          if (hypo.length) warn.push(hypo.length + ' kök neden hâlâ hipotez (veriyle doğrulanmadı)');
+          const lateN = actions.filter(a => isOverdue(a)).length;
+          if (lateN) warn.push(lateN + ' aksiyonun termini geçti');
+          const openN = actions.filter(a => a.status !== 'tamam').length;
+          if (openN) warn.push(openN + ' aksiyon henüz tamamlanmadı');
+          if (pareto && pareto.mode === 'kpi' && pareto.overflow > 0) warn.push('Bulgu katkıları KPI sapmasını aşıyor — veri tutarsızlığı');
+          else if (pareto && pareto.mode === 'kpi' && pareto.unexplainedPct >= 30) warn.push('KPI sapmasında bulgularla açıklanmayan pay %' + pareto.unexplainedPct);
+          if (trace.issues.length) warn.push(trace.issues.length + ' izlenebilirlik boşluğu var');
+          if (!warn.length) return null;
+          return (
+            <div style={{ background: 'var(--warn-soft)', border: '1px solid var(--warn-border)', borderRadius: 6, padding: '9px 12px', font: '12px/1.6 Helvetica,Arial,sans-serif', color: 'var(--warn-ink-3)' }}>
+              <strong>Bu raporu okurken dikkat:</strong> {warn.join(' · ')}.
+            </div>
+          );
+        })()}
+
+        {summary ? (
+          <div style={{ font: '13px/1.65 Helvetica,Arial,sans-serif', color: 'var(--ink)', whiteSpace: 'pre-wrap', marginTop: 10, paddingTop: 10, borderTop: '1px solid var(--pri-border-4)' }}>{summary}</div>
+        ) : null}
+      </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
         {on('tanim') ? (
@@ -149,7 +202,16 @@ export default function ReportBody({ c, principles, sections, companyName, summa
             </div>
             {pareto ? (
               <div style={{ marginTop: 8, font: '12.5px/1.55 Helvetica,Arial,sans-serif', color: 'var(--pri-ink)' }}>
-                <strong>Pareto:</strong> {pareto.vital.join(' + ')} → toplam sapmadaki kümülatif pay %{pareto.vitalPct} ({pareto.bars.map(b => b.label + ' %' + b.pct).join(' · ')}).
+                <strong>Pareto:</strong>{' '}
+                {pareto.mode === 'kpi' ? (
+                  <>KPI sapması {String(pareto.gap).replace('.', ',')}{pareto.unit ? ' ' + pareto.unit : ''}; bulgularla açıklanan {String(pareto.explained).replace('.', ',')}{pareto.unit ? ' ' + pareto.unit : ''} (%{pareto.explainedPct})
+                    {pareto.unexplained > 0 ? <>, açıklanamayan {String(pareto.unexplained).replace('.', ',')}{pareto.unit ? ' ' + pareto.unit : ''} (%{pareto.unexplainedPct})</> : null}.
+                    {' '}Öncelikli bulgular: {pareto.vital.join(' + ')} ({pareto.bars.map(b => b.label + ' %' + b.pctOfGap).join(' · ')} — sapmaya oranla).
+                    {pareto.overflow > 0 ? <span style={{ color: 'var(--alert)' }}> ⚠ Katkı toplamı KPI sapmasını {String(pareto.overflow).replace('.', ',')}{pareto.unit ? ' ' + pareto.unit : ''} aşıyor; veriler gözden geçirilmeli.</span> : null}
+                  </>
+                ) : (
+                  <>KPI sapması girilmediği için yalnızca bulguların iç dağılımı: {pareto.vital.join(' + ')} → kümülatif pay %{pareto.vitalPct} ({pareto.bars.map(b => b.label + ' %' + b.pctInternal).join(' · ')}).</>
+                )}
               </div>
             ) : null}
           </div>
@@ -172,7 +234,35 @@ export default function ReportBody({ c, principles, sections, companyName, summa
                 <div key={i} style={{ display: 'flex', gap: 9, alignItems: 'flex-start' }}>
                   <div style={{ flex: 'none', background: 'var(--alert)', color: 'var(--on-pri)', borderRadius: 4, font: '700 10px/1 Helvetica,Arial,sans-serif', padding: '4px 6px', marginTop: 2 }}>KN{i + 1}</div>
                   <div>
-                    <div style={body}>{rc.text}</div>
+                    <div style={body}>
+                      {rc.text}
+                      {(() => {
+                        const st = rcStatusMeta(rc.status);
+                        const unverified = !['dogrulandi', 'test-edildi', 'destekleniyor'].includes(rc.status || 'hipotez');
+                        return (
+                          <span style={{
+                            marginLeft: 6, display: 'inline-block', borderRadius: 20, padding: '1px 8px',
+                            font: '700 10px Helvetica,Arial,sans-serif',
+                            background: unverified ? 'var(--warn-soft)' : 'var(--ok-soft)',
+                            border: '1px solid ' + (unverified ? 'var(--warn-border)' : 'var(--ok-border)'),
+                            color: unverified ? 'var(--warn-ink)' : 'var(--ok-ink)'
+                          }}>{unverified ? st.label.toUpperCase() + ' — DOĞRULANMADI' : st.label.toUpperCase()}</span>
+                        );
+                      })()}
+                    </div>
+                    {(rc.findings || []).length ? (
+                      <div style={{ font: '11.5px/1.5 Helvetica,Arial,sans-serif', color: 'var(--ink-3)', marginTop: 3 }}>
+                        Açıkladığı bulgular: {(rc.findings || []).map(fi => 'B' + (fi + 1)).join(', ')}
+                      </div>
+                    ) : null}
+                    {(rc.evidence || '').trim() ? (
+                      <div style={{ font: '11.5px/1.5 Helvetica,Arial,sans-serif', color: 'var(--ink-3)', marginTop: 2 }}>Kanıt: {rc.evidence}</div>
+                    ) : null}
+                    {(rc.testResult || '').trim() ? (
+                      <div style={{ font: '11.5px/1.5 Helvetica,Arial,sans-serif', color: 'var(--ok-ink)', marginTop: 2 }}>Test sonucu: {rc.testResult}</div>
+                    ) : (rc.testPlan || '').trim() ? (
+                      <div style={{ font: '11.5px/1.5 Helvetica,Arial,sans-serif', color: 'var(--muted)', marginTop: 2 }}>Planlanan test: {rc.testPlan}</div>
+                    ) : null}
                     {(rc.principles || []).length ? (
                       <div style={{ font: '11.5px/1.5 Helvetica,Arial,sans-serif', color: 'var(--pri-soft-ink)', marginTop: 3 }}>
                         Prensipler: {(rc.principles || []).map(pi => (pi + 1) + '. ' + ((principles || [])[pi] || '')).join(' · ')}
@@ -199,13 +289,18 @@ export default function ReportBody({ c, principles, sections, companyName, summa
 
             {hasScores && (c.criteria || []).length ? (
               <div style={{ margin: '0 0 12px' }}>
-                <div style={{ font: '600 11px Helvetica,Arial,sans-serif', color: 'var(--ink-3)', letterSpacing: '.4px', margin: '0 0 6px' }}>KARAR MATRİSİ (0–5 · ağırlıklı toplam)</div>
+                <div style={{ font: '600 11px Helvetica,Arial,sans-serif', color: 'var(--ink-3)', letterSpacing: '.4px', margin: '0 0 6px' }}>KARAR MATRİSİ (1–5 · ağırlıklı toplam)</div>
+                {!M.valid ? (
+                  <div style={{ font: '11.5px/1.5 Helvetica,Arial,sans-serif', color: 'var(--alert)', background: 'var(--alert-soft)', border: '1px solid var(--alert-border)', borderRadius: 6, padding: '7px 10px', margin: '0 0 6px' }}>
+                    ⚠ Kriter ağırlıkları toplamı %{String(M.wsum).replace('.', ',')} ({M.wDelta > 0 ? String(M.wDelta).replace('.', ',') + ' eksik' : String(-M.wDelta).replace('.', ',') + ' fazla'}) — aşağıdaki puanlar taslaktır, karara dayanak sayılmamalıdır.
+                  </div>
+                ) : null}
                 <div style={{ overflowX: 'auto' }}>
                   <table style={{ borderCollapse: 'collapse', width: '100%' }}>
                     <thead>
                       <tr>
                         <th style={th}>Alternatif</th>
-                        {M.head.map((h, i) => <th key={i} style={{ ...th, textAlign: 'center' }}>{h.name}<br /><span style={{ fontWeight: 400 }}>%{h.weight}</span></th>)}
+                        {M.head.map((h, i) => <th key={i} style={{ ...th, textAlign: 'center' }}>{h.name}<br /><span style={{ fontWeight: 400 }}>%{h.weight} · {h.yon === 'dusuk' ? 'düşük iyi' : 'yüksek iyi'}</span></th>)}
                         <th style={{ ...th, textAlign: 'center' }}>Puan</th>
                       </tr>
                     </thead>
@@ -223,6 +318,18 @@ export default function ReportBody({ c, principles, sections, companyName, summa
                     </tbody>
                   </table>
                 </div>
+                {M.valid && M.best && M.second ? (
+                  <div style={{ font: '11.5px/1.55 Helvetica,Arial,sans-serif', color: 'var(--ink-3)', marginTop: 5 }}>
+                    A{M.best.n} ile A{M.second.n} arasındaki fark {String(M.lead).replace('.', ',')} puan
+                    {M.influential ? <> · sonucu en çok belirleyen kriter: <strong>{M.influential.name}</strong></> : null}
+                    {M.sensitivity.length ? <span style={{ color: 'var(--warn-ink)' }}> · hassasiyet: {M.sensitivity.map(s => '"' + s.name + '" çıkarılırsa kazanan ' + s.newWinner).join('; ')}</span> : null}
+                  </div>
+                ) : null}
+                {(c.criteria || []).some(cr => (cr.source || '').trim()) ? (
+                  <div style={{ font: '11.5px/1.55 Helvetica,Arial,sans-serif', color: 'var(--muted)', marginTop: 4 }}>
+                    Puanlama kaynağı: {(c.criteria || []).filter(cr => (cr.source || '').trim()).map(cr => (cr.name || 'Kriter') + ' — ' + cr.source).join(' · ')}
+                  </div>
+                ) : null}
               </div>
             ) : null}
 
@@ -248,11 +355,23 @@ export default function ReportBody({ c, principles, sections, companyName, summa
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               {actions.map((a, i) => {
                 const p = prioMeta(a);
-                const meta = [a.owner, a.due, p.score > -100 ? p.label : ''].filter(Boolean).join(' · ');
+                const late = isOverdue(a);
+                const STATUS_TR = { tamam: 'tamamlandı', devam: 'devam ediyor', bekliyor: 'bekliyor', gecikti: 'gecikti' };
+                const meta = [
+                  a.owner,
+                  (a.dueDate || '').trim() ? 'termin ' + a.dueDate : (a.due || ''),
+                  STATUS_TR[a.status] || '',
+                  p.score > -100 ? p.label : ''
+                ].filter(Boolean).join(' · ');
                 return (
                   <div key={i} style={{ display: 'flex', gap: 9, alignItems: 'flex-start' }}>
-                    <div style={{ flex: 'none', background: 'var(--pri)', color: 'var(--on-pri)', borderRadius: 4, font: '700 10px/1 Helvetica,Arial,sans-serif', padding: '4px 6px', marginTop: 2 }}>{i + 1}</div>
-                    <div style={body}>{a.text}{meta ? <span style={{ color: 'var(--muted)' }}> ({meta})</span> : null}</div>
+                    <div style={{ flex: 'none', background: late ? 'var(--alert)' : 'var(--pri)', color: 'var(--on-pri)', borderRadius: 4, font: '700 10px/1 Helvetica,Arial,sans-serif', padding: '4px 6px', marginTop: 2 }}>{i + 1}</div>
+                    <div style={body}>
+                      {a.text}{meta ? <span style={{ color: 'var(--muted)' }}> ({meta})</span> : null}
+                      {late ? <span style={{ color: 'var(--alert)', fontWeight: 700 }}> ⏰ TERMİN GEÇTİ{(a.delayReason || '').trim() ? ' — ' + a.delayReason : ''}</span> : null}
+                      {a.status !== 'tamam' && !late ? <span style={{ color: 'var(--warn-ink)' }}> — tamamlanmadı</span> : null}
+                      {(a.successCriteria || '').trim() ? <div style={{ font: '11.5px/1.5 Helvetica,Arial,sans-serif', color: 'var(--ink-3)' }}>Başarı ölçütü: {a.successCriteria}{(a.evidence || '').trim() ? ' · Kanıt: ' + a.evidence : ''}</div> : null}
+                    </div>
                   </div>
                 );
               })}
@@ -318,6 +437,58 @@ export default function ReportBody({ c, principles, sections, companyName, summa
                   ))}
                 </div>
               ) : null}
+            </div>
+          </div>
+        ) : null}
+
+        {trace.rows.length ? (
+          <div>
+            <div style={secTitle}>İZLENEBİLİRLİK — BULGU → KÖK NEDEN → AKSİYON → KPI</div>
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ borderCollapse: 'collapse', width: '100%' }}>
+                <thead>
+                  <tr>
+                    <th style={th}>Bulgu</th><th style={th}>Kök neden</th><th style={th}>Aksiyon</th><th style={{ ...th, textAlign: 'center' }}>KPI izleniyor</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {trace.rows.map(r => (
+                    <tr key={r.finding}>
+                      <td style={td}><strong>{r.finding}</strong> · {(r.findingText || '').slice(0, 70)}{(r.findingText || '').length > 70 ? '…' : ''}</td>
+                      <td style={{ ...td, color: r.rcs.length ? 'var(--ink)' : 'var(--alert)' }}>{r.rcs.length ? r.rcs.join(', ') : 'bağlanmamış'}</td>
+                      <td style={{ ...td, color: r.actions.length ? 'var(--ink)' : 'var(--warn-ink)' }}>{r.actions.length ? r.actions.map(t => (t || '').slice(0, 48)).join(' · ') : 'aksiyon yok'}</td>
+                      <td style={{ ...td, textAlign: 'center' }}>{r.kpiTracked ? '✓' : '—'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            {trace.issues.length ? (
+              <div style={{ marginTop: 8, background: 'var(--warn-soft)', border: '1px solid var(--warn-border)', borderRadius: 6, padding: '9px 12px' }}>
+                <div style={{ font: '700 11px Helvetica,Arial,sans-serif', color: 'var(--warn-ink)', letterSpacing: '.4px', margin: '0 0 4px' }}>TUTARLILIK BOŞLUKLARI ({trace.issues.length})</div>
+                <ul style={{ margin: 0, paddingLeft: 18, font: '12px/1.6 Helvetica,Arial,sans-serif', color: 'var(--warn-ink-3)' }}>
+                  {trace.issues.map((is, i) => <li key={i}>{is.text}</li>)}
+                </ul>
+              </div>
+            ) : (
+              <div style={{ marginTop: 8, font: '12px/1.5 Helvetica,Arial,sans-serif', color: 'var(--ok-ink)' }}>✓ Zincirde kopukluk bulunmadı: her bulgu bir kök nedene, her kök neden bir aksiyona bağlı ve sonuç KPI ile izleniyor.</div>
+            )}
+            <div style={{ marginTop: 10 }}>
+              <div style={{ font: '600 11px Helvetica,Arial,sans-serif', color: 'var(--ink-3)', letterSpacing: '.4px', margin: '0 0 5px' }}>ANALİZ GÜVEN SEVİYESİ — %{conf.total} ({conf.label})</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                {conf.checks.map((ch, i) => (
+                  <div key={i} style={{ display: 'flex', gap: 8, alignItems: 'center', font: '11.5px Helvetica,Arial,sans-serif', color: 'var(--ink-3)' }}>
+                    <span style={{ flex: 'none', width: 210 }}>{ch.label}</span>
+                    <span style={{ flex: 1, maxWidth: 200, height: 7, background: 'var(--surface-4)', borderRadius: 4, overflow: 'hidden' }}>
+                      <span style={{ display: 'block', width: ch.pct + '%', height: '100%', background: ch.pct >= 80 ? 'var(--ok)' : ch.pct >= 50 ? 'var(--pri-bar)' : 'var(--warn-border)' }} />
+                    </span>
+                    <span style={{ flex: 'none', width: 40, textAlign: 'right' }}>%{ch.pct}</span>
+                  </div>
+                ))}
+              </div>
+              <div style={{ font: '11px/1.5 Helvetica,Arial,sans-serif', color: 'var(--muted)', marginTop: 5 }}>
+                Bu gösterge çalışmanın <strong>bütünlüğünü</strong> ölçer (kanıt, test, bağlantı, doğrulama) — analizin bilimsel doğruluğunu garanti etmez.
+              </div>
             </div>
           </div>
         ) : null}

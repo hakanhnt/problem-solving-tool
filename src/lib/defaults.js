@@ -31,15 +31,16 @@ export function defaultPrinciples() {
 export function blankCase(name) {
   return {
     name: name || 'Benim Çalışmam',
-    problem: { statement: '', geo: '', time: '', brand: '', kpiName: '', target: '', actual: '' },
+    problem: { statement: '', geo: '', time: '', brand: '', kpiName: '', target: '', actual: '', direction: '', unit: '', targetHigh: '' },
     drivers: [], driverAnalysis: [], sipoc: [], findings: [],
     whys: ['', '', '', '', ''],
+    whyChains: [],
     fishbone: { insan: '', metot: '', sistem: '', girdi: '', olcum: '', cevre: '' },
     rootCauses: [], alternatives: [], criteria: [
-      { name: 'Etki (sapmayı azaltma potansiyeli)', weight: '40' },
-      { name: 'Uygulama hızı', weight: '25' },
-      { name: 'Maliyet / kaynak ihtiyacı', weight: '20' },
-      { name: 'Risk / uygulanabilirlik', weight: '15' }
+      { name: 'Etki (sapmayı azaltma potansiyeli)', weight: '40', yon: 'yuksek', d1: 'Sapmayı %10\'dan az azaltır', d3: 'Sapmanın yaklaşık yarısını giderir', d5: 'Sapmanın büyük bölümünü (%80+) giderir', source: '' },
+      { name: 'Uygulama hızı', weight: '25', yon: 'yuksek', d1: '6 aydan uzun sürer', d3: '1-3 ayda devreye alınır', d5: '2 hafta içinde devreye alınır', source: '' },
+      { name: 'Maliyet / kaynak ihtiyacı', weight: '20', yon: 'dusuk', d1: 'Yüksek bütçe / yeni kadro gerektirir', d3: 'Orta düzey bütçe veya kısmi kaynak', d5: 'Mevcut kaynakla, ek bütçesiz yapılır', source: '' },
+      { name: 'Risk / uygulanabilirlik', weight: '15', yon: 'dusuk', d1: 'Yüksek riskli, dış bağımlılığı çok', d3: 'Yönetilebilir riskler var', d5: 'Düşük riskli, kontrolümüzde', source: '' }
     ], scores: {},
     decision: { choice: '', rationale: '' },
     thinking: { assume: '', alt: '', cost: '' },
@@ -57,7 +58,8 @@ export function exampleCase() {
       geo: "Uzakdoğu menşei (Çin, Bangladeş) → Türkiye; en yüksek sapma Bangladeş çıkışlı yüklemelerde",
       time: "2026 Q1–Q2 gemi yüklemeleri",
       brand: "Tüm markalar; en belirgin sapma temel hazır giyim kategorisinde",
-      kpiName: "Uçtan uca yol süresi (gün)", target: "45", actual: "65"
+      kpiName: "Uçtan uca yol süresi (gün)", target: "45", actual: "65",
+      direction: "dusuk", unit: "gün", targetHigh: ""
     },
     drivers: [
       { name: "Üretici çıkış süresi (üretim bitişi → gemiye yükleme)", note: "Booking, evrak hazırlığı ve konsolidasyon adımlarını içerir; üretici ve forwarder ile birlikte yürür." },
@@ -88,6 +90,17 @@ export function exampleCase() {
       "Yol süresi sadece uçtan uca ölçülüyor; ara adımlar (booking→yükleme, varış→beyan) hedeflenip ölçülmüyor.",
       "Süreci Gemba'da gözlemleyip ara metriklerle yönetme yetkinliğimizi bu sürece uygulamamışız; sorunu dış paydaşta aramışız."
     ],
+    whyChains: [
+      {
+        label: "Alternatif dal: forwarder performansı",
+        whys: [
+          "Booking → yükleme gecikmesi tek bir forwarder'da yoğunlaşıyor olabilir.",
+          "Forwarder kırılımında veri incelendi: gecikme iki forwarder'da da benzer (11-13 gün).",
+          "Bu dal veriyle desteklenmedi — gecikme forwarder'a değil evrak hazırlığına bağlı; dal elendi.",
+          "", ""
+        ]
+      }
+    ],
     fishbone: {
       insan: "Üretici evrak ekibinin format/dil hâkimiyeti düşük; ithalat ekibinde süreç sahibi atanmamış.",
       metot: "Evrak kontrol listesi, şablon ve emir tekrarı yok; standart iş akışı tanımsız.",
@@ -97,9 +110,36 @@ export function exampleCase() {
       cevre: "Q1'de liman yoğunluğu yaşandı; etkisi sınırlı (≈2 gün)."
     },
     rootCauses: [
-      { text: "Uçtan uca süreç sahipliği kurulmamış; ara milestone hedefleri ve metrikleri tanımlanmamış (operational clarity eksikliği).", principles: [2, 11], competency: "Süreç yönetimi ve 'önemli olanı ölç' yetkinliği; hedefleri ara adımlara indirgeme" },
-      { text: "Sorun dış paydaşta (üretici/gümrük) aranmış; evrak süreci yerinde gözlemlenmemiş, kök neden önce kendimizde aranmamış.", principles: [13, 15], competency: "Gemba kültürü; başarısızlığı sahiplenme ve öz-değerlendirme" },
-      { text: "Basit best practice'ler (checklist, şablon, emir tekrarı) araştırılıp sürece adapte edilmemiş.", principles: [7, 10], competency: "Best practice araştırma ve işe adapte etme disiplini" }
+      {
+        text: "Uçtan uca süreç sahipliği kurulmamış; ara milestone hedefleri ve metrikleri tanımlanmamış (operational clarity eksikliği).",
+        principles: [2, 11], competency: "Süreç yönetimi ve 'önemli olanı ölç' yetkinliği; hedefleri ara adımlara indirgeme",
+        status: "dogrulandi", findings: [0, 2],
+        evidence: "Süreç dokümanları tarandı: hiçbir dokümanda ara adım hedefi ve süreç sahibi tanımı yok; milestone verisi yalnızca uçtan uca ölçülüyor.",
+        explainsSpec: "Evet — sahipsizlik her menşeide var; sapmanın Bangladeş'te patlaması yeni üretici değişkeniyle (KN3) birleşince açıklanıyor.",
+        testPlan: "Ara hedefler tanımlanıp haftalık izlemeye alınırsa booking→yükleme ve varış→beyan sürelerinin kısalması beklenir.",
+        testResult: "Kontrol kulesi kurulan ilk ayda booking→yükleme 12→8 güne indi; ilişki doğrulandı.",
+        kpiExpected: "Booking→yükleme 12→5 gün, varış→beyan 6→2 gün; uçtan uca −11 gün"
+      },
+      {
+        text: "Sorun dış paydaşta (üretici/gümrük) aranmış; evrak süreci yerinde gözlemlenmemiş, kök neden önce kendimizde aranmamış.",
+        principles: [13, 15], competency: "Gemba kültürü; başarısızlığı sahiplenme ve öz-değerlendirme",
+        status: "destekleniyor", findings: [1],
+        evidence: "Q1-Q2 yazışmaları: sorun hep üreticiye eskale edilmiş, evrak beklentisi yazılı iletilmemiş; yerinde gözlem kaydı yok.",
+        explainsSpec: "Kısmen — davranış her yerde aynı; VAR/YOK farkını tek başına açıklamaz, KN3 ile birlikte açıklar.",
+        testPlan: "Üretici ziyareti + evrak sürecinin yerinde gözlemi; beklenti yazılı iletildiğinde ilk seferde doğruluğun artması beklenir.",
+        testResult: "",
+        kpiExpected: "İlk seferde eksiksiz evrak oranı %38 → %80+"
+      },
+      {
+        text: "Basit best practice'ler (checklist, şablon, emir tekrarı) araştırılıp sürece adapte edilmemiş.",
+        principles: [7, 10], competency: "Best practice araştırma ve işe adapte etme disiplini",
+        status: "test-edildi", findings: [1],
+        evidence: "Üreticiye gönderilmiş bir evrak kontrol listesi ya da şablon bulunamadı; yeni üretici onboarding'inde evrak eğitimi yok.",
+        explainsSpec: "Evet — checklist'i hiç almayan iki yeni Bangladeş üreticisi VAR tarafında; köklü Çin üreticileri YOK tarafında.",
+        testPlan: "Checklist + şablon ilk 10 yüklemede pilot uygulanır; ilk seferde doğruluk oranı izlenir.",
+        testResult: "Pilotta ilk seferde doğruluk %38 → %79; düzeltme turu ortalaması 4 → 1 güne indi.",
+        kpiExpected: "Evrak kaynaklı gecikme −4 gün (B2)"
+      }
     ],
     alternatives: [
       { name: "Evrak kontrol listesi + şablon seti + emir tekrarı ile üretici evrak sürecini standardize et", method: "Best practice adaptasyonu", note: "Checklist Manifesto yaklaşımı; üretici onboarding'ine evrak eğitimi eklenir. Düşük maliyet, hemen başlanabilir." },
@@ -107,16 +147,17 @@ export function exampleCase() {
       { name: "Beyanname öncesi dijital evrak akışı / ön-beyan otomasyonu (e-konşimento)", method: "Algoritmik düşünce", note: "Orijinal evrak beklemeden dijital setle ön hazırlık; BT ve gümrük müşaviri ile pilot gerekir, orta vadeli." }
     ],
     criteria: [
-      { name: "Etki (sapmayı azaltma potansiyeli)", weight: "40" },
-      { name: "Uygulama hızı", weight: "25" },
-      { name: "Maliyet / kaynak ihtiyacı", weight: "20" },
-      { name: "Risk / uygulanabilirlik", weight: "15" }
+      { name: "Etki (sapmayı azaltma potansiyeli)", weight: "40", yon: "yuksek", d1: "Sapmayı 2 günden az azaltır", d3: "Sapmayı 5-10 gün azaltır", d5: "Sapmayı 10+ gün azaltır", source: "Pareto katkı tahminleri (B1-B3) ve pilot sonuçları" },
+      { name: "Uygulama hızı", weight: "25", yon: "yuksek", d1: "6+ ay (BT projesi gerektirir)", d3: "1-3 ayda devrede", d5: "2 hafta içinde devrede", source: "Ekip kapasite planı ve BT yol haritası" },
+      { name: "Maliyet / kaynak ihtiyacı", weight: "20", yon: "dusuk", d1: "Yeni sistem/kadro yatırımı", d3: "Kısmi danışmanlık/BT eforu", d5: "Mevcut ekiple, ek bütçesiz", source: "Kaba efor tahmini (iş analisti)" },
+      { name: "Risk / uygulanabilirlik", weight: "15", yon: "dusuk", d1: "Dış paydaş onayına tam bağımlı", d3: "Paydaş uyumu gerektirir, yönetilebilir", d5: "Tamamen kendi kontrolümüzde", source: "Paydaş analizi (SIPOC)" }
     ],
     scores: { '0_0': '4', '0_1': '5', '0_2': '5', '0_3': '5', '1_0': '5', '1_1': '4', '1_2': '4', '1_3': '4', '2_0': '4', '2_1': '2', '2_2': '2', '2_3': '3' },
     actions: [
-      { text: "Üretici evrak kontrol listesi ve şablon setini hazırlayıp ilk 10 yüklemede pilot uygula", owner: "İthalat operasyon uzmanı", due: "2 hafta", etki: "5", efor: "2", status: "tamam" },
-      { text: "Ara milestone KPI'larını (booking→yükleme, varış→beyan) tanımla; süreç sahibini ata ve haftalık kontrol kulesi toplantısını başlat", owner: "Lojistik müdürü", due: "1 ay", etki: "5", efor: "3", status: "devam" },
-      { text: "Dijital evrak akışı / e-konşimento için BT ve gümrük müşaviriyle fizibilite çalışması yap", owner: "BT iş analisti", due: "1 çeyrek", etki: "4", efor: "4", status: "bekliyor" }
+      { text: "Üretici evrak kontrol listesi ve şablon setini hazırlayıp ilk 10 yüklemede pilot uygula", owner: "İthalat operasyon uzmanı", startDate: "2026-06-15", dueDate: "2026-06-30", due: "", etki: "5", efor: "2", status: "tamam", rcIdx: "2", findingIdx: "1", successCriteria: "İlk seferde eksiksiz evrak oranı ≥ %75 (pilot 10 yükleme)", evidence: "Pilot raporu: %79 — hedef aşıldı", delayReason: "", priority: "yuksek" },
+      { text: "Ara milestone KPI'larını (booking→yükleme, varış→beyan) tanımla; süreç sahibini ata ve haftalık kontrol kulesi toplantısını başlat", owner: "Lojistik müdürü", startDate: "2026-07-01", dueDate: "2026-08-10", due: "", etki: "5", efor: "3", status: "devam", rcIdx: "0", findingIdx: "0", successCriteria: "Booking→yükleme ≤ 5 gün, varış→beyan ≤ 2 gün (4 haftalık ortalama)", evidence: "", delayReason: "", priority: "yuksek" },
+      { text: "Dijital evrak akışı / e-konşimento için BT ve gümrük müşaviriyle fizibilite çalışması yap", owner: "BT iş analisti", startDate: "2026-08-01", dueDate: "2026-10-30", due: "", etki: "4", efor: "4", status: "bekliyor", rcIdx: "2", findingIdx: "2", successCriteria: "Fizibilite raporu ve pilot kararı", evidence: "", delayReason: "", priority: "orta" },
+      { text: "İki yeni Bangladeş üreticisinde evrak hazırlama sürecini yerinde gözlemle (Gemba); bulguları ekip içinde paylaş", owner: "İthalat operasyon müdürü", startDate: "2026-07-20", dueDate: "2026-09-15", due: "", etki: "3", efor: "2", status: "bekliyor", rcIdx: "1", findingIdx: "1", successCriteria: "İki üreticide gözlem tamamlanır; en az 3 somut süreç bulgusu raporlanır", evidence: "", delayReason: "", priority: "orta" }
     ],
     tracking: [
       { label: "Q2 (başlangıç)", value: "65" },

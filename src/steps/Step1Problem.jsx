@@ -25,7 +25,8 @@ export default function Step1Problem() {
   const { state, c, upd, updC, inp, fieldHelp, addReference, removeC } = useStore();
   const p = c.problem;
   const aiReady = (p.statement || '').trim().length > 0;
-  const { hasGap, kpiGapText } = gapInfo(p);
+  const g = gapInfo(p);
+  const { hasGap, kpiGapText } = g;
   const refs = c.references || [];
   const form = state.refForm;
   const [extracting, setExtracting] = React.useState('');
@@ -131,23 +132,74 @@ export default function Step1Problem() {
           aiReady={aiReady}
           onHelp={() => fieldHelp('KPI farkı (hedef vs gerçekleşen)', (p.kpiName || '') + ' | hedef: ' + p.target + ' | gerçekleşen: ' + p.actual)}
         />
-        <MethodBox>KPI farkı = gerçekleşen − hedef. Problemi sayısallaştırmak hem büyüklüğünü gösterir hem de çözümün başarısını ölçülebilir kılar.</MethodBox>
-        <div style={{ display: 'grid', gridTemplateColumns: narrow ? '1fr 1fr' : '2fr 1fr 1fr', gap: 12 }}>
-          <div>
-            <label style={S.label}>KPI adı</label>
-            <input className="pcx-field" value={p.kpiName} onChange={inp('problem', 'kpiName')} placeholder="Örn. Uçtan uca yol süresi (gün)" style={S.input} />
+        <MethodBox>KPI farkı = gerçekleşen − hedef. Problemi sayısallaştırmak hem büyüklüğünü gösterir hem de çözümün başarısını ölçülebilir kılar. Sapmanın olumlu mu olumsuz mu olduğu <strong>KPI'ın yönüne</strong> bağlıdır — yönü mutlaka seçin.</MethodBox>
+        <div style={{ display: 'grid', gridTemplateColumns: narrow ? '1fr 1fr' : '2fr 1fr 1fr 1fr', gap: 12 }}>
+          <div style={narrow ? { gridColumn: '1 / -1' } : null}>
+            <label htmlFor="pcx-kpi-name" style={S.label}>KPI adı</label>
+            <input id="pcx-kpi-name" className="pcx-field" value={p.kpiName} onChange={inp('problem', 'kpiName')} placeholder="Örn. Uçtan uca yol süresi (gün)" style={S.input} />
           </div>
           <div>
-            <label style={S.label}>Hedef</label>
-            <input className="pcx-field" value={p.target} onChange={inp('problem', 'target')} placeholder="45" style={S.input} />
+            <label htmlFor="pcx-kpi-target" style={S.label}>{g.direction === 'aralik' ? 'Hedef (alt sınır)' : 'Hedef'}</label>
+            <input id="pcx-kpi-target" className="pcx-field" value={p.target} onChange={inp('problem', 'target')} placeholder="45" style={S.input} />
+          </div>
+          {g.direction === 'aralik' ? (
+            <div>
+              <label htmlFor="pcx-kpi-target-high" style={S.label}>Hedef (üst sınır)</label>
+              <input id="pcx-kpi-target-high" className="pcx-field" value={p.targetHigh || ''} onChange={inp('problem', 'targetHigh')} placeholder="55" style={S.input} />
+            </div>
+          ) : null}
+          <div>
+            <label htmlFor="pcx-kpi-actual" style={S.label}>Gerçekleşen</label>
+            <input id="pcx-kpi-actual" className="pcx-field" value={p.actual} onChange={inp('problem', 'actual')} placeholder="65" style={S.input} />
           </div>
           <div>
-            <label style={S.label}>Gerçekleşen</label>
-            <input className="pcx-field" value={p.actual} onChange={inp('problem', 'actual')} placeholder="65" style={S.input} />
+            <label htmlFor="pcx-kpi-unit" style={S.label}>Birim</label>
+            <input id="pcx-kpi-unit" className="pcx-field" value={p.unit || ''} onChange={inp('problem', 'unit')} placeholder="gün, %, adet, TL…" style={S.input} title="Adım 4'teki sapmaya katkılar da bu birimde girilmelidir" />
           </div>
         </div>
+        <div style={{ marginTop: 12 }}>
+          <label style={S.label}>KPI yönü — hangi değer başarıdır?</label>
+          <div role="radiogroup" aria-label="KPI yönü" style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            {[
+              { k: 'dusuk', t: 'Düşük değer iyidir', d: 'süre, maliyet, hata, şikâyet…' },
+              { k: 'yuksek', t: 'Yüksek değer iyidir', d: 'satış, NPS, verimlilik, oran…' },
+              { k: 'aralik', t: 'Hedef aralıkta kalmalı', d: 'stok gün, doluluk, sıcaklık…' }
+            ].map(o => {
+              const sel = (p.direction || '') === o.k;
+              return (
+                <button
+                  key={o.k} type="button" role="radio" aria-checked={sel}
+                  onClick={() => updC(cc => { cc.problem.direction = o.k; })}
+                  style={{
+                    cursor: 'pointer', textAlign: 'left', borderRadius: 8, padding: '8px 12px',
+                    border: '1px solid ' + (sel ? 'var(--pri)' : 'var(--field-border)'),
+                    background: sel ? 'var(--pri-soft)' : 'var(--surface)',
+                    color: sel ? 'var(--pri-ink)' : 'var(--ink-3)', font: '600 12px/1.4 Helvetica,Arial,sans-serif'
+                  }}
+                >
+                  {o.t}
+                  <span style={{ display: 'block', font: '400 10.5px/1.4 Helvetica,Arial,sans-serif', color: sel ? 'var(--pri-soft-ink)' : 'var(--muted)' }}>{o.d}</span>
+                </button>
+              );
+            })}
+          </div>
+          {!(p.direction || '') && hasGap ? (
+            <div style={{ marginTop: 8, font: '12px/1.5 Helvetica,Arial,sans-serif', color: 'var(--warn-ink)' }}>
+              Yön seçilmedi — şimdilik "{g.direction === 'dusuk' ? 'düşük iyidir' : 'yüksek iyidir'}" varsayıldı. Doğru değilse yukarıdan seçin.
+            </div>
+          ) : null}
+        </div>
         {hasGap ? (
-          <div style={{ marginTop: 14, display: 'inline-block', background: 'var(--alert-soft)', border: '1px solid var(--alert-border)', borderRadius: 6, padding: '7px 12px', font: '600 13px Helvetica,Arial,sans-serif', color: 'var(--alert)' }}>{kpiGapText}</div>
+          <div style={{ marginTop: 14, display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+            <div style={{
+              display: 'inline-block', borderRadius: 6, padding: '7px 12px', font: '600 13px Helvetica,Arial,sans-serif',
+              background: g.good ? 'var(--ok-soft)' : 'var(--alert-soft)',
+              border: '1px solid ' + (g.good ? 'var(--ok-border)' : 'var(--alert-border)'),
+              color: g.good ? 'var(--ok-ink)' : 'var(--alert)'
+            }}>{kpiGapText}</div>
+            {g.remainText ? <div style={{ font: '12.5px Helvetica,Arial,sans-serif', color: 'var(--ink-3)' }}>{g.remainText}</div> : null}
+            {g.zeroTargetNote ? <div style={{ font: '12px/1.5 Helvetica,Arial,sans-serif', color: 'var(--muted)', width: '100%' }}>{g.zeroTargetNote}</div> : null}
+          </div>
         ) : null}
       </Card>
 

@@ -1,6 +1,6 @@
 import React from 'react';
 import { useStore } from '../lib/store.jsx';
-import { trackingBars, trackingGapText } from '../lib/derive.js';
+import { trackingBars, trackingGapText, isOverdue } from '../lib/derive.js';
 import { Card, GuidanceBox, MethodBox, AddButton, RemoveButton, S } from '../ui/primitives.jsx';
 import { DAILY_HABITS } from '../lib/thinking.js';
 
@@ -59,18 +59,22 @@ export default function Step7Tracking() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {actions.map((a, i) => {
               if (!(a.text || '').trim()) return null;
-              const m = STATUS_META[a.status || ''] || ['Durum seçin', 'var(--surface-4)', 'var(--muted)', 'var(--line-strong)'];
-              const meta = [a.owner, a.due].filter(Boolean).join(' · ');
+              const late = isOverdue(a);
+              const m = late
+                ? ['Termin geçti', 'var(--alert-soft)', 'var(--alert)', 'var(--alert-border)']
+                : (STATUS_META[a.status || ''] || ['Durum seçin', 'var(--surface-4)', 'var(--muted)', 'var(--line-strong)']);
+              const meta = [a.owner, (a.dueDate || '').trim() ? 'Termin: ' + a.dueDate : (a.due || ''), (a.successCriteria || '').trim() ? 'Ölçüt: ' + a.successCriteria : ''].filter(Boolean).join(' · ');
               return (
-                <div key={i} style={{ display: 'flex', gap: 10, alignItems: 'center', border: '1px solid var(--line-2)', borderRadius: 8, padding: '10px 12px', background: 'var(--surface-2)' }}>
-                  <div style={{ flex: 'none', background: 'var(--pri)', color: 'var(--on-pri)', borderRadius: 5, font: '700 10px/1 Helvetica,Arial,sans-serif', padding: '4px 7px' }}>{i + 1}</div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
+                <div key={i} style={{ display: 'flex', gap: 10, alignItems: 'flex-start', flexWrap: 'wrap', border: '1px solid ' + (late ? 'var(--alert-border)' : 'var(--line-2)'), borderRadius: 8, padding: '10px 12px', background: late ? 'var(--alert-soft)' : 'var(--surface-2)' }}>
+                  <div style={{ flex: 'none', background: 'var(--pri)', color: 'var(--on-pri)', borderRadius: 5, font: '700 10px/1 Helvetica,Arial,sans-serif', padding: '4px 7px', marginTop: 3 }}>{i + 1}</div>
+                  <div style={{ flex: 1, minWidth: 200 }}>
                     <div style={{ font: '600 12.5px/1.45 Helvetica,Arial,sans-serif', color: 'var(--ink)' }}>{a.text}</div>
                     <div style={{ font: '11px/1.4 Helvetica,Arial,sans-serif', color: 'var(--muted)', marginTop: 2 }}>{meta}</div>
                   </div>
-                  <div style={{ flex: 'none', padding: '4px 10px', borderRadius: 20, border: '1px solid ' + m[3], background: m[1], color: m[2], font: '700 10.5px Helvetica,Arial,sans-serif' }}>{m[0]}</div>
+                  <div style={{ flex: 'none', padding: '4px 10px', borderRadius: 20, border: '1px solid ' + m[3], background: late ? 'var(--surface)' : m[1], color: m[2], font: '700 10.5px Helvetica,Arial,sans-serif', marginTop: 3 }}>{late ? '⏰ ' + m[0] : m[0]}</div>
                   <select
                     value={a.status || ''} onChange={inp('actions', i, 'status')}
+                    aria-label={(i + 1) + '. aksiyonun ilerleme durumu'}
                     style={{ flex: 'none', width: 130, boxSizing: 'border-box', padding: '7px 9px', border: '1px solid var(--field-border)', borderRadius: 6, font: '12px Helvetica,Arial,sans-serif', color: 'var(--ink)', background: 'var(--surface)', outline: 'none' }}
                   >
                     <option value="">Durum seçin…</option>
@@ -79,6 +83,22 @@ export default function Step7Tracking() {
                     <option value="tamam">Tamamlandı</option>
                     <option value="gecikti">Gecikti</option>
                   </select>
+                  {late || a.status === 'gecikti' ? (
+                    <input
+                      className="pcx-field-sm" value={a.delayReason || ''} onChange={inp('actions', i, 'delayReason')}
+                      placeholder="Gecikme nedeni — neyi bekliyoruz?"
+                      aria-label={(i + 1) + '. aksiyonun gecikme nedeni'}
+                      style={{ ...S.inputSm, flex: '1 1 100%' }}
+                    />
+                  ) : null}
+                  {a.status === 'tamam' ? (
+                    <input
+                      className="pcx-field-sm" value={a.evidence || ''} onChange={inp('actions', i, 'evidence')}
+                      placeholder="Tamamlandı kanıtı — başarı ölçütü karşılandı mı?"
+                      aria-label={(i + 1) + '. aksiyonun tamamlanma kanıtı'}
+                      style={{ ...S.inputSm, flex: '1 1 100%' }}
+                    />
+                  ) : null}
                 </div>
               );
             })}

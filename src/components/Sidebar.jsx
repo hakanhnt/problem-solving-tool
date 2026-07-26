@@ -1,6 +1,7 @@
 import React from 'react';
 import { useStore } from '../lib/store.jsx';
 import { STEPS, blankCase, exampleCase, CASE_TEMPLATES } from '../lib/defaults.js';
+import { stepChecklist, caseMaturity } from '../lib/derive.js';
 import { HButton, HA } from '../ui/primitives.jsx';
 
 /** Uygulama işareti: akışın daralarak karara inişini anlatan üç düğüm. */
@@ -34,6 +35,7 @@ export default function Sidebar({ onNavigate }) {
   const { state, eff, c, step, upd, goStep, ensureCoach, toggleTheme } = useStore();
   const doneSteps = [1, 2, 3, 4, 5, 6, 7, 8].filter(n => stepDone(c, n));
   const doneCount = doneSteps.length;
+  const maturity = caseMaturity(c);
 
   const caseKeys = Object.keys(state.cases);
   caseKeys.sort((a, b) => (a === 'ornek' ? -1 : b === 'ornek' ? 1 : 0));
@@ -150,37 +152,52 @@ export default function Sidebar({ onNavigate }) {
           <div style={{ flex: 1, font: '700 10.5px Helvetica,Arial,sans-serif', color: 'var(--muted)', letterSpacing: '.8px' }}>ÇALIŞMA İLERLEMESİ</div>
           <div style={{ font: '700 11px Helvetica,Arial,sans-serif', color: doneCount === 8 ? 'var(--ok-ink)' : 'var(--pri)' }}>{doneCount}/8</div>
         </div>
-        <div style={{ display: 'flex', gap: 3 }}>
-          {[1, 2, 3, 4, 5, 6, 7, 8].map(n => (
-            <div
-              key={n}
-              title={n + '. ' + STEPS[n - 1].title + (doneSteps.includes(n) ? ' — dolduruldu' : ' — boş')}
-              style={{ flex: 1, height: 4, borderRadius: 2, background: doneSteps.includes(n) ? (doneCount === 8 ? 'var(--ok)' : 'var(--pri)') : 'var(--line)' }}
-            />
-          ))}
+        <div style={{ display: 'flex', gap: 3 }} role="img" aria-label={'8 adımdan ' + doneCount + ' adımda içerik var'}>
+          {[1, 2, 3, 4, 5, 6, 7, 8].map(n => {
+            const ck = stepChecklist(c, n);
+            return (
+              <div
+                key={n}
+                title={n + '. ' + STEPS[n - 1].title + ' — ' + (ck.missing === 0 ? 'tamamlanma ölçütleri karşılandı' : ck.missing + ' ölçüt eksik: ' + ck.items.filter(x => !x.ok).map(x => x.label).join(', '))}
+                style={{ flex: 1, height: 4, borderRadius: 2, background: ck.missing === 0 ? 'var(--ok)' : (doneSteps.includes(n) ? 'var(--pri)' : 'var(--line)') }}
+              />
+            );
+          })}
         </div>
+        <div
+          title="Alan doluluğu değil, metodolojik olgunluk: kanıt, doğrulama ve KPI ile teyit durumunu gösterir."
+          style={{ marginTop: 8, display: 'inline-block', font: '600 10.5px Helvetica,Arial,sans-serif', letterSpacing: '.3px', borderRadius: 20, padding: '3px 9px', color: maturity.key === 'dogrulandi' ? 'var(--ok-ink)' : 'var(--pri-ink)', background: maturity.key === 'dogrulandi' ? 'var(--ok-soft)' : 'var(--pri-soft)', border: '1px solid ' + (maturity.key === 'dogrulandi' ? 'var(--ok-border)' : 'var(--pri-border-5)') }}
+        >Olgunluk: {maturity.label}</div>
       </div>
 
-      <nav style={{ padding: '2px 12px 8px', display: 'flex', flexDirection: 'column', gap: 2, flex: 1, overflow: 'auto' }}>
+      <nav aria-label="Çalışma adımları" style={{ padding: '2px 12px 8px', display: 'flex', flexDirection: 'column', gap: 2, flex: 1, overflow: 'auto' }}>
         {STEPS.map((s, i) => {
           const n = i + 1, active = step === n, done = doneSteps.includes(n);
+          const ck = stepChecklist(c, n);
           return (
-            <div
-              key={n}
+            <button
+              key={n} type="button"
+              aria-current={active ? 'step' : undefined}
+              aria-label={n + '. adım: ' + s.title + ' — ' + (ck.missing === 0 ? 'tamamlandı' : ck.missing + ' ölçüt eksik')}
               onClick={() => { goStep(n); if (onNavigate) onNavigate(); }}
-              style={{ display: 'flex', gap: 10, alignItems: 'flex-start', padding: 10, borderRadius: 8, cursor: 'pointer', background: active ? 'var(--pri-soft)' : 'transparent' }}
+              style={{
+                display: 'flex', gap: 10, alignItems: 'flex-start', padding: 10, borderRadius: 8, cursor: 'pointer',
+                background: active ? 'var(--pri-soft)' : 'transparent', border: 'none', textAlign: 'left', width: '100%', font: 'inherit'
+              }}
             >
-              <div style={{
+              <div aria-hidden="true" style={{
                 width: 22, height: 22, flex: 'none', borderRadius: '50%',
-                background: active ? 'var(--pri)' : (done ? 'var(--ok-soft-2)' : 'var(--line-2)'),
-                color: active ? 'var(--on-pri)' : (done ? 'var(--ok)' : 'var(--ink-4)'),
+                background: active ? 'var(--pri)' : (ck.missing === 0 ? 'var(--ok-soft-2)' : (done ? 'var(--pri-soft)' : 'var(--line-2)')),
+                color: active ? 'var(--on-pri)' : (ck.missing === 0 ? 'var(--ok)' : (done ? 'var(--pri)' : 'var(--ink-4)')),
                 font: '700 11px/22px Helvetica,Arial,sans-serif', textAlign: 'center'
-              }}>{!active && done ? '✓' : n}</div>
-              <div>
+              }}>{!active && ck.missing === 0 ? '✓' : n}</div>
+              <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ font: '600 13px/1.35 Helvetica,Arial,sans-serif', color: active ? 'var(--pri)' : 'var(--ink-2)' }}>{s.title}</div>
-                <div style={{ font: '11px/1.4 Helvetica,Arial,sans-serif', color: active ? 'var(--pri-soft-ink)' : 'var(--muted-3)', marginTop: 1 }}>{s.sub}</div>
+                <div style={{ font: '11px/1.4 Helvetica,Arial,sans-serif', color: active ? 'var(--pri-soft-ink)' : 'var(--muted-3)', marginTop: 1 }}>
+                  {ck.missing > 0 && done ? ck.missing + ' ölçüt eksik' : s.sub}
+                </div>
               </div>
-            </div>
+            </button>
           );
         })}
       </nav>

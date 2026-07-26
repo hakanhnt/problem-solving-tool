@@ -46,6 +46,24 @@ function normalize(state) {
     if (!cc.thinking) cc.thinking = { assume: '', alt: '', cost: '' };
     if (!cc.spec) cc.spec = { nerede: { v: '', y: '' }, zaman: { v: '', y: '' }, kirilim: { v: '', y: '' }, buyukluk: { v: '', y: '' }, degisiklik: '' };
     if (!cc.containment) cc.containment = { action: '', owner: '', until: '', removed: false };
+    // Yeni veri modeli (KPI yönü, kök neden doğrulama, izlenebilirlik) — eski kayıtlar kayıpsız taşınır.
+    if (!cc.problem) cc.problem = { statement: '', geo: '', time: '', brand: '', kpiName: '', target: '', actual: '' };
+    if (cc.problem.direction === undefined) cc.problem.direction = '';
+    if (cc.problem.unit === undefined) cc.problem.unit = '';
+    if (cc.problem.targetHigh === undefined) cc.problem.targetHigh = '';
+    if (!Array.isArray(cc.whyChains)) cc.whyChains = [];
+    (cc.criteria || []).forEach(cr => {
+      if (cr.yon !== 'dusuk' && cr.yon !== 'yuksek') cr.yon = 'yuksek';
+      ['d1', 'd3', 'd5', 'source'].forEach(k => { if (cr[k] === undefined) cr[k] = ''; });
+    });
+    (cc.rootCauses || []).forEach(rc => {
+      if (!rc.status) rc.status = 'hipotez';
+      if (!Array.isArray(rc.findings)) rc.findings = [];
+      ['evidence', 'explainsSpec', 'testPlan', 'testResult', 'kpiExpected'].forEach(k => { if (rc[k] === undefined) rc[k] = ''; });
+    });
+    (cc.actions || []).forEach(a => {
+      ['startDate', 'dueDate', 'rcIdx', 'findingIdx', 'successCriteria', 'evidence', 'delayReason', 'priority'].forEach(k => { if (a[k] === undefined) a[k] = ''; });
+    });
   });
   return s;
 }

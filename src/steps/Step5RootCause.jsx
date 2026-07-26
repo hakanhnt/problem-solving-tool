@@ -1,7 +1,17 @@
 import React from 'react';
 import { useStore, verMeta } from '../lib/store.jsx';
 import { FISHBONE_CATS, WHY_PLACEHOLDERS } from '../lib/defaults.js';
+import { RC_STATUSES } from '../lib/derive.js';
 import { Card, GuidanceBox, MethodBox, AddButton, RemoveButton, VerifyBadge, YZButton, Badge, S, useNarrow } from '../ui/primitives.jsx';
+
+const STATUS_COLORS = {
+  hipotez: { bg: 'var(--warn-soft)', border: 'var(--warn-border)', ink: 'var(--warn-ink)' },
+  destekleniyor: { bg: 'var(--pri-soft)', border: 'var(--pri-border-5)', ink: 'var(--pri-ink)' },
+  'test-planlandi': { bg: 'var(--pri-soft)', border: 'var(--pri-border-5)', ink: 'var(--pri-ink)' },
+  'test-edildi': { bg: 'var(--pri-soft)', border: 'var(--pri-border-5)', ink: 'var(--pri-ink)' },
+  dogrulandi: { bg: 'var(--ok-soft)', border: 'var(--ok-border)', ink: 'var(--ok-ink)' },
+  elendi: { bg: 'var(--surface-4)', border: 'var(--line-2)', ink: 'var(--muted)' }
+};
 
 const QUESTIONS = [
   'Bu sapmalar neden oluşuyor? (5 kez "neden?" sordum mu?)',
@@ -42,6 +52,40 @@ export default function Step5RootCause() {
               />
             </div>
           ))}
+        </div>
+
+        {(c.whyChains || []).map((ch, ci) => (
+          <div key={ci} style={{ marginTop: 14, border: '1px dashed var(--pri-border-4)', borderRadius: 10, padding: '12px 14px', background: 'var(--pri-soft-2)' }}>
+            <div style={{ display: 'flex', gap: 10, alignItems: 'center', margin: '0 0 10px' }}>
+              <input
+                className="pcx-field-sm" value={ch.label || ''}
+                onChange={inp('whyChains', ci, 'label')}
+                placeholder={'Dal ' + (ci + 1) + ' — hangi hipotezi izliyor? Örn. forwarder performansı'}
+                aria-label={'Alternatif neden zinciri ' + (ci + 1) + ' başlığı'}
+                style={{ flex: 1, boxSizing: 'border-box', padding: '7px 10px', border: '1px solid var(--field-border)', borderRadius: 6, font: '600 12.5px Helvetica,Arial,sans-serif', color: 'var(--ink)', background: 'var(--surface)', outline: 'none' }}
+              />
+              <RemoveButton onClick={() => removeC('neden dalı', cc => cc.whyChains.splice(ci, 1))} />
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {(ch.whys || []).map((w, i) => (
+                <div key={i} style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+                  <div style={{ flex: 'none', width: 64, paddingTop: 9, font: '700 11.5px/1.3 Helvetica,Arial,sans-serif', color: 'var(--pri)' }}>{i + 1}. Neden?</div>
+                  <textarea
+                    className="pcx-field" value={w}
+                    onChange={e => updC(cc => { cc.whyChains[ci].whys[i] = e.target.value; })}
+                    placeholder={WHY_PLACEHOLDERS[i]}
+                    style={{ ...S.textarea, flex: 1, width: 'auto', minHeight: 40, font: '12.5px/1.45 Helvetica,Arial,sans-serif' }}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+        <div style={{ marginTop: 12 }}>
+          <AddButton onClick={() => updC(cc => { cc.whyChains.push({ label: '', whys: ['', '', '', '', ''] }); })}>+ Alternatif neden dalı ekle</AddButton>
+          <div style={{ marginTop: 6, font: '11.5px/1.5 Helvetica,Arial,sans-serif', color: 'var(--muted)' }}>
+            Neden zinciri her zaman tek çizgide ilerlemez — bir cevabın birden fazla olası nedeni varsa her hipotez için ayrı dal açın; veriyle desteklenmeyen dalı "elendi" diye kapatın.
+          </div>
         </div>
       </Card>
 
@@ -143,6 +187,112 @@ export default function Step5RootCause() {
                   </div>
                 </div>
 
+                <div>
+                  <div style={{ font: '600 11px Helvetica,Arial,sans-serif', color: 'var(--ink-3)', letterSpacing: '.4px', margin: '0 0 8px' }}>DOĞRULAMA DURUMU</div>
+                  <div role="radiogroup" aria-label={'KN' + (i + 1) + ' doğrulama durumu'} style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                    {RC_STATUSES.map(st => {
+                      const sel = (rc.status || 'hipotez') === st.key;
+                      const col = STATUS_COLORS[st.key];
+                      return (
+                        <button
+                          key={st.key} type="button" role="radio" aria-checked={sel}
+                          onClick={() => updC(cc => { cc.rootCauses[i].status = st.key; })}
+                          style={{
+                            padding: '5px 11px', borderRadius: 20, cursor: 'pointer',
+                            border: '1px solid ' + (sel ? col.ink : 'var(--field-border)'),
+                            background: sel ? col.bg : 'var(--surface)',
+                            color: sel ? col.ink : 'var(--muted)',
+                            font: (sel ? '700' : '400') + ' 11.5px/1.3 Helvetica,Arial,sans-serif'
+                          }}
+                        >{st.label}</button>
+                      );
+                    })}
+                  </div>
+                  {(rc.status || 'hipotez') === 'hipotez' ? (
+                    <div style={{ marginTop: 6, font: '11.5px/1.5 Helvetica,Arial,sans-serif', color: 'var(--warn-ink)' }}>
+                      Bu kök neden henüz bir <strong>hipotez</strong> — raporda da böyle etiketlenir. Veriyle destekleyin ya da test edin.
+                    </div>
+                  ) : null}
+                </div>
+
+                <div>
+                  <div style={{ font: '600 11px Helvetica,Arial,sans-serif', color: 'var(--ink-3)', letterSpacing: '.4px', margin: '0 0 8px' }}>HANGİ BULGULARI AÇIKLIYOR?</div>
+                  {(c.findings || []).filter(f => (f.text || '').trim()).length ? (
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                      {c.findings.map((f, fi) => {
+                        if (!(f.text || '').trim()) return null;
+                        const sel = (rc.findings || []).includes(fi);
+                        return (
+                          <button
+                            key={fi} type="button" aria-pressed={sel}
+                            title={f.text}
+                            onClick={() => updC(cc => {
+                              const arr = cc.rootCauses[i].findings;
+                              const k = arr.indexOf(fi);
+                              if (k >= 0) arr.splice(k, 1); else arr.push(fi);
+                            })}
+                            style={{
+                              padding: '5px 10px', borderRadius: 20, cursor: 'pointer',
+                              border: '1px solid ' + (sel ? 'var(--pri)' : 'var(--field-border)'),
+                              background: sel ? 'var(--pri)' : 'var(--surface)',
+                              color: sel ? 'var(--on-pri)' : 'var(--ink-3)',
+                              font: '600 11.5px/1.3 Helvetica,Arial,sans-serif', maxWidth: 260, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'
+                            }}
+                          >B{fi + 1} — {f.text.slice(0, 34)}{f.text.length > 34 ? '…' : ''}</button>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <div style={{ font: '11.5px/1.5 Helvetica,Arial,sans-serif', color: 'var(--muted)' }}>Adım 4'te henüz bulgu yok — kök nedenler bulgulara bağlanmalıdır.</div>
+                  )}
+                  {!(rc.findings || []).length && (rc.text || '').trim() ? (
+                    <div style={{ marginTop: 6, font: '11.5px/1.5 Helvetica,Arial,sans-serif', color: 'var(--warn-ink)' }}>Hiçbir bulguya bağlı değil — izlenebilirlik denetiminde "desteklenmeyen kök neden" olarak görünür.</div>
+                  ) : null}
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: narrow ? '1fr' : '1fr 1fr', gap: 10 }}>
+                  <div>
+                    <label style={{ display: 'block', font: '600 11px Helvetica,Arial,sans-serif', color: 'var(--ink-3)', letterSpacing: '.4px', margin: '0 0 6px' }}>KANIT / VERİ KAYNAĞI</label>
+                    <textarea
+                      className="pcx-field" value={rc.evidence || ''} onChange={inp('rootCauses', i, 'evidence')}
+                      placeholder="Bu nedeni destekleyen veri — rapor, kayıt, gözlem…"
+                      style={{ ...S.textarea, font: '12.5px/1.45 Helvetica,Arial,sans-serif', minHeight: 44 }}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', font: '600 11px Helvetica,Arial,sans-serif', color: 'var(--ink-3)', letterSpacing: '.4px', margin: '0 0 6px' }}>VAR/YOK DESENİNİ AÇIKLIYOR MU?</label>
+                    <textarea
+                      className="pcx-field" value={rc.explainsSpec || ''} onChange={inp('rootCauses', i, 'explainsSpec')}
+                      placeholder="Gerçek kök neden hem VAR'ı hem YOK'u açıklamalı (Adım 1 belirtimi)"
+                      style={{ ...S.textarea, font: '12.5px/1.45 Helvetica,Arial,sans-serif', minHeight: 44 }}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', font: '600 11px Helvetica,Arial,sans-serif', color: 'var(--ink-3)', letterSpacing: '.4px', margin: '0 0 6px' }}>NASIL TEST EDİLDİ / EDİLECEK?</label>
+                    <textarea
+                      className="pcx-field" value={rc.testPlan || ''} onChange={inp('rootCauses', i, 'testPlan')}
+                      placeholder="Örn. pilot uygulama, kırılım analizi, yerinde gözlem…"
+                      style={{ ...S.textarea, font: '12.5px/1.45 Helvetica,Arial,sans-serif', minHeight: 44 }}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', font: '600 11px Helvetica,Arial,sans-serif', color: 'var(--ink-3)', letterSpacing: '.4px', margin: '0 0 6px' }}>TEST SONUCU</label>
+                    <textarea
+                      className="pcx-field" value={rc.testResult || ''} onChange={inp('rootCauses', i, 'testResult')}
+                      placeholder="Test yapıldıysa sonucu — hipotezi destekledi mi, çürüttü mü?"
+                      style={{ ...S.textarea, font: '12.5px/1.45 Helvetica,Arial,sans-serif', minHeight: 44 }}
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label style={{ display: 'block', font: '600 11px Helvetica,Arial,sans-serif', color: 'var(--ink-3)', letterSpacing: '.4px', margin: '0 0 6px' }}>GİDERİLİRSE HANGİ KPI / ARA METRİK DÜZELMELİ?</label>
+                  <input
+                    className="pcx-field" value={rc.kpiExpected || ''} onChange={inp('rootCauses', i, 'kpiExpected')}
+                    placeholder="Örn. booking→yükleme 12→5 gün; ilk seferde eksiksiz evrak %38→%80"
+                    style={S.input}
+                  />
+                </div>
+
                 <VerifyBadge meta={vm} onClick={() => updC(cc => { cc.rootCauses[i].verified = !cc.rootCauses[i].verified; })} />
 
                 <div>
@@ -156,7 +306,7 @@ export default function Step5RootCause() {
               </div>
             );
           })}
-          <AddButton onClick={() => updC(cc => cc.rootCauses.push({ text: '', principles: [], competency: '' }))}>+ Kök neden ekle</AddButton>
+          <AddButton onClick={() => updC(cc => cc.rootCauses.push({ text: '', principles: [], competency: '', status: 'hipotez', findings: [], evidence: '', explainsSpec: '', testPlan: '', testResult: '', kpiExpected: '' }))}>+ Kök neden ekle</AddButton>
         </div>
       </Card>
     </div>

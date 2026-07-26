@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useStore, prioMeta } from '../lib/store.jsx';
 import { THINKING_METHODS } from '../lib/defaults.js';
 import { THINKING_METHOD_INFO } from '../lib/thinking.js';
-import { decisionMatrix } from '../lib/derive.js';
+import { decisionMatrix, isOverdue } from '../lib/derive.js';
 import ThinkingCheck from '../components/ThinkingCheck.jsx';
 import { Card, CardHead, GuidanceBox, MethodBox, AddButton, RemoveButton, YZButton, Badge, HButton, Spinner, S, useNarrow } from '../ui/primitives.jsx';
 
@@ -144,23 +144,68 @@ export default function Step6Countermeasures() {
           onHelp={() => fieldHelp('Karar kriterleri ve ağırlıkları', c.criteria.map(x => (x.name || '?') + ' %' + (x.weight || 0)).join(', '))}
           helpTitle="YZ'den kriterler için yardım al"
         />
-        <MethodBox margin="0 0 14px">Karar kriterleri kısıtları ve riskleri yansıtır; ağırlıkları önem sırasına göre, toplam 100 olacak şekilde dağıtın.</MethodBox>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        <MethodBox margin="0 0 14px">Karar kriterleri kısıtları ve riskleri yansıtır; ağırlıkları önem sırasına göre, toplam 100 olacak şekilde dağıtın. Puanlamanın öznel kalmaması için her kritere <strong>1-3-5 puan tanımı</strong> yazın: "5" tam olarak neye verilir?</MethodBox>
+        {!M.valid ? (
+          <div role="alert" style={{ margin: '0 0 12px', font: '12.5px/1.6 Helvetica,Arial,sans-serif', color: 'var(--alert)', background: 'var(--alert-soft)', border: '1px solid var(--alert-border)', borderRadius: 8, padding: '9px 12px' }}>
+            <strong>Ağırlık toplamı %{String(M.wsum).replace('.', ',')}</strong> — {M.wDelta > 0 ? String(M.wDelta).replace('.', ',') + ' puan eksik' : String(-M.wDelta).replace('.', ',') + ' puan fazla'}. Toplam %100 olana kadar matris puanları <strong>taslak</strong> sayılır.
+          </div>
+        ) : (
+          <div style={{ margin: '0 0 12px', display: 'inline-block', font: '600 12px Helvetica,Arial,sans-serif', color: 'var(--ok-ink)', background: 'var(--ok-soft)', border: '1px solid var(--ok-border)', borderRadius: 20, padding: '4px 11px' }}>✓ Ağırlık toplamı %100 — matris geçerli</div>
+        )}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           {c.criteria.map((cr, i) => (
-            <div key={i} style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-              <textarea
-                className="pcx-field" value={cr.name} onChange={inp('criteria', i, 'name')}
-                placeholder="Kriter — örn. Etki, uygulama hızı, maliyet, risk"
-                style={{ ...S.textarea, flex: 1, width: 'auto', minHeight: 40 }}
-              />
-              <input
-                className="pcx-field-sm" type="number" min="0" max="100" value={cr.weight} onChange={inp('criteria', i, 'weight')} placeholder="%"
-                style={{ width: 88, boxSizing: 'border-box', padding: '9px 11px', border: '1px solid var(--field-border)', borderRadius: 6, font: '13px/1.45 Helvetica,Arial,sans-serif', color: 'var(--ink)', background: 'var(--surface)', outline: 'none' }}
-              />
-              <RemoveButton onClick={() => removeC('karar kriteri (matris puanlarıyla)', cc => { cc.criteria.splice(i, 1); cc.scores = {}; })} />
+            <div key={i} style={{ border: '1px solid var(--line-2)', borderRadius: 8, padding: '10px 12px', background: 'var(--surface-2)', display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+                <textarea
+                  className="pcx-field" value={cr.name} onChange={inp('criteria', i, 'name')}
+                  placeholder="Kriter — örn. Etki, uygulama hızı, maliyet, risk"
+                  aria-label={'Kriter ' + (i + 1) + ' adı'}
+                  style={{ ...S.textarea, flex: 1, width: 'auto', minWidth: 180, minHeight: 40 }}
+                />
+                <input
+                  className="pcx-field-sm" type="number" min="0" max="100" value={cr.weight} onChange={inp('criteria', i, 'weight')} placeholder="%"
+                  aria-label={'Kriter ' + (i + 1) + ' ağırlığı (yüzde)'}
+                  style={{ width: 76, boxSizing: 'border-box', padding: '9px 11px', border: '1px solid var(--field-border)', borderRadius: 6, font: '13px/1.45 Helvetica,Arial,sans-serif', color: 'var(--ink)', background: 'var(--surface)', outline: 'none' }}
+                />
+                <select
+                  value={cr.yon || 'yuksek'} onChange={inp('criteria', i, 'yon')}
+                  aria-label={'Kriter ' + (i + 1) + ' yönü'}
+                  title="Ölçülen özelliğin yönü: 'yüksek iyi' (etki, hız) ya da 'düşük iyi' (maliyet, risk). Her iki durumda da 5 puan en iyi seçeneğe verilir."
+                  style={{ ...S.select, width: 130, flex: 'none' }}
+                >
+                  <option value="yuksek">Yüksek iyi</option>
+                  <option value="dusuk">Düşük iyi</option>
+                </select>
+                <RemoveButton onClick={() => removeC('karar kriteri (matris puanlarıyla)', cc => { cc.criteria.splice(i, 1); cc.scores = {}; })} />
+              </div>
+              <details>
+                <summary style={{ cursor: 'pointer', font: '600 11.5px Helvetica,Arial,sans-serif', color: 'var(--pri)' }}>
+                  Puan tanımları ve kaynak {((cr.d1 || '') + (cr.d3 || '') + (cr.d5 || '')).trim() ? '✓' : '(önerilir — puanlamayı nesnelleştirir)'}
+                </summary>
+                <div style={{ display: 'grid', gridTemplateColumns: narrow ? '1fr' : '1fr 1fr 1fr', gap: 8, marginTop: 8 }}>
+                  {[['d1', '1 PUAN = zayıf'], ['d3', '3 PUAN = orta'], ['d5', '5 PUAN = çok iyi']].map(([k, lb]) => (
+                    <div key={k}>
+                      <label style={{ display: 'block', font: '600 10.5px Helvetica,Arial,sans-serif', color: 'var(--muted)', letterSpacing: '.4px', margin: '0 0 4px' }}>{lb}</label>
+                      <textarea
+                        className="pcx-field-sm" value={cr[k] || ''} onChange={inp('criteria', i, k)}
+                        placeholder="Bu puan neye verilir?"
+                        style={{ ...S.textarea, font: '12px/1.45 Helvetica,Arial,sans-serif', minHeight: 40 }}
+                      />
+                    </div>
+                  ))}
+                </div>
+                <div style={{ marginTop: 8 }}>
+                  <label style={{ display: 'block', font: '600 10.5px Helvetica,Arial,sans-serif', color: 'var(--muted)', letterSpacing: '.4px', margin: '0 0 4px' }}>PUANLAMA KAYNAĞI / DAYANAĞI</label>
+                  <input
+                    className="pcx-field-sm" value={cr.source || ''} onChange={inp('criteria', i, 'source')}
+                    placeholder="Puanlar neye dayanıyor? Örn. pilot sonuçları, efor tahmini, uzman görüşü…"
+                    style={S.inputSm}
+                  />
+                </div>
+              </details>
             </div>
           ))}
-          <AddButton onClick={() => updC(cc => cc.criteria.push({ name: '', weight: '' }))}>+ Kriter ekle</AddButton>
+          <AddButton onClick={() => updC(cc => cc.criteria.push({ name: '', weight: '', yon: 'yuksek', d1: '', d3: '', d5: '', source: '' }))}>+ Kriter ekle</AddButton>
         </div>
       </Card>
 
@@ -174,34 +219,61 @@ export default function Step6Countermeasures() {
             onHelp={() => fieldHelp('Karar matrisi puanlaması', JSON.stringify(c.scores))}
             helpTitle="YZ'den puanlama için yardım al"
           />
-          <MethodBox margin="0 0 14px">Ağırlıklı puanlama matrisi alternatifleri nesnel biçimde karşılaştırır; ama matris karar vermez, akıl yürütmenize girdi sağlar.</MethodBox>
+          <MethodBox margin="0 0 14px">Ağırlıklı puanlama matrisi alternatifleri nesnel biçimde karşılaştırır; ama matris karar vermez, akıl yürütmenize girdi sağlar. Puanlar 1 (zayıf) – 5 (çok iyi); "düşük iyi" kriterlerde de en iyi seçenek 5 alır.</MethodBox>
+          {!M.valid ? (
+            <div role="alert" style={{ margin: '0 0 12px', font: '12.5px/1.6 Helvetica,Arial,sans-serif', color: 'var(--alert)', background: 'var(--alert-soft)', border: '1px solid var(--alert-border)', borderRadius: 8, padding: '9px 12px' }}>
+              <strong>⚠ Puanlar geçersiz:</strong> Kriter ağırlıkları toplamı %{String(M.wsum).replace('.', ',')} — {M.wDelta > 0 ? String(M.wDelta).replace('.', ',') + ' puan eksik' : String(-M.wDelta).replace('.', ',') + ' puan fazla'}. Aşağıdaki toplamlar yalnızca ön izlemedir; karara dayanak yapmayın.
+            </div>
+          ) : null}
           <div style={{ overflowX: 'auto' }}>
             <div style={{ display: 'flex', gap: 8, margin: '0 0 8px', minWidth: 560 }}>
               <div style={{ flex: 1, minWidth: 140, font: '700 11px Helvetica,Arial,sans-serif', color: 'var(--ink-3)', letterSpacing: '.4px' }}>ALTERNATİF</div>
-              {M.head.map((mh, i) => (
-                <div key={i} style={{ flex: '1 1 72px', minWidth: 72, maxWidth: 104, font: '700 11px/1.4 Helvetica,Arial,sans-serif', color: 'var(--ink-3)' }}>{mh.name}<br />%{mh.weight}</div>
-              ))}
+              {M.head.map((mh, i) => {
+                const cr = c.criteria[i] || {};
+                const tip = [mh.name, mh.yon === 'dusuk' ? '(düşük iyi)' : '(yüksek iyi)', cr.d1 ? '1 = ' + cr.d1 : '', cr.d3 ? '3 = ' + cr.d3 : '', cr.d5 ? '5 = ' + cr.d5 : '', cr.source ? 'Kaynak: ' + cr.source : ''].filter(Boolean).join('\n');
+                return (
+                  <div key={i} title={tip} style={{ flex: '1 1 72px', minWidth: 72, maxWidth: 104, font: '700 11px/1.4 Helvetica,Arial,sans-serif', color: 'var(--ink-3)' }}>
+                    {mh.name}<br />%{mh.weight}
+                    <span style={{ font: '400 10px Helvetica,Arial,sans-serif', color: 'var(--muted)' }}> · {mh.yon === 'dusuk' ? 'düşük iyi' : 'yüksek iyi'}</span>
+                  </div>
+                );
+              })}
               <div style={{ width: 56, flex: 'none', font: '700 11px Helvetica,Arial,sans-serif', color: 'var(--ink-3)', textAlign: 'right' }}>PUAN</div>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8, minWidth: 560 }}>
               {M.rows.map(mr => (
                 <div key={mr.n} style={{ display: 'flex', gap: 8, alignItems: 'center', borderTop: '1px solid var(--line-4)', paddingTop: 8 }}>
                   <div style={{ flex: 1, minWidth: 140, font: '13px/1.4 Helvetica,Arial,sans-serif', color: 'var(--ink)' }}><strong>A{mr.n}</strong> · {mr.name}</div>
-                  {mr.cells.map(cell => (
+                  {mr.cells.map((cell, ci) => (
                     <input
                       key={cell.key} className="pcx-field-sm" type="number" min="0" max="5" value={cell.value}
+                      aria-label={'A' + mr.n + ' — ' + ((M.head[ci] || {}).name || 'kriter') + ' puanı (0-5)'}
                       onChange={e => { const v = e.target.value; updC(cc => { cc.scores[cell.key] = v; }); }}
                       style={{ flex: '1 1 72px', minWidth: 72, maxWidth: 104, boxSizing: 'border-box', padding: '8px 9px', border: '1px solid var(--field-border)', borderRadius: 6, font: '13px Helvetica,Arial,sans-serif', color: 'var(--ink)', background: 'var(--surface)', outline: 'none' }}
                     />
                   ))}
-                  <div style={{ width: 56, flex: 'none', font: '700 15px Helvetica,Arial,sans-serif', color: 'var(--pri)', textAlign: 'right' }}>{mr.total}</div>
+                  <div style={{ width: 56, flex: 'none', font: '700 15px Helvetica,Arial,sans-serif', color: M.valid ? 'var(--pri)' : 'var(--muted)', textAlign: 'right' }}>{mr.total}</div>
                 </div>
               ))}
             </div>
           </div>
           {M.best ? (
-            <div style={{ marginTop: 14, background: 'var(--ok-soft)', border: '1px solid var(--ok-border)', borderRadius: 8, padding: '12px 14px', font: '13px/1.5 Helvetica,Arial,sans-serif', color: 'var(--ok-ink)' }}>
-              <strong>Matris önerisi:</strong> En yüksek ağırlıklı puan {M.best.total} ile <strong>A{M.best.n} — {M.best.name}</strong>
+            <div style={{ marginTop: 14, background: M.valid ? 'var(--ok-soft)' : 'var(--surface-2)', border: '1px solid ' + (M.valid ? 'var(--ok-border)' : 'var(--line-2)'), borderRadius: 8, padding: '12px 14px', font: '13px/1.6 Helvetica,Arial,sans-serif', color: M.valid ? 'var(--ok-ink)' : 'var(--ink-3)' }}>
+              <div><strong>{M.valid ? 'Matris önerisi' : 'Taslak sonuç'}:</strong> En yüksek ağırlıklı puan {M.best.total} ile <strong>A{M.best.n} — {M.best.name}</strong></div>
+              {M.second ? (
+                <div style={{ marginTop: 4 }}>
+                  İkinci: A{M.second.n} ({M.second.total}) · Fark: {String(M.lead).replace('.', ',')} puan
+                  {M.lead !== null && M.lead < 0.3 ? <strong> — fark çok küçük, matris tek başına ayırt etmiyor; niteliksel değerlendirme yapın.</strong> : null}
+                </div>
+              ) : null}
+              {M.influential ? <div style={{ marginTop: 4 }}>Sonucu en çok belirleyen kriter: <strong>{M.influential.name}</strong> (üstünlüğe katkısı {String(M.influential.contrib).replace('.', ',')} puan)</div> : null}
+              {M.sensitivity.length ? (
+                <div style={{ marginTop: 4, color: 'var(--warn-ink)' }}>
+                  <strong>Hassasiyet:</strong> {M.sensitivity.map(s => '"' + s.name + '" kriteri çıkarılırsa kazanan ' + s.newWinner + ' olur').join('; ')}. Sonuç bu kriterlere duyarlı — ağırlıkları gerçekten böyle mi?
+                </div>
+              ) : M.valid && M.second ? (
+                <div style={{ marginTop: 4, color: 'var(--muted)' }}>Hassasiyet: Hiçbir kriteri çıkarmak kazananı değiştirmiyor — sonuç sağlam görünüyor.</div>
+              ) : null}
             </div>
           ) : null}
         </Card>
@@ -320,7 +392,7 @@ export default function Step6Countermeasures() {
                             const x = cc.premortem && cc.premortem.items[i];
                             if (!x || x.added) return;
                             cc.actions = cc.actions || [];
-                            cc.actions.push({ text: x.onlem, owner: '', due: '', etki: '', efor: '', note: 'Pre-mortem tedbiri: ' + x.baslik });
+                            cc.actions.push({ text: x.onlem, owner: '', due: '', startDate: '', dueDate: '', rcIdx: '', successCriteria: x.sinyal ? 'Erken sinyal izlenir: ' + x.sinyal : '', evidence: '', delayReason: '', etki: '', efor: '', note: 'Pre-mortem tedbiri: ' + x.baslik });
                             x.added = true;
                           })}
                           style={{
@@ -388,7 +460,7 @@ export default function Step6Countermeasures() {
                         const x = cc.actionCoach && cc.actionCoach.items[i];
                         if (!x || x.added) return;
                         cc.actions = cc.actions || [];
-                        cc.actions.push({ text: x.aksiyon, owner: x.sorumluRol, due: x.sure, etki: x.etki, efor: x.efor });
+                        cc.actions.push({ text: x.aksiyon, owner: x.sorumluRol, due: x.sure, startDate: '', dueDate: '', rcIdx: '', successCriteria: '', evidence: '', delayReason: '', etki: x.etki, efor: x.efor });
                         x.added = true;
                       })}
                       style={{
@@ -414,40 +486,75 @@ export default function Step6Countermeasures() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12, margin: '0 0 12px' }}>
             {c.actions.map((a, i) => {
               const p = prioMeta(a);
+              const late = isOverdue(a);
               return (
-                <div key={i} style={S.itemCard}>
+                <div key={i} style={{ ...S.itemCard, border: late ? '1px solid var(--alert-border)' : S.itemCard.border }}>
                   <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
                     <Badge>{i + 1}</Badge>
                     <textarea
                       className="pcx-field" value={a.text} onChange={inp('actions', i, 'text')}
                       placeholder="Aksiyon — ölçülebilir çıktısı olan somut bir iş"
+                      aria-label={(i + 1) + '. aksiyon tanımı'}
                       style={{ ...S.textarea, flex: 1, width: 'auto', minHeight: 46 }}
                     />
+                    {late ? <div style={{ flex: 'none', padding: '5px 10px', borderRadius: 20, border: '1px solid var(--alert-border)', background: 'var(--alert-soft)', color: 'var(--alert)', font: '700 10.5px Helvetica,Arial,sans-serif', marginTop: 4 }}>⏰ GECİKTİ</div> : null}
                     <div style={{ flex: 'none', padding: '5px 10px', borderRadius: 20, border: '1px solid ' + p.border, background: p.bg, color: p.color, font: '700 10.5px Helvetica,Arial,sans-serif', marginTop: 4 }}>{p.label}</div>
                     <RemoveButton onClick={() => removeC('aksiyon', cc => cc.actions.splice(i, 1))} />
                   </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: narrow ? '1fr 1fr' : '1.4fr 1fr .7fr .7fr', gap: 10 }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: narrow ? '1fr 1fr' : '1.4fr 1fr 1fr .7fr .7fr', gap: 10 }}>
                     <div>
                       <label style={{ display: 'block', font: '600 11px Helvetica,Arial,sans-serif', color: 'var(--ink-3)', margin: '0 0 4px' }}>SORUMLU</label>
-                      <input className="pcx-field-sm" value={a.owner} onChange={inp('actions', i, 'owner')} placeholder="Rol / kişi" style={S.inputSm} />
+                      <input className="pcx-field-sm" value={a.owner} onChange={inp('actions', i, 'owner')} placeholder="Rol / kişi" aria-label={(i + 1) + '. aksiyonun sorumlusu'} style={S.inputSm} />
                     </div>
                     <div>
-                      <label style={{ display: 'block', font: '600 11px Helvetica,Arial,sans-serif', color: 'var(--ink-3)', margin: '0 0 4px' }}>SÜRE / TERMİN</label>
-                      <input className="pcx-field-sm" value={a.due} onChange={inp('actions', i, 'due')} placeholder="Örn. 2 hafta" style={S.inputSm} />
+                      <label style={{ display: 'block', font: '600 11px Helvetica,Arial,sans-serif', color: 'var(--ink-3)', margin: '0 0 4px' }}>BAŞLANGIÇ</label>
+                      <input className="pcx-field-sm" type="date" value={a.startDate || ''} onChange={inp('actions', i, 'startDate')} aria-label={(i + 1) + '. aksiyonun başlangıç tarihi'} style={S.inputSm} />
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', font: '600 11px Helvetica,Arial,sans-serif', color: 'var(--ink-3)', margin: '0 0 4px' }}>TERMİN</label>
+                      <input className="pcx-field-sm" type="date" value={a.dueDate || ''} onChange={inp('actions', i, 'dueDate')} aria-label={(i + 1) + '. aksiyonun termin tarihi'} style={{ ...S.inputSm, borderColor: late ? 'var(--alert)' : undefined }} />
                     </div>
                     <div>
                       <label style={{ display: 'block', font: '600 11px Helvetica,Arial,sans-serif', color: 'var(--ink-3)', margin: '0 0 4px' }}>ETKİ (1-5)</label>
-                      <select value={a.etki || ''} onChange={inp('actions', i, 'etki')} style={S.select}>
+                      <select value={a.etki || ''} onChange={inp('actions', i, 'etki')} aria-label={(i + 1) + '. aksiyonun etkisi'} style={S.select}>
                         <option value="">—</option>{[1, 2, 3, 4, 5].map(v => <option key={v} value={String(v)}>{v}</option>)}
                       </select>
                     </div>
                     <div>
                       <label style={{ display: 'block', font: '600 11px Helvetica,Arial,sans-serif', color: 'var(--ink-3)', margin: '0 0 4px' }}>EFOR (1-5)</label>
-                      <select value={a.efor || ''} onChange={inp('actions', i, 'efor')} style={S.select}>
+                      <select value={a.efor || ''} onChange={inp('actions', i, 'efor')} aria-label={(i + 1) + '. aksiyonun eforu'} style={S.select}>
                         <option value="">—</option>{[1, 2, 3, 4, 5].map(v => <option key={v} value={String(v)}>{v}</option>)}
                       </select>
                     </div>
                   </div>
+                  {(a.due || '').trim() && !(a.dueDate || '').trim() ? (
+                    <div style={{ font: '11.5px/1.5 Helvetica,Arial,sans-serif', color: 'var(--warn-ink)' }}>
+                      Eski termin kaydı: "<strong>{a.due}</strong>" — takip ve gecikme uyarısı için lütfen gerçek bir termin tarihi seçin.
+                    </div>
+                  ) : null}
+                  <div style={{ display: 'grid', gridTemplateColumns: narrow ? '1fr' : '1fr 1fr', gap: 10 }}>
+                    <div>
+                      <label style={{ display: 'block', font: '600 11px Helvetica,Arial,sans-serif', color: 'var(--ink-3)', margin: '0 0 4px' }}>HANGİ KÖK NEDENİ GİDERİYOR?</label>
+                      <select value={String(a.rcIdx ?? '')} onChange={inp('actions', i, 'rcIdx')} aria-label={(i + 1) + '. aksiyonun bağlı olduğu kök neden'} style={S.select}>
+                        <option value="">— seçilmedi —</option>
+                        {(c.rootCauses || []).map((rc, ri) => (rc.text || '').trim()
+                          ? <option key={ri} value={String(ri)}>KN{ri + 1} — {rc.text.slice(0, 60)}</option> : null)}
+                      </select>
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', font: '600 11px Helvetica,Arial,sans-serif', color: 'var(--ink-3)', margin: '0 0 4px' }}>BAŞARI ÖLÇÜTÜ</label>
+                      <input
+                        className="pcx-field-sm" value={a.successCriteria || ''} onChange={inp('actions', i, 'successCriteria')}
+                        placeholder="Ne olursa bu aksiyon başarılı sayılır? (ölçülebilir)"
+                        aria-label={(i + 1) + '. aksiyonun başarı ölçütü'} style={S.inputSm}
+                      />
+                    </div>
+                  </div>
+                  {String(a.rcIdx ?? '') === '' ? (
+                    <div style={{ font: '11.5px/1.5 Helvetica,Arial,sans-serif', color: 'var(--muted)' }}>
+                      Kök nedene bağlanmamış aksiyonlar izlenebilirlik denetiminde işaretlenir — bu aksiyon hangi kök nedeni gideriyor?
+                    </div>
+                  ) : null}
                 </div>
               );
             })}
@@ -456,7 +563,7 @@ export default function Step6Countermeasures() {
 
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           <AddButton
-            onClick={() => updC(cc => { cc.actions = cc.actions || []; cc.actions.push({ text: '', owner: '', due: '', etki: '', efor: '' }); })}
+            onClick={() => updC(cc => { cc.actions = cc.actions || []; cc.actions.push({ text: '', owner: '', due: '', startDate: '', dueDate: '', rcIdx: '', successCriteria: '', evidence: '', delayReason: '', etki: '', efor: '' }); })}
             style={{ flex: 1, minWidth: 160, width: 'auto' }}
           >+ Aksiyon ekle</AddButton>
           {(c.actions || []).length ? (
