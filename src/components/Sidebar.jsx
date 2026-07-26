@@ -69,7 +69,7 @@ export default function Sidebar({ onNavigate }) {
   return (
     <aside data-noprint="1" style={{ width: 288, flex: 'none', background: 'var(--surface)', borderRight: '1px solid var(--line-strong)', display: 'flex', flexDirection: 'column' }}>
       <div style={{ padding: '18px 18px 14px', borderBottom: '1px solid var(--line-3)', background: 'linear-gradient(180deg,var(--brand-grad) 0%,var(--surface) 100%)' }}>
-        <Logo sub="Rehberli problem çözme ve karar verme" />
+        <Logo sub="Problemi tanımlayın, kök nedeni doğrulayın, doğru kararı uygulayın." />
         <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', marginTop: 11 }}>
           {['8 adımlık akış', 'YZ destekli', 'Alan bağımsız'].map(t => (
             <span key={t} style={{ font: '600 10px Helvetica,Arial,sans-serif', color: 'var(--pri-soft-ink)', background: 'var(--pri-soft)', border: '1px solid var(--pri-border-5)', borderRadius: 20, padding: '3px 8px' }}>{t}</span>
