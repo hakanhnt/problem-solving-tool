@@ -6,8 +6,8 @@ import { HButton, Spinner, S } from '../ui/primitives.jsx';
 
 const SECTION_CHIPS = [
   { key: 'tanim', label: 'Problem tanımı' },
-  { key: 'driver', label: 'Driver haritası' },
-  { key: 'analiz', label: 'Driver analizi' },
+  { key: 'driver', label: 'İş sürücüsü haritası' },
+  { key: 'analiz', label: 'İş sürücüsü analizi' },
   { key: 'bulgu', label: 'Bulgular' },
   { key: 'kok', label: 'Kök neden' },
   { key: 'karar', label: 'Alternatifler + karar' },

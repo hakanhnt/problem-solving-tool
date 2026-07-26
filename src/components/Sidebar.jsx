@@ -110,19 +110,24 @@ export default function Sidebar({ onNavigate }) {
           const act = eff === k;
           return (
             <div key={k} style={{ display: 'flex', gap: 4, alignItems: 'center', borderRadius: 7, background: act ? 'var(--pri-soft)' : 'transparent', padding: '7px 6px 7px 10px' }}>
-              <div
+              <button
+                type="button"
                 onClick={() => selectCase(k)}
-                style={{ flex: 1, minWidth: 0, cursor: 'pointer', font: '600 12.5px/1.3 Helvetica,Arial,sans-serif', color: act ? 'var(--pri)' : 'var(--ink-3)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
-              >{state.cases[k].name || k}</div>
+                aria-current={act ? 'true' : undefined}
+                aria-label={'Çalışmayı aç: ' + (state.cases[k].name || k) + (act ? ' (açık)' : '')}
+                style={{ flex: 1, minWidth: 0, cursor: 'pointer', border: 'none', background: 'transparent', textAlign: 'left', padding: 0, font: '600 12.5px/1.3 Helvetica,Arial,sans-serif', color: act ? 'var(--pri)' : 'var(--ink-3)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+              >{state.cases[k].name || k}</button>
               {k !== 'ornek' ? (
                 <>
                   <HButton
                     onClick={() => renameCase(k)} title="Yeniden adlandır"
+                    aria-label={'"' + (state.cases[k].name || k) + '" çalışmasını yeniden adlandır'}
                     style={{ flex: 'none', width: 22, height: 22, border: 'none', borderRadius: 5, background: 'transparent', color: 'var(--muted-2)', font: '12px/1 Helvetica,Arial,sans-serif', cursor: 'pointer' }}
                     hover={{ background: 'var(--line-3)', color: 'var(--ink-3)' }}
                   >✎</HButton>
                   <HButton
                     onClick={() => deleteCase(k)} title="Çalışmayı sil"
+                    aria-label={'"' + (state.cases[k].name || k) + '" çalışmasını sil'}
                     style={{ flex: 'none', width: 22, height: 22, border: 'none', borderRadius: 5, background: 'transparent', color: 'var(--muted-2)', font: '700 13px/1 Helvetica,Arial,sans-serif', cursor: 'pointer' }}
                     hover={{ background: 'var(--alert-soft)', color: 'var(--danger)' }}
                   >×</HButton>

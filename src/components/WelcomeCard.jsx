@@ -7,7 +7,7 @@ import { HButton, HA } from '../ui/primitives.jsx';
 
 const PHASES = [
   { steps: '1', title: 'Tanımla', text: 'Ölçülmüş sapmayı, kapsamı ve KPI farkını yaz' },
-  { steps: '2–5', title: 'Analiz et', text: "Driver'lar → bulgular → 5 Neden ile kök neden" },
+  { steps: '2–5', title: 'Analiz et', text: "İş sürücüleri → bulgular → 5 Neden ile kök neden" },
   { steps: '6', title: 'Karar ver', text: 'Alternatif üret, kriterlerle yarıştır, gerekçeni yaz' },
   { steps: '7–8', title: 'İzle ve paylaş', text: 'Aksiyon, KPI trendi, retrospektif ve rapor' }
 ];

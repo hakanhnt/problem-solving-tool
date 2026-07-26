@@ -3,8 +3,8 @@ import { useStore, verMeta } from '../lib/store.jsx';
 import { Card, GuidanceBox, MethodBox, AddButton, RemoveButton, VerifyBadge, YZButton, S } from '../ui/primitives.jsx';
 
 const QUESTIONS = [
-  "O etkenin hangi alt bileşeni bozuk? Driver'ın hangi alt bileşeninde problem var?",
-  "Etkisi en büyük driver'ların alt bileşenlerinin hangisinde sorun var?",
+  "O etkenin hangi alt bileşeni bozuk? İş sürücüsünün hangi alt bileşeninde problem var?",
+  "Etkisi en büyük iş sürücülerinin alt bileşenlerinin hangisinde sorun var?",
   "Hangi KPI veya PI'larda, ya da SIPOC'a göre girdi kalitesinde bozukluk var?",
   'Analizi işin yapıldığı yerde, işi yapanlarla birlikte, süreç metriklerini kontrol ederek mi yapıyorum?'
 ];
@@ -29,8 +29,8 @@ export default function Step3Analysis() {
 
       <Card>
         <div style={{ ...S.cardTitle, margin: '0 0 4px' }}>Alt Bileşen Analizi</div>
-        <div style={S.cardSub}>Her driver için sorunlu alt bileşeni ve tespitinizi yazın.</div>
-        <MethodBox margin="0 0 14px">Driver Analysis — etkisi en büyük driver'ı alt bileşenlerine ayırın; her alt bileşende KPI/PI sapması olup olmadığını süreç metrikleriyle kontrol edin.</MethodBox>
+        <div style={S.cardSub}>Her iş sürücüsü için sorunlu alt bileşeni ve tespitinizi yazın.</div>
+        <MethodBox margin="0 0 14px">İş sürücüsü analizi (driver analysis) — etkisi en büyük iş sürücüsünü alt bileşenlerine ayırın; her alt bileşende KPI/PI sapması olup olmadığını süreç metrikleriyle kontrol edin.</MethodBox>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           {c.driverAnalysis.map((d, i) => {
             const vm = verMeta(d);

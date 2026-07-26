@@ -166,7 +166,7 @@ export default function ReportBody({ c, principles, sections, companyName, summa
 
         {drivers.length && on('driver') ? (
           <div>
-            <div style={secTitle}>2 · DRIVER HARİTASI</div>
+            <div style={secTitle}>2 · İŞ SÜRÜCÜSÜ HARİTASI</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               {drivers.map((d, i) => (
                 <div key={i} style={body}><strong>{d.name}</strong>{(d.note || '').trim() ? <span style={{ color: 'var(--ink-4)' }}> — {d.note}</span> : null}</div>
@@ -177,7 +177,7 @@ export default function ReportBody({ c, principles, sections, companyName, summa
 
         {da.length && on('analiz') ? (
           <div>
-            <div style={secTitle}>3 · DRIVER ANALİZİ</div>
+            <div style={secTitle}>3 · İŞ SÜRÜCÜSÜ ANALİZİ</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               {da.map((d, i) => (
                 <div key={i} style={body}>

@@ -106,12 +106,36 @@ export function YZButton({ onClick, title, small }) {
   );
 }
 
-/** Gri "Yöntem:" bilgilendirme kutusu. */
+/**
+ * Gri "Yöntem:" bilgilendirme kutusu — katlanabilir.
+ * Uzun formlarda yöntem açıklamaları varsayılan olarak kapalıdır; kullanıcı
+ * tercihi (açık/kapalı) tarayıcıda saklanır, böylece her adımda tekrar
+ * kapatmak gerekmez.
+ */
+const METHOD_PREF_KEY = 'pcx_method_open';
+
 export function MethodBox({ children, margin }) {
+  const [open, setOpen] = useState(() => {
+    try { return localStorage.getItem(METHOD_PREF_KEY) !== '0'; } catch (e) { return true; }
+  });
+  const toggle = () => setOpen(o => {
+    const v = !o;
+    try { localStorage.setItem(METHOD_PREF_KEY, v ? '1' : '0'); } catch (e) { /* yoksay */ }
+    return v;
+  });
   return (
-    <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start', background: 'var(--surface-3)', border: '1px solid var(--line-2)', borderRadius: 6, padding: '9px 11px', margin: margin || '0 0 12px' }}>
-      <div style={{ flex: 'none', width: 16, height: 16, borderRadius: '50%', background: 'var(--chip-neutral)', color: 'var(--ink-3)', font: '700 10px/16px Georgia,serif', textAlign: 'center' }}>i</div>
-      <div style={{ font: '12px/1.55 Helvetica,Arial,sans-serif', color: 'var(--ink-4)' }}><strong>Yöntem:</strong> {children}</div>
+    <div style={{ background: 'var(--surface-3)', border: '1px solid var(--line-2)', borderRadius: 6, padding: '7px 11px', margin: margin || '0 0 12px' }}>
+      <button
+        type="button" onClick={toggle} aria-expanded={open}
+        style={{ display: 'flex', gap: 8, alignItems: 'center', width: '100%', border: 'none', background: 'transparent', padding: 0, cursor: 'pointer', textAlign: 'left' }}
+      >
+        <span aria-hidden="true" style={{ flex: 'none', width: 16, height: 16, borderRadius: '50%', background: 'var(--chip-neutral)', color: 'var(--ink-3)', font: '700 10px/16px Georgia,serif', textAlign: 'center' }}>i</span>
+        <span style={{ flex: 1, font: '600 11.5px Helvetica,Arial,sans-serif', color: 'var(--ink-4)' }}>Yöntem açıklaması</span>
+        <span aria-hidden="true" style={{ flex: 'none', font: '10px Helvetica,Arial,sans-serif', color: 'var(--muted)' }}>{open ? '▲ gizle' : '▼ göster'}</span>
+      </button>
+      {open ? (
+        <div style={{ font: '12px/1.55 Helvetica,Arial,sans-serif', color: 'var(--ink-4)', padding: '6px 0 2px 24px' }}>{children}</div>
+      ) : null}
     </div>
   );
 }

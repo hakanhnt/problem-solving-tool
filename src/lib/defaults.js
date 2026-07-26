@@ -256,8 +256,8 @@ export const CASE_TEMPLATES = [
 
 export const STEPS = [
   { title: 'Problem Tanımı', sub: 'Statement + kapsam + KPI farkı', desc: '"Ne oldu?" sorusunun cevabını, sapmanın hangi kırılımda oluştuğunu ve ölçülmüş KPI farkını netleştirin. Çözüm ve neden bu adıma girmez.' },
-  { title: 'Business Driver Haritalama', sub: 'Ana etkenler ve süreçler', desc: 'Sonucu sürükleyen ana iş sürücülerini ve ilgili süreçleri haritalayın. İşi yapanlara sorun, mümkünse yerinde gözlem yapın.' },
-  { title: 'Driver Analizi', sub: 'Alt bileşenler + SIPOC', desc: "Etkisi en büyük driver'ların hangi alt bileşeninde sorun olduğunu, SIPOC analiziyle girdi kalitesini de kontrol ederek belirleyin." },
+  { title: 'İş Sürücüsü Haritalama', sub: 'Ana etkenler ve süreçler', desc: 'Sonucu sürükleyen ana iş sürücülerini (business driver) ve ilgili süreçleri haritalayın. İşi yapanlara sorun, mümkünse yerinde gözlem yapın.' },
+  { title: 'İş Sürücüsü Analizi', sub: 'Alt bileşenler + SIPOC', desc: 'Etkisi en büyük iş sürücülerinin hangi alt bileşeninde sorun olduğunu, SIPOC (tedarikçi-girdi-süreç-çıktı-müşteri) analiziyle girdi kalitesini de kontrol ederek belirleyin.' },
   { title: 'Problem Bulguları', sub: 'Veriye dayalı sapmalar', desc: 'Varsayımları bırakıp veriye dayalı, ölçülmüş ve doğrulanmış spesifik sapmaları (alt problemleri) ortaya koyun.' },
   { title: 'Kök Neden Analizi', sub: '5 Neden + kılçık + prensipler', desc: 'Sapmaların neden oluştuğunu 5 Neden ve balık kılçığı ile analiz edin; kök nedeni dışarıda değil önce kendi yetkinlik ve prensiplerimizdeki gelişim alanlarında arayın.' },
   { title: 'Karşı Önlemler ve Karar', sub: 'Alternatifler + karar matrisi', desc: 'Doğru düşünme yöntemleriyle alternatif çözümler üretin, karar kriterlerine göre yarıştırın ve akıl yürüterek en doğru çözümü önerin.' },
@@ -266,13 +266,13 @@ export const STEPS = [
 ];
 
 export const AGENT_TITLES = [
-  'Problem Tanımlama Koçu', 'Driver Haritalama Uzmanı', 'Süreç Analizi Uzmanı (SIPOC)', 'Bulgu Doğrulama Uzmanı',
+  'Problem Tanımlama Koçu', 'İş Sürücüsü Haritalama Uzmanı', 'Süreç Analizi Uzmanı (SIPOC)', 'Bulgu Doğrulama Uzmanı',
   'Kök Neden Analizi Koçu', 'Karar Analizi Uzmanı', 'İzleme ve Retrospektif Koçu', 'Rapor Editörü'
 ];
 
 export const AGENT_INTROS = [
   'Probleminiz hangi alanda olursa olsun (lojistik, pazarlama, teknoloji, operasyon, İK, finans…) ifadenizi birlikte netleştirelim: çözüm ya da neden içeriyor mu, ölçülebilir mi, kapsamı doğru mu — değerlendirmemi isteyin ya da soru sorun.',
-  'Driver haritanızı eksiksizlik (MECE) açısından değerlendirir, gözden kaçmış olabilecek etkenleri ve kime ne sormanız gerektiğini öneririm.',
+  'İş sürücüsü haritanızı eksiksizlik (MECE — birbirini dışlayan, bütünü kapsayan) açısından değerlendirir, gözden kaçmış olabilecek etkenleri ve kime ne sormanız gerektiğini öneririm.',
   'Alt bileşen ve SIPOC analizinizi inceler, hangi metriklere ve girdi kalitesine bakmanız gerektiğini öneririm.',
   'Bulgularınızın ölçülmüş ve kanıtlı olup olmadığını denetler, varsayım kalan yerleri işaretlerim.',
   '5 Neden zincirinizin tutarlılığını denetler, kök nedeni kurum prensipleri ve yetkinlik gelişim alanlarıyla eşleştirmenize yardım ederim.',
