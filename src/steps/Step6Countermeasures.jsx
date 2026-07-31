@@ -45,7 +45,7 @@ const QUESTIONS = [
 ];
 
 export default function Step6Countermeasures() {
-  const { c, updC, inp, fieldHelp, runDecisionCoach, runActionCoach, runPremortem, runContainmentCoach, applyContainment, removeC } = useStore();
+  const { c, updC, inp, fieldHelp, runDecisionCoach, runActionCoach, runPremortem, runContainmentCoach, applyContainment, runMatrixCoach, applyMatrixCoach, removeC } = useStore();
   const aiReady = (c.problem.statement || '').trim().length > 0;
   const M = decisionMatrix(c);
   const narrow = useNarrow();
@@ -57,6 +57,7 @@ export default function Step6Countermeasures() {
   const pm = c.premortem;
   const pmIdle = !pm || pm.status === 'idle' || pm.status === 'error';
   const coc = c.containmentCoach;
+  const mc = c.matrixCoach;
   const hasDecision = (c.decision.choice || '').trim().length > 0;
 
   return (
@@ -283,6 +284,92 @@ export default function Step6Countermeasures() {
             helpTitle="YZ'den puanlama için yardım al"
           />
           <MethodBox margin="0 0 14px">Ağırlıklı puanlama matrisi alternatifleri nesnel biçimde karşılaştırır; ama matris karar vermez, akıl yürütmenize girdi sağlar. Puanlar 1 (zayıf) – 5 (çok iyi); "düşük iyi" kriterlerde de en iyi seçenek 5 alır.</MethodBox>
+
+          {/* Rehberden puan önerileri — önizlenir, boş hücrelere ya da onayla tümüne aktarılır */}
+          {aiReady ? (
+            <div style={{ background: 'var(--pri-soft-2)', border: '1px solid var(--pri-border)', borderRadius: 8, padding: '12px 14px', margin: '0 0 14px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {!mc || mc.status === 'error' ? (
+                <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
+                  <div style={{ font: '12.5px/1.5 Helvetica,Arial,sans-serif', color: 'var(--pri-ink-2)', flex: 1, minWidth: 220 }}>
+                    Rehber; alternatiflerinize, kriter tanımlarınıza ve yönlerine göre her hücre için gerekçeli bir puan taslağı hazırlayabilir. Aktarımdan sonra tüm hücreler elle değiştirilebilir.
+                    {mc && mc.status === 'error' ? <span style={{ color: 'var(--alert)' }}> Öneri hazırlanamadı{mc.errMsg ? ' (' + mc.errMsg + ')' : ''} — tekrar deneyin.</span> : null}
+                  </div>
+                  <HButton onClick={runMatrixCoach} style={{ flex: 'none', padding: '8px 14px', border: '1px solid var(--pri)', borderRadius: 8, background: 'var(--pri)', color: 'var(--on-pri)', font: '600 12px Helvetica,Arial,sans-serif', cursor: 'pointer' }} hover={S.primaryHover}>Rehberden puan önerisi al</HButton>
+                </div>
+              ) : null}
+
+              {mc && mc.status === 'busy' ? (
+                <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                  <Spinner />
+                  <div style={{ font: '600 12.5px Helvetica,Arial,sans-serif', color: 'var(--pri-ink)' }}>Her hücre için gerekçeli puanlar hazırlanıyor…</div>
+                </div>
+              ) : null}
+
+              {mc && mc.status === 'done' ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  <div style={{ font: '700 10.5px Helvetica,Arial,sans-serif', color: 'var(--pri-soft-ink)', letterSpacing: '.8px' }}>REHBERİN PUAN TASLAĞI — hipotezdir, gerekçeleri sorgulayın</div>
+                  {mc.truncated ? <div style={{ font: '12px/1.5 Helvetica,Arial,sans-serif', color: 'var(--warn-ink)' }}>Yanıt uzunluk sınırına takıldı; tamamlanabilen hücreler gösteriliyor.</div> : null}
+                  {mc.giris ? <div style={{ font: '12.5px/1.6 Helvetica,Arial,sans-serif', color: 'var(--pri-ink-2)' }}>{mc.giris}</div> : null}
+                  <div style={{ overflowX: 'auto' }}>
+                    <table style={{ borderCollapse: 'collapse', background: 'var(--surface)', borderRadius: 6 }}>
+                      <thead>
+                        <tr>
+                          <th style={{ padding: '5px 9px', border: '1px solid var(--line)', font: '700 11px Helvetica,Arial,sans-serif', color: 'var(--pri-ink)', background: 'var(--pri-soft)', textAlign: 'left' }}>Alternatif</th>
+                          {M.head.map((h, i) => <th key={i} style={{ padding: '5px 9px', border: '1px solid var(--line)', font: '700 11px/1.35 Helvetica,Arial,sans-serif', color: 'var(--pri-ink)', background: 'var(--pri-soft)', textAlign: 'center' }}>{h.name}</th>)}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {c.alternatives.map((al, ai) => (
+                          <tr key={ai}>
+                            <td style={{ padding: '5px 9px', border: '1px solid var(--line)', font: '600 12px Helvetica,Arial,sans-serif', color: 'var(--ink)', whiteSpace: 'nowrap' }}>A{ai + 1}</td>
+                            {c.criteria.map((cr, ci) => {
+                              const cell = (mc.cells || []).find(x => x.ai === ai && x.ci === ci);
+                              return (
+                                <td key={ci} title={cell ? cell.gerekce : ''} style={{ padding: '5px 9px', border: '1px solid var(--line)', font: '700 13px Helvetica,Arial,sans-serif', color: cell ? 'var(--pri)' : 'var(--muted)', textAlign: 'center', cursor: cell && cell.gerekce ? 'help' : 'default' }}>
+                                  {cell ? cell.puan : '—'}
+                                </td>
+                              );
+                            })}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                  <details>
+                    <summary style={{ cursor: 'pointer', font: '600 11.5px Helvetica,Arial,sans-serif', color: 'var(--pri)' }}>Hücre gerekçeleri ({(mc.cells || []).length})</summary>
+                    <ul style={{ margin: '6px 0 0', padding: '0 0 0 18px', display: 'flex', flexDirection: 'column', gap: 3 }}>
+                      {(mc.cells || []).map((x, i) => (
+                        <li key={i} style={{ font: '12px/1.5 Helvetica,Arial,sans-serif', color: 'var(--ink-3)' }}>
+                          <strong>A{x.ai + 1} · {(M.head[x.ci] || {}).name || 'K' + (x.ci + 1)} → {x.puan}</strong>{x.gerekce ? ' — ' + x.gerekce : ''}
+                        </li>
+                      ))}
+                    </ul>
+                  </details>
+                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                    <HButton
+                      onClick={() => applyMatrixCoach('empty')}
+                      style={{ padding: '8px 14px', border: '1px solid var(--pri)', borderRadius: 8, background: 'var(--pri)', color: 'var(--on-pri)', font: '600 12px Helvetica,Arial,sans-serif', cursor: 'pointer' }}
+                      hover={S.primaryHover}
+                    >Boş hücrelere aktar</HButton>
+                    <HButton
+                      onClick={() => { if (confirm('Önerilen puanlar matristeki MEVCUT puanların üzerine yazılacak. Devam edilsin mi?')) applyMatrixCoach('all'); }}
+                      style={{ padding: '8px 14px', border: '1px solid var(--warn-border)', borderRadius: 8, background: 'var(--warn-soft)', color: 'var(--warn-ink)', font: '600 12px Helvetica,Arial,sans-serif', cursor: 'pointer' }}
+                      hover={{ background: 'var(--warn-soft-2)' }}
+                    >Tümünü değiştir</HButton>
+                    <HButton onClick={runMatrixCoach} style={{ padding: '8px 14px', border: '1px solid var(--pri-border)', borderRadius: 8, background: 'var(--surface)', color: 'var(--pri)', font: '600 12px Helvetica,Arial,sans-serif', cursor: 'pointer' }} hover={S.ghostHover}>Yeniden öner</HButton>
+                    <HButton onClick={() => updC(cc => { delete cc.matrixCoach; })} style={{ padding: '8px 14px', border: 'none', background: 'transparent', color: 'var(--muted)', font: '600 12px Helvetica,Arial,sans-serif', cursor: 'pointer' }} hover={{ color: 'var(--ink-3)' }}>Kapat</HButton>
+                  </div>
+                  {mc.applied ? <div style={{ font: '600 12px Helvetica,Arial,sans-serif', color: 'var(--ok-ink)' }}>✓ Aktarıldı — aşağıdaki matristen istediğiniz hücreyi elle değiştirebilirsiniz.</div> : null}
+                  {(mc.sorular || []).length ? (
+                    <ul style={{ margin: 0, padding: '0 0 0 18px', display: 'flex', flexDirection: 'column', gap: 4 }}>
+                      {mc.sorular.map((q, i) => <li key={i} style={{ font: '12px/1.5 Helvetica,Arial,sans-serif', color: 'var(--pri-ink-2)' }}>{q}</li>)}
+                    </ul>
+                  ) : null}
+                  <div style={{ font: '11px/1.5 Helvetica,Arial,sans-serif', color: 'var(--muted)' }}>Puanlar gerekçeleriyle birlikte bir taslaktır — matris karar vermez; gerekçesi zayıf hücreleri kendi verinizle düzeltin.</div>
+                </div>
+              ) : null}
+            </div>
+          ) : null}
           {!M.valid ? (
             <div role="alert" style={{ margin: '0 0 12px', font: '12.5px/1.6 Helvetica,Arial,sans-serif', color: 'var(--alert)', background: 'var(--alert-soft)', border: '1px solid var(--alert-border)', borderRadius: 8, padding: '9px 12px' }}>
               <strong>⚠ Puanlar geçersiz:</strong> Kriter ağırlıkları toplamı %{String(M.wsum).replace('.', ',')} — {M.wDelta > 0 ? String(M.wDelta).replace('.', ',') + ' puan eksik' : String(-M.wDelta).replace('.', ',') + ' puan fazla'}. Aşağıdaki toplamlar yalnızca ön izlemedir; karara dayanak yapmayın.

@@ -7,7 +7,7 @@ import {
   complete, buildSystem, buildCoachTask, coachItems, parseJsonReply,
   COACH_JSON_RULE, COACH_TEACH_TASK, COACH_FAST_SUFFIX, COACH_DEPTH_SUFFIX, ACTION_COACH_TASK,
   DECISION_COACH_TASK, AUDIT_TASK, BIAS_SCAN_TASK, PREMORTEM_TASK, REPORT_SUMMARY_TASK, REF_SUMMARY_SYSTEM,
-  SPEC_COACH_TASK, CONTAINMENT_COACH_TASK, buildHelpSystem, extractObjects
+  SPEC_COACH_TASK, CONTAINMENT_COACH_TASK, MATRIX_COACH_TASK, buildHelpSystem, extractObjects
 } from './ai.js';
 
 const Ctx = createContext(null);
@@ -459,6 +459,64 @@ export function StoreProvider({ children }) {
     })();
   }, [upd, effCase, callAi, systemFor]);
 
+  // Karar matrisi puan önerileri (Adım 6) — önizlenir; boş hücrelere ya da (onayla) tümüne aktarılır.
+  const runMatrixCoach = useCallback(() => {
+    const s0 = stateRef.current;
+    const eff = effCase(s0);
+    if (s0.cases[eff].matrixCoach && s0.cases[eff].matrixCoach.status === 'busy') return;
+    upd(n => { n.cases[eff].matrixCoach = { status: 'busy' }; });
+    (async () => {
+      let reply = '';
+      const clean = raw => {
+        const c = stateRef.current.cases[eff];
+        const nA = (c.alternatives || []).length, nK = (c.criteria || []).length;
+        return raw.map(x => ({
+          ai: parseInt(x.alternatif, 10) - 1, ci: parseInt(x.kriter, 10) - 1,
+          puan: Math.max(1, Math.min(5, Math.round(parseFloat(x.puan)))),
+          gerekce: String(x.gerekce || '')
+        })).filter(x => Number.isInteger(x.ai) && Number.isInteger(x.ci)
+          && x.ai >= 0 && x.ai < nA && x.ci >= 0 && x.ci < nK && isFinite(x.puan));
+      };
+      try {
+        const c = stateRef.current.cases[eff];
+        reply = await callAi({
+          max_tokens: 2400,
+          system: systemFor(6, c) + MATRIX_COACH_TASK,
+          messages: [{ role: 'user', content: 'Alternatiflerim ve kriterlerime göre matris puan önerilerini JSON olarak üret.' }]
+        });
+        const j = parseJsonReply(reply);
+        const cells = clean(Array.isArray(j.puanlar) ? j.puanlar : []);
+        upd(n => {
+          n.cases[eff].matrixCoach = {
+            status: 'done', giris: String(j.giris || ''), cells,
+            sorular: Array.isArray(j.sorular) ? j.sorular.map(String) : [], applied: false
+          };
+        });
+      } catch (e) {
+        const salvaged = clean(extractObjects(reply, 'puan'));
+        if (salvaged.length) {
+          upd(n => { n.cases[eff].matrixCoach = { status: 'done', giris: '', cells: salvaged, sorular: [], applied: false, truncated: true }; });
+        } else {
+          upd(n => { n.cases[eff].matrixCoach = { status: 'error', errMsg: String((e && e.message) || e) }; });
+        }
+      }
+    })();
+  }, [upd, effCase, callAi, systemFor]);
+
+  // mode 'empty': yalnız boş hücreler dolar; mode 'all': önerilen tüm hücreler yazılır (arayüz onay sorar).
+  const applyMatrixCoach = useCallback(mode => {
+    updC(cc => {
+      const mc = cc.matrixCoach;
+      if (!mc || mc.status !== 'done') return;
+      cc.scores = cc.scores || {};
+      (mc.cells || []).forEach(x => {
+        const key = x.ai + '_' + x.ci;
+        if (mode === 'all' || !String(cc.scores[key] ?? '').trim()) cc.scores[key] = String(x.puan);
+      });
+      mc.applied = true;
+    });
+  }, [updC]);
+
   // Geçici önlem adayları (Adım 6, 8D-D3) — üretir; seçilen aday yalnız boş alanlara aktarılır.
   const runContainmentCoach = useCallback(() => {
     const s0 = stateRef.current;
@@ -824,9 +882,9 @@ export function StoreProvider({ children }) {
     mainRef,
     upd, updC, setC, inp, goStep, toggleTheme, removeC, undoLast, canUndo,
     ensureCoach, runCoach, applyCoachItem, coachRefresh, coachMore,
-    runDecisionCoach, runActionCoach, runAudit, runBiasScan, runPremortem, runReportSummary, runSpecCoach, applySpecCoach, runContainmentCoach, applyContainment,
+    runDecisionCoach, runActionCoach, runAudit, runBiasScan, runPremortem, runReportSummary, runSpecCoach, applySpecCoach, runContainmentCoach, applyContainment, runMatrixCoach, applyMatrixCoach,
     askAi, askHelp, fieldHelp, addReference
-  }), [state, eff, upd, updC, setC, inp, goStep, toggleTheme, removeC, undoLast, canUndo, ensureCoach, runCoach, applyCoachItem, coachRefresh, coachMore, runDecisionCoach, runActionCoach, runAudit, runBiasScan, runPremortem, runReportSummary, runSpecCoach, applySpecCoach, runContainmentCoach, applyContainment, askAi, askHelp, fieldHelp, addReference]);
+  }), [state, eff, upd, updC, setC, inp, goStep, toggleTheme, removeC, undoLast, canUndo, ensureCoach, runCoach, applyCoachItem, coachRefresh, coachMore, runDecisionCoach, runActionCoach, runAudit, runBiasScan, runPremortem, runReportSummary, runSpecCoach, applySpecCoach, runContainmentCoach, applyContainment, runMatrixCoach, applyMatrixCoach, askAi, askHelp, fieldHelp, addReference]);
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
