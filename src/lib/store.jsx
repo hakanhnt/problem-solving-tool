@@ -327,6 +327,60 @@ export function StoreProvider({ children }) {
     });
   }, [updC]);
 
+  // "Daha fazla öneri": mevcut kartlar korunur, model öncekileri TEKRARLAMADAN
+  // yeni adaylar üretir ve liste sonuna eklenir.
+  const coachMore = useCallback(step => {
+    const s0 = stateRef.current;
+    const eff = effCase(s0);
+    const ck0 = s0.cases[eff].coach && s0.cases[eff].coach[step];
+    if (!ck0 || ck0.status !== 'done' || ck0.moreBusy) return;
+    upd(n => { const ck = n.cases[eff].coach[step]; ck.moreBusy = true; delete ck.moreErr; });
+    (async () => {
+      try {
+        const s = stateRef.current;
+        const c = s.cases[eff];
+        const prev = s.cases[eff].coach[step];
+        const level = (s.aiSettings || {}).level;
+        const task = level === 'ogreten'
+          ? COACH_TEACH_TASK
+          : buildCoachTask(step, principlesOf(s))
+            + (level === 'hizli' ? COACH_FAST_SUFFIX : '')
+            + (COACH_DEPTH_SUFFIX[(s.aiSettings || {}).depth] || '');
+        // Öncekilerin listesi — başlıklar + sorular; model bunların dışına çıkmalı.
+        const seen = (prev.items || []).map(it => it.title).concat(prev.questions || []).filter(Boolean);
+        const noRepeat = '\n\nEK TUR — DAHA FAZLA ÖNERİ: Bu görevi daha önce çalıştırdın ve şunları önerdin:\n'
+          + seen.map((t, i) => (i + 1) + '. ' + t).join('\n')
+          + '\nBunları ve yakın varyasyonlarını TEKRARLAMA. Aynı şemayla, öncekilerden belirgin biçimde FARKLI yeni adaylar üret: farklı açılar, gözden kaçmış alanlar, daha az bariz olasılıklar. Yeni aday bulamıyorsan listeyi kısa tut; kalite tekrar sayısından önemli.';
+        const reply = await callAi({
+          max_tokens: 4600,
+          system: systemFor(step, c) + COACH_JSON_RULE + task + noRepeat,
+          messages: [{ role: 'user', content: 'Önceki önerilerinden FARKLI, ek adaylar üret (JSON).' }]
+        });
+        const j = parseJsonReply(reply);
+        const fresh = coachItems(step, j, principlesOf(stateRef.current));
+        const seenKeys = new Set((prev.items || []).map(it => (it.title || '').trim().toLowerCase()));
+        const newItems = fresh.filter(it => !seenKeys.has((it.title || '').trim().toLowerCase()));
+        const seenQ = new Set((prev.questions || []).map(q => q.trim().toLowerCase()));
+        const newQ = (Array.isArray(j.sorular) ? j.sorular.map(String) : []).filter(q => !seenQ.has(q.trim().toLowerCase()));
+        upd(n => {
+          const ck = n.cases[eff].coach && n.cases[eff].coach[step];
+          if (!ck || ck.status !== 'done') return;   // kullanıcı bu arada sıfırladıysa dokunma
+          ck.items = ck.items.concat(newItems);
+          ck.questions = (ck.questions || []).concat(newQ);
+          ck.moreBusy = false;
+          ck.moreEmpty = newItems.length === 0 && newQ.length === 0;
+        });
+      } catch (e) {
+        upd(n => {
+          const ck = n.cases[eff].coach && n.cases[eff].coach[step];
+          if (!ck) return;
+          ck.moreBusy = false;
+          ck.moreErr = (e && e.message) ? String(e.message).slice(0, 200) : 'bilinmeyen hata';
+        });
+      }
+    })();
+  }, [upd, effCase, callAi, systemFor]);
+
   const coachRefresh = useCallback(step => {
     updC(cc => { if (cc.coach) delete cc.coach[step]; });
     setTimeout(() => ensureCoach(true), 60);
@@ -666,10 +720,10 @@ export function StoreProvider({ children }) {
     principles: principlesOf(state),
     mainRef,
     upd, updC, setC, inp, goStep, toggleTheme, removeC, undoLast, canUndo,
-    ensureCoach, runCoach, applyCoachItem, coachRefresh,
+    ensureCoach, runCoach, applyCoachItem, coachRefresh, coachMore,
     runDecisionCoach, runActionCoach, runAudit, runBiasScan, runPremortem, runReportSummary,
     askAi, askHelp, fieldHelp, addReference
-  }), [state, eff, upd, updC, setC, inp, goStep, toggleTheme, removeC, undoLast, canUndo, ensureCoach, runCoach, applyCoachItem, coachRefresh, runDecisionCoach, runActionCoach, runAudit, runBiasScan, runPremortem, runReportSummary, askAi, askHelp, fieldHelp, addReference]);
+  }), [state, eff, upd, updC, setC, inp, goStep, toggleTheme, removeC, undoLast, canUndo, ensureCoach, runCoach, applyCoachItem, coachRefresh, coachMore, runDecisionCoach, runActionCoach, runAudit, runBiasScan, runPremortem, runReportSummary, askAi, askHelp, fieldHelp, addReference]);
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

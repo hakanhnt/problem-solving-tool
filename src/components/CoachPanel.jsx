@@ -28,7 +28,7 @@ function inventedNumbers(text, c) {
 }
 
 export default function CoachPanel() {
-  const { c, step, upd, goStep, ensureCoach, coachRefresh, applyCoachItem } = useStore();
+  const { c, step, upd, goStep, ensureCoach, coachRefresh, coachMore, applyCoachItem } = useStore();
   const aiReady = (c.problem.statement || '').trim().length > 0;
   const [preview, setPreview] = React.useState(null);   // { idx, draft }
 
@@ -221,6 +221,25 @@ export default function CoachPanel() {
                 );
               })}
             </div>
+
+            {/* Ek tur: mevcut öneriler korunur, öncekilerden farklı yeni adaylar istenir */}
+            <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+              {ck.moreBusy ? (
+                <div style={{ display: 'flex', gap: 8, alignItems: 'center', font: '600 12px Helvetica,Arial,sans-serif', color: 'var(--pri)' }}>
+                  <Spinner size={14} border={2} />Öncekilerden farklı ek öneriler hazırlanıyor…
+                </div>
+              ) : (
+                <HButton
+                  onClick={() => coachMore(step)}
+                  title="Öncekilerden farklı ek öneriler istenir; mevcut öneriler silinmez"
+                  style={{ padding: '8px 14px', border: '1px dashed var(--pri)', borderRadius: 8, background: 'var(--surface)', color: 'var(--pri)', font: '600 12px Helvetica,Arial,sans-serif', cursor: 'pointer' }}
+                  hover={{ background: 'var(--pri-soft)' }}
+                >+ Daha fazla öneri</HButton>
+              )}
+              {ck.moreErr ? <span style={{ font: '12px Helvetica,Arial,sans-serif', color: 'var(--alert)' }}>Ek öneri alınamadı ({ck.moreErr}) — tekrar deneyin.</span> : null}
+              {ck.moreEmpty ? <span style={{ font: '12px Helvetica,Arial,sans-serif', color: 'var(--muted)' }}>Rehber öncekilerden farklı yeni aday bulamadı.</span> : null}
+            </div>
+
             {(ck.questions || []).length ? (
               <div style={{ background: 'var(--surface)', border: '1px solid var(--pri-border-4)', borderRadius: 8, padding: '12px 14px' }}>
                 <div style={{ font: '700 10.5px Helvetica,Arial,sans-serif', color: 'var(--pri-soft-ink)', letterSpacing: '.8px', margin: '0 0 8px' }}>DOĞRULAMAK İÇİN KENDİNİZE / PAYDAŞLARINIZA SORUN</div>
