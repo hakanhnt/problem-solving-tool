@@ -8,6 +8,7 @@ import CoachPanel from './components/CoachPanel.jsx';
 import StepHeader from './components/StepHeader.jsx';
 import AssistantChat from './components/AssistantChat.jsx';
 import SettingsModal from './components/SettingsModal.jsx';
+import HelpChat from './components/HelpChat.jsx';
 import Step1Problem from './steps/Step1Problem.jsx';
 import Step2Drivers from './steps/Step2Drivers.jsx';
 import Step3Analysis from './steps/Step3Analysis.jsx';
@@ -175,6 +176,7 @@ export default function App() {
         </div>
       ) : null}
 
+      <HelpChat />
       <SettingsModal />
     </div>
   );

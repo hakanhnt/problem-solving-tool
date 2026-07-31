@@ -2,11 +2,12 @@
 // Veri şeması prototiple aynıdır: localStorage anahtarı `pcx_workbook_v1`.
 
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
-import { STORAGE_KEY, blankCase, exampleCase, defaultPrinciples } from './defaults.js';
+import { STORAGE_KEY, STEPS, blankCase, exampleCase, defaultPrinciples } from './defaults.js';
 import {
   complete, buildSystem, buildCoachTask, coachItems, parseJsonReply,
   COACH_JSON_RULE, COACH_TEACH_TASK, COACH_FAST_SUFFIX, COACH_DEPTH_SUFFIX, ACTION_COACH_TASK,
-  DECISION_COACH_TASK, AUDIT_TASK, BIAS_SCAN_TASK, PREMORTEM_TASK, REPORT_SUMMARY_TASK, REF_SUMMARY_SYSTEM
+  DECISION_COACH_TASK, AUDIT_TASK, BIAS_SCAN_TASK, PREMORTEM_TASK, REPORT_SUMMARY_TASK, REF_SUMMARY_SYSTEM,
+  buildHelpSystem
 } from './ai.js';
 
 const Ctx = createContext(null);
@@ -28,6 +29,11 @@ function normalize(state) {
   s.saveError = '';
   if (typeof s.lastSaved !== 'string') s.lastSaved = '';
   if (typeof s.lastBackup !== 'string') s.lastBackup = '';
+  // Serbest sohbet (Yöntem Danışmanı): geçmiş kalıcıdır, açık/meşgul durumu değildir.
+  if (!Array.isArray(s.helpChat)) s.helpChat = [];
+  s.helpChat.forEach(m => { delete m.live; });
+  s.helpOpen = false;
+  s.helpBusy = false;
   s.reportCfg = Object.assign({ company: '', sections: {} }, s.reportCfg || {});
   s.reportCfg.sections = Object.assign({ tanim: true, driver: true, analiz: true, bulgu: true, kok: true, karar: true, izleme: true, dusunme: true, referans: true }, s.reportCfg.sections);
   s.aiSettings = Object.assign({
@@ -522,6 +528,55 @@ export function StoreProvider({ children }) {
     })();
   }, [upd, effCase, callAi, systemFor]);
 
+  // Serbest sohbet (Yöntem Danışmanı) — vaka verisinden bağımsız, uygulama geneli.
+  const askHelp = useCallback(prompt => {
+    const text = (prompt || '').trim();
+    const s0 = stateRef.current;
+    if (!text || s0.helpBusy) return;
+    upd(n => {
+      n.helpChat.push({ role: 'user', content: text });
+      // Geçmiş sınırsız büyümesin: son 40 mesaj kalsın (localStorage bütçesi).
+      if (n.helpChat.length > 40) n.helpChat.splice(0, n.helpChat.length - 40);
+      n.helpBusy = true;
+    });
+    (async () => {
+      try {
+        const s = stateRef.current;
+        const messages = s.helpChat.map(m => ({ role: m.role, content: m.content }));
+        let placed = false;
+        let lastTick = 0;
+        const writeLive = (content, done) => {
+          upd(n => {
+            if (!placed) { n.helpChat.push({ role: 'assistant', content, live: !done }); placed = true; }
+            else {
+              const last = n.helpChat[n.helpChat.length - 1];
+              last.content = content;
+              if (done) delete last.live; else last.live = true;
+            }
+            if (done) n.helpBusy = false;
+          });
+        };
+        const reply = await callAi({
+          max_tokens: 1800,
+          system: buildHelpSystem(s.step, STEPS.map(x => x.title)),
+          messages,
+          onDelta: t => {
+            const now = Date.now();
+            if (now - lastTick < 250 || !t.trim()) return;
+            lastTick = now;
+            writeLive(t, false);
+          }
+        });
+        writeLive(String(reply).trim(), true);
+      } catch (e) {
+        upd(n => {
+          n.helpChat.push({ role: 'assistant', content: 'Cevap alınamadı: ' + ((e && e.message) || e) });
+          n.helpBusy = false;
+        });
+      }
+    })();
+  }, [upd, callAi]);
+
   const fieldHelp = useCallback((label, value) => {
     const v = value && String(value).trim() ? '"' + value + '"' : '(henüz boş)';
     askAi('"' + label + '" alanı için yardım istiyorum. Mevcut içeriğim: ' + v + '. Bu alanı metodolojiye uygun doldurmam için: (1) ne yazmalıyım, nelere dikkat etmeliyim, (2) mevcut içerikte eksik ya da hatalı ne var, (3) örnek bir taslak öner.');
@@ -603,8 +658,8 @@ export function StoreProvider({ children }) {
     upd, updC, setC, inp, goStep, toggleTheme, removeC, undoLast, canUndo,
     ensureCoach, runCoach, applyCoachItem, coachRefresh,
     runDecisionCoach, runActionCoach, runAudit, runBiasScan, runPremortem, runReportSummary,
-    askAi, fieldHelp, addReference
-  }), [state, eff, upd, updC, setC, inp, goStep, toggleTheme, removeC, undoLast, canUndo, ensureCoach, runCoach, applyCoachItem, coachRefresh, runDecisionCoach, runActionCoach, runAudit, runBiasScan, runPremortem, runReportSummary, askAi, fieldHelp, addReference]);
+    askAi, askHelp, fieldHelp, addReference
+  }), [state, eff, upd, updC, setC, inp, goStep, toggleTheme, removeC, undoLast, canUndo, ensureCoach, runCoach, applyCoachItem, coachRefresh, runDecisionCoach, runActionCoach, runAudit, runBiasScan, runPremortem, runReportSummary, askAi, askHelp, fieldHelp, addReference]);
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
