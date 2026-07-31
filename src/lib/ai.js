@@ -360,6 +360,33 @@ export function parseJsonReply(reply) {
   }
 }
 
+/**
+ * Kesilmiş/bozuk bir yanıttan, verilen anahtarı içeren TAMAMLANMIŞ iç nesneleri kurtarır.
+ * Kullanım: uzun liste üreten görevlerde (pre-mortem senaryoları gibi) yanıt token
+ * bütçesine sığmayıp yarıda kesilirse dış JSON ayrıştırılamaz; ama ilk birkaç öğe
+ * bütün hâldedir — hepsini kaybetmek yerine onları kullanırız.
+ */
+export function extractObjects(reply, requiredKey) {
+  const s = stripThinking(reply).replace(/```(json)?/gi, '');
+  const out = [];
+  let i = 0;
+  while ((i = s.indexOf('{', i)) >= 0) {
+    const block = firstBalancedObject(s, i);
+    // Dış nesne kesik olsa da İÇİNDEKİ nesneler bütün olabilir — bir sonraki '{' denenir.
+    if (!block) { i += 1; continue; }
+    try {
+      const j = JSON.parse(block);
+      if (j && typeof j === 'object' && !Array.isArray(j) && (!requiredKey || j[requiredKey] !== undefined)) {
+        out.push(j);
+        i += block.length;                 // bulunanın içine tekrar girme
+        continue;
+      }
+    } catch (e) { /* bu blok bozuk — bir sonraki '{' denenir */ }
+    i += 1;
+  }
+  return out;
+}
+
 /** Vakanın referanslarını ~8.000 karakterlik bütçeyle sistem talimatına ekler. */
 export function buildRefBlock(c) {
   const refs = c.references || [];

@@ -7,7 +7,7 @@ import {
   complete, buildSystem, buildCoachTask, coachItems, parseJsonReply,
   COACH_JSON_RULE, COACH_TEACH_TASK, COACH_FAST_SUFFIX, COACH_DEPTH_SUFFIX, ACTION_COACH_TASK,
   DECISION_COACH_TASK, AUDIT_TASK, BIAS_SCAN_TASK, PREMORTEM_TASK, REPORT_SUMMARY_TASK, REF_SUMMARY_SYSTEM,
-  buildHelpSystem
+  buildHelpSystem, extractObjects
 } from './ai.js';
 
 const Ctx = createContext(null);
@@ -350,7 +350,7 @@ export function StoreProvider({ children }) {
         const j = parseJsonReply(reply);
         upd(n => { n.cases[eff].decisionCoach = { status: 'done', choice: String(j.oneri || ''), rationale: String(j.gerekce || '') }; });
       } catch (e) {
-        upd(n => { n.cases[eff].decisionCoach = { status: 'error', choice: '', rationale: '' }; });
+        upd(n => { n.cases[eff].decisionCoach = { status: 'error', choice: '', rationale: '', errMsg: String((e && e.message) || e) }; });
       }
     })();
   }, [upd, effCase, callAi, systemFor]);
@@ -375,7 +375,7 @@ export function StoreProvider({ children }) {
         })).filter(x => x.aksiyon);
         upd(n => { n.cases[eff].actionCoach = { status: 'done', items }; });
       } catch (e) {
-        upd(n => { n.cases[eff].actionCoach = { status: 'error', items: [] }; });
+        upd(n => { n.cases[eff].actionCoach = { status: 'error', items: [], errMsg: String((e && e.message) || e) }; });
       }
     })();
   }, [upd, effCase, callAi, systemFor]);
@@ -400,7 +400,7 @@ export function StoreProvider({ children }) {
         })).filter(x => x.yanilgi);
         upd(n => { n.cases[eff].biasScan = { status: 'done', ozet: String(j.ozet || ''), items }; });
       } catch (e) {
-        upd(n => { n.cases[eff].biasScan = { status: 'error', ozet: '', items: [] }; });
+        upd(n => { n.cases[eff].biasScan = { status: 'error', ozet: '', items: [], errMsg: String((e && e.message) || e) }; });
       }
     })();
   }, [upd, effCase, callAi, systemFor]);
@@ -411,21 +411,29 @@ export function StoreProvider({ children }) {
     if (s0.cases[eff].premortem && s0.cases[eff].premortem.status === 'busy') return;
     upd(n => { n.cases[eff].premortem = { status: 'busy', giris: '', items: [] }; });
     (async () => {
+      const mapItems = arr => (Array.isArray(arr) ? arr : []).map(x => ({
+        baslik: String(x.baslik || ''), hikaye: String(x.hikaye || ''),
+        sinyal: String(x.erkenSinyal || ''), onlem: String(x.onleyiciTedbir || ''), added: false
+      })).filter(x => x.baslik || x.hikaye);
+      let reply = '';
       try {
         const c = stateRef.current.cases[eff];
-        const reply = await callAi({
-          max_tokens: 2600,
+        // 4-5 uzun senaryo + düşünme payı: 2600'lük eski bütçe M3'te kesilmeye yol açıyordu.
+        reply = await callAi({
+          max_tokens: 3600,
           system: systemFor(6, c) + PREMORTEM_TASK,
           messages: [{ role: 'user', content: 'Kararım uygulandı ve 6 ay sonra başarısız oldu. Pre-mortem senaryolarını üret.' }]
         });
         const j = parseJsonReply(reply);
-        const items = (Array.isArray(j.senaryolar) ? j.senaryolar : []).map(x => ({
-          baslik: String(x.baslik || ''), hikaye: String(x.hikaye || ''),
-          sinyal: String(x.erkenSinyal || ''), onlem: String(x.onleyiciTedbir || ''), added: false
-        })).filter(x => x.baslik || x.hikaye);
-        upd(n => { n.cases[eff].premortem = { status: 'done', giris: String(j.giris || ''), items }; });
+        upd(n => { n.cases[eff].premortem = { status: 'done', giris: String(j.giris || ''), items: mapItems(j.senaryolar) }; });
       } catch (e) {
-        upd(n => { n.cases[eff].premortem = { status: 'error', giris: '', items: [] }; });
+        // Dış JSON kesildiyse bütün hâldeki senaryoları kurtar — hepsini kaybetme.
+        const salvaged = mapItems(extractObjects(reply, 'baslik'));
+        if (salvaged.length) {
+          upd(n => { n.cases[eff].premortem = { status: 'done', giris: '', items: salvaged, truncated: true }; });
+        } else {
+          upd(n => { n.cases[eff].premortem = { status: 'error', giris: '', items: [], errMsg: String((e && e.message) || e) }; });
+        }
       }
     })();
   }, [upd, effCase, callAi, systemFor]);
@@ -445,7 +453,7 @@ export function StoreProvider({ children }) {
         });
         upd(n => { n.cases[eff].audit = { status: 'done', text: String(reply || '').trim() }; });
       } catch (e) {
-        upd(n => { n.cases[eff].audit = { status: 'error', text: '' }; });
+        upd(n => { n.cases[eff].audit = { status: 'error', text: '', errMsg: String((e && e.message) || e) }; });
       }
     })();
   }, [upd, effCase, callAi, systemFor]);
@@ -466,7 +474,7 @@ export function StoreProvider({ children }) {
         });
         upd(n => { n.cases[eff].report = { status: 'done', text: String(reply || '').trim() }; });
       } catch (e) {
-        upd(n => { n.cases[eff].report = { status: 'error', text: '' }; });
+        upd(n => { n.cases[eff].report = { status: 'error', text: '', errMsg: String((e && e.message) || e) }; });
       }
     })();
   }, [upd, effCase, callAi, systemFor]);

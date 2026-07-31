@@ -2,7 +2,7 @@
 // Düşünce bloğu yanıt metnine sızarsa rehber kartları ve rapor üretimi bozulur.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { stripThinking, parseJsonReply, THINK_MODES } from '../src/lib/ai.js';
+import { stripThinking, parseJsonReply, extractObjects, THINK_MODES } from '../src/lib/ai.js';
 
 test('stripThinking: kapalı <think> bloğu temizlenir', () => {
   const s = '<think>Önce bulguları sayayım... 3 tane var.</think>{"giris":"x"}';
@@ -58,4 +58,31 @@ test('THINK_MODES: yalnızca sağlayıcının kabul ettiği değerler (M3: adapt
   assert.deepEqual(THINK_MODES, ['disabled', 'adaptive']);
   // 'enabled' sağlayıcıda 2013 hatası verir — listede asla yer almamalı.
   assert.ok(!THINK_MODES.includes('enabled'));
+});
+
+// ---- Kesilen yanıttan senaryo kurtarma (pre-mortem dayanıklılığı) ----
+
+test('extractObjects: kesilmiş dış JSON içinden bütün senaryolar kurtarılır', () => {
+  // Dış nesne kapanmadan yanıt kesildi; ilk iki senaryo bütün, üçüncüsü yarım.
+  const reply = '{"giris":"6 ay sonrası...","senaryolar":['
+    + '{"baslik":"Checklist unutuldu","hikaye":"Kimse kullanmadı.","erkenSinyal":"Uyum %60 altı","onleyiciTedbir":"Haftalık ölçüm"},'
+    + '{"baslik":"Toplantı söndü","hikaye":"İptal edile edile kalktı.","erkenSinyal":"2 iptal üst üste","onleyiciTedbir":"Takvime sabitle"},'
+    + '{"baslik":"Yarım kalan sen';
+  const objs = extractObjects(reply, 'baslik');
+  assert.equal(objs.length, 2);
+  assert.equal(objs[0].baslik, 'Checklist unutuldu');
+  assert.equal(objs[1].onleyiciTedbir, 'Takvime sabitle');
+});
+
+test('extractObjects: düşünce bloğu içindeki sahte nesneler anahtar filtresine takılır', () => {
+  const reply = '<think>şema {"x":1} olsun</think>{"senaryolar":[{"baslik":"A","hikaye":"h"}]}';
+  const objs = extractObjects(reply, 'baslik');
+  assert.equal(objs.length, 1);
+  assert.equal(objs[0].baslik, 'A');
+});
+
+test('extractObjects: hiç bütün nesne yoksa boş dizi (çökmez)', () => {
+  assert.deepEqual(extractObjects('{"baslik":"yarim', 'baslik'), []);
+  assert.deepEqual(extractObjects('', 'baslik'), []);
+  assert.deepEqual(extractObjects('düz metin', 'baslik'), []);
 });

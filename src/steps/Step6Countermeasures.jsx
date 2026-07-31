@@ -304,7 +304,7 @@ export default function Step6Countermeasures() {
             <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
               <div style={{ font: '12.5px/1.5 Helvetica,Arial,sans-serif', color: 'var(--pri-ink-2)', flex: 1, minWidth: 220 }}>
                 Rehber; alternatiflerinize, kriterlerinize ve matris puanlarınıza bakarak size bir karar önerisi hazırlayabilir.
-                {dc && dc.status === 'error' ? <span style={{ color: 'var(--alert)' }}> Öneri hazırlanırken hata oluştu, tekrar deneyin.</span> : null}
+                {dc && dc.status === 'error' ? <span style={{ color: 'var(--alert)' }}> Öneri hazırlanamadı{dc.errMsg ? ' (' + dc.errMsg + ')' : ''} — tekrar deneyin.</span> : null}
               </div>
               <HButton onClick={runDecisionCoach} style={{ flex: 'none', ...S.ghostBtn, border: '1px solid var(--pri)', background: 'var(--pri)', color: 'var(--on-pri)' }} hover={S.primaryHover}>Rehberden karar önerisi al</HButton>
             </div>
@@ -363,7 +363,7 @@ export default function Step6Countermeasures() {
               <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
                 <div style={{ font: '12.5px/1.5 Helvetica,Arial,sans-serif', color: 'var(--pri-ink-2)', flex: 1, minWidth: 220 }}>
                   Rehber; kararınız, aksiyonlarınız ve kök nedenlerinize bakarak 4-5 olası başarısızlık senaryosu, erken uyarı sinyalleri ve önleyici tedbirler üretir.
-                  {pm && pm.status === 'error' ? <span style={{ color: 'var(--alert)' }}> Senaryolar üretilemedi, tekrar deneyin.</span> : null}
+                  {pm && pm.status === 'error' ? <span style={{ color: 'var(--alert)' }}> Senaryolar üretilemedi{pm.errMsg ? ' (' + pm.errMsg + ')' : ''} — tekrar deneyin.</span> : null}
                 </div>
                 <HButton
                   onClick={runPremortem}
@@ -382,6 +382,11 @@ export default function Step6Countermeasures() {
 
             {pm && pm.status === 'done' ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {pm.truncated ? (
+                  <div style={{ font: '12px/1.5 Helvetica,Arial,sans-serif', color: 'var(--warn-ink)', background: 'var(--warn-soft)', border: '1px solid var(--warn-border)', borderRadius: 6, padding: '7px 10px' }}>
+                    Yanıt uzunluk sınırına takıldı; tamamlanabilen {pm.items.length} senaryo gösteriliyor. Daha fazlası için "Yeniden çalıştır"a basın ya da Ayarlar'dan analiz derinliğini artırın.
+                  </div>
+                ) : null}
                 {pm.giris ? <div style={{ font: '12.5px/1.6 Helvetica,Arial,sans-serif', color: 'var(--pri-ink-2)' }}>{pm.giris}</div> : null}
                 {(pm.items || []).map((it, i) => (
                   <div key={i} style={{ background: 'var(--surface)', border: '1px solid var(--pri-border-4)', borderRadius: 8, padding: '11px 13px' }}>
@@ -435,7 +440,7 @@ export default function Step6Countermeasures() {
             <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
               <div style={{ font: '12.5px/1.5 Helvetica,Arial,sans-serif', color: 'var(--pri-ink-2)', flex: 1, minWidth: 220 }}>
                 Rehber; kararınıza, kök nedenlerinize ve bulgularınıza bakarak önceliklendirilmiş aksiyonlar önerebilir.
-                {ac && ac.status === 'error' ? <span style={{ color: 'var(--alert)' }}> Öneri hazırlanırken hata oluştu, tekrar deneyin.</span> : null}
+                {ac && ac.status === 'error' ? <span style={{ color: 'var(--alert)' }}> Öneri hazırlanamadı{ac.errMsg ? ' (' + ac.errMsg + ')' : ''} — tekrar deneyin.</span> : null}
               </div>
               <HButton onClick={runActionCoach} style={{ flex: 'none', padding: '8px 14px', border: '1px solid var(--pri)', borderRadius: 8, background: 'var(--pri)', color: 'var(--on-pri)', font: '600 12px Helvetica,Arial,sans-serif', cursor: 'pointer' }} hover={S.primaryHover}>Rehberden aksiyon önerisi al</HButton>
             </div>

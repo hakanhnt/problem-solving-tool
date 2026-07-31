@@ -78,7 +78,7 @@ export default function Step8Report() {
           </div>
         ) : null}
         {report && report.status === 'error' ? (
-          <div style={{ font: '12px Helvetica,Arial,sans-serif', color: 'var(--alert)' }}>Özet oluşturulamadı — tekrar deneyin.</div>
+          <div style={{ font: '12px Helvetica,Arial,sans-serif', color: 'var(--alert)' }}>Özet oluşturulamadı{report && report.errMsg ? ' (' + report.errMsg + ')' : ''} — tekrar deneyin.</div>
         ) : null}
 
         {auditIdle ? (
@@ -95,7 +95,7 @@ export default function Step8Report() {
           </div>
         ) : null}
         {audit && audit.status === 'error' ? (
-          <div style={{ font: '12px Helvetica,Arial,sans-serif', color: 'var(--alert)' }}>Denetim yapılamadı — tekrar deneyin.</div>
+          <div style={{ font: '12px Helvetica,Arial,sans-serif', color: 'var(--alert)' }}>Denetim yapılamadı{audit && audit.errMsg ? ' (' + audit.errMsg + ')' : ''} — tekrar deneyin.</div>
         ) : null}
       </div>
 
