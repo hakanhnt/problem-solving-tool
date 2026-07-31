@@ -45,7 +45,7 @@ const QUESTIONS = [
 ];
 
 export default function Step6Countermeasures() {
-  const { c, updC, inp, fieldHelp, runDecisionCoach, runActionCoach, runPremortem, removeC } = useStore();
+  const { c, updC, inp, fieldHelp, runDecisionCoach, runActionCoach, runPremortem, runContainmentCoach, applyContainment, removeC } = useStore();
   const aiReady = (c.problem.statement || '').trim().length > 0;
   const M = decisionMatrix(c);
   const narrow = useNarrow();
@@ -56,6 +56,7 @@ export default function Step6Countermeasures() {
   const acIdle = !ac || ac.status === 'idle' || ac.status === 'error';
   const pm = c.premortem;
   const pmIdle = !pm || pm.status === 'idle' || pm.status === 'error';
+  const coc = c.containmentCoach;
   const hasDecision = (c.decision.choice || '').trim().length > 0;
 
   return (
@@ -72,6 +73,68 @@ export default function Step6Countermeasures() {
           helpTitle="YZ'den geçici önlem için yardım al"
         />
         <MethodBox>8D metodolojisinin D3 disiplini — geçici önlem 24-48 saat içinde devrede olmalıdır. <strong>Geçici önlem problemi çözmez, çözüm için zaman kazandırır:</strong> kalıcı çözüm doğrulanınca kaldırılır. Karar asla geçici önlemin kendisi olamaz.</MethodBox>
+
+        {/* Rehberden geçici önlem adayları — seçilen aday yalnız boş alanlara aktarılır */}
+        {aiReady ? (
+          <div style={{ background: 'var(--pri-soft-2)', border: '1px solid var(--pri-border)', borderRadius: 8, padding: '12px 14px', margin: '0 0 14px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {!coc || coc.status === 'error' ? (
+              <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
+                <div style={{ font: '12.5px/1.5 Helvetica,Arial,sans-serif', color: 'var(--pri-ink-2)', flex: 1, minWidth: 220 }}>
+                  Rehber; probleminize ve bulgularınıza bakarak farklı türlerde 2-3 geçici önlem adayı önerebilir — her biri sorumlu rol ve kaldırma koşuluyla.
+                  {coc && coc.status === 'error' ? <span style={{ color: 'var(--alert)' }}> Öneri hazırlanamadı{coc.errMsg ? ' (' + coc.errMsg + ')' : ''} — tekrar deneyin.</span> : null}
+                </div>
+                <HButton onClick={runContainmentCoach} style={{ flex: 'none', padding: '8px 14px', border: '1px solid var(--pri)', borderRadius: 8, background: 'var(--pri)', color: 'var(--on-pri)', font: '600 12px Helvetica,Arial,sans-serif', cursor: 'pointer' }} hover={S.primaryHover}>Rehberden geçici önlem önerisi al</HButton>
+              </div>
+            ) : null}
+
+            {coc && coc.status === 'busy' ? (
+              <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                <Spinner />
+                <div style={{ font: '600 12.5px Helvetica,Arial,sans-serif', color: 'var(--pri-ink)' }}>Geçici önlem adayları hazırlanıyor…</div>
+              </div>
+            ) : null}
+
+            {coc && coc.status === 'done' ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                <div style={{ font: '700 10.5px Helvetica,Arial,sans-serif', color: 'var(--pri-soft-ink)', letterSpacing: '.8px' }}>GEÇİCİ ÖNLEM ADAYLARI — hipotezdir, uygulanabilirliğini doğrulayın</div>
+                {coc.truncated ? <div style={{ font: '12px/1.5 Helvetica,Arial,sans-serif', color: 'var(--warn-ink)' }}>Yanıt uzunluk sınırına takıldı; tamamlanabilen adaylar gösteriliyor.</div> : null}
+                {coc.giris ? <div style={{ font: '12.5px/1.6 Helvetica,Arial,sans-serif', color: 'var(--pri-ink-2)' }}>{coc.giris}</div> : null}
+                {(coc.items || []).map((it, i) => (
+                  <div key={i} style={{ display: 'flex', gap: 12, alignItems: 'flex-start', background: 'var(--surface)', border: '1px solid var(--pri-border-4)', borderRadius: 8, padding: '11px 13px' }}>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ font: '600 13px/1.5 Helvetica,Arial,sans-serif', color: 'var(--ink)' }}>{it.onlem}</div>
+                      <div style={{ font: '12px/1.5 Helvetica,Arial,sans-serif', color: 'var(--ink-4)', marginTop: 4 }}>
+                        {[it.rol ? 'Sorumlu: ' + it.rol : '', it.kosul ? 'Kaldırma koşulu: ' + it.kosul : ''].filter(Boolean).join(' · ')}
+                      </div>
+                      {it.dikkat ? <div style={{ font: '12px/1.5 Helvetica,Arial,sans-serif', color: 'var(--warn-ink)', marginTop: 3 }}>Dikkat: {it.dikkat}</div> : null}
+                    </div>
+                    <button
+                      onClick={() => applyContainment(i)}
+                      disabled={it.applied}
+                      style={{
+                        flex: 'none',
+                        border: '1px solid ' + (it.applied ? 'var(--ok-border)' : 'var(--pri)'),
+                        background: it.applied ? 'var(--ok-soft)' : 'var(--pri)',
+                        color: it.applied ? 'var(--ok)' : 'var(--on-pri)',
+                        borderRadius: 6, padding: '7px 12px', font: '600 12px Helvetica,Arial,sans-serif', cursor: it.applied ? 'default' : 'pointer'
+                      }}
+                    >{it.applied ? 'Aktarıldı ✓' : 'Boş alanlara aktar'}</button>
+                  </div>
+                ))}
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                  <HButton onClick={runContainmentCoach} style={{ padding: '7px 12px', border: '1px solid var(--pri-border)', borderRadius: 7, background: 'var(--surface)', color: 'var(--pri)', font: '600 11.5px Helvetica,Arial,sans-serif', cursor: 'pointer' }} hover={S.ghostHover}>Yeniden öner</HButton>
+                  <HButton onClick={() => updC(cc => { delete cc.containmentCoach; })} style={{ padding: '7px 12px', border: 'none', background: 'transparent', color: 'var(--muted)', font: '600 11.5px Helvetica,Arial,sans-serif', cursor: 'pointer' }} hover={{ color: 'var(--ink-3)' }}>Kapat</HButton>
+                </div>
+                {(coc.sorular || []).length ? (
+                  <ul style={{ margin: 0, padding: '0 0 0 18px', display: 'flex', flexDirection: 'column', gap: 4 }}>
+                    {coc.sorular.map((q, i) => <li key={i} style={{ font: '12px/1.5 Helvetica,Arial,sans-serif', color: 'var(--pri-ink-2)' }}>{q}</li>)}
+                  </ul>
+                ) : null}
+                <div style={{ font: '11px/1.5 Helvetica,Arial,sans-serif', color: 'var(--muted)' }}>Aktarım yalnız boş alanlara yapılır — yazdıklarınız ezilmez. Geçici önlem kök nedeni çözmez; kaldırma koşulunu Adım 7'de takip edin.</div>
+              </div>
+            ) : null}
+          </div>
+        ) : null}
         <textarea
           className="pcx-field" value={c.containment.action} onChange={inp('containment', 'action')}
           placeholder="Örn. şüpheli parti karantinaya alındı; kritik siparişlerde ek kontrol; kısmi hava kargo; manuel doğrulama adımı…"

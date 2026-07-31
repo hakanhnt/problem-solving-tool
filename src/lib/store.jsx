@@ -7,7 +7,7 @@ import {
   complete, buildSystem, buildCoachTask, coachItems, parseJsonReply,
   COACH_JSON_RULE, COACH_TEACH_TASK, COACH_FAST_SUFFIX, COACH_DEPTH_SUFFIX, ACTION_COACH_TASK,
   DECISION_COACH_TASK, AUDIT_TASK, BIAS_SCAN_TASK, PREMORTEM_TASK, REPORT_SUMMARY_TASK, REF_SUMMARY_SYSTEM,
-  SPEC_COACH_TASK, buildHelpSystem, extractObjects
+  SPEC_COACH_TASK, CONTAINMENT_COACH_TASK, buildHelpSystem, extractObjects
 } from './ai.js';
 
 const Ctx = createContext(null);
@@ -459,6 +459,61 @@ export function StoreProvider({ children }) {
     })();
   }, [upd, effCase, callAi, systemFor]);
 
+  // Geçici önlem adayları (Adım 6, 8D-D3) — üretir; seçilen aday yalnız boş alanlara aktarılır.
+  const runContainmentCoach = useCallback(() => {
+    const s0 = stateRef.current;
+    const eff = effCase(s0);
+    if (s0.cases[eff].containmentCoach && s0.cases[eff].containmentCoach.status === 'busy') return;
+    upd(n => { n.cases[eff].containmentCoach = { status: 'busy' }; });
+    (async () => {
+      let reply = '';
+      try {
+        const c = stateRef.current.cases[eff];
+        reply = await callAi({
+          max_tokens: 1600,
+          system: systemFor(6, c) + CONTAINMENT_COACH_TASK,
+          messages: [{ role: 'user', content: 'Problemime göre geçici önlem adaylarını JSON olarak üret.' }]
+        });
+        const j = parseJsonReply(reply);
+        const items = (Array.isArray(j.onlemler) ? j.onlemler : []).map(x => ({
+          onlem: String(x.onlem || ''), rol: String(x.sorumluRol || ''),
+          kosul: String(x.kaldirmaKosulu || ''), dikkat: String(x.dikkat || ''), applied: false
+        })).filter(x => x.onlem);
+        upd(n => {
+          n.cases[eff].containmentCoach = {
+            status: 'done', giris: String(j.giris || ''), items,
+            sorular: Array.isArray(j.sorular) ? j.sorular.map(String) : []
+          };
+        });
+      } catch (e) {
+        // Kesik yanıttan bütün adayları kurtar
+        const salvaged = extractObjects(reply, 'onlem').map(x => ({
+          onlem: String(x.onlem || ''), rol: String(x.sorumluRol || ''),
+          kosul: String(x.kaldirmaKosulu || ''), dikkat: String(x.dikkat || ''), applied: false
+        })).filter(x => x.onlem);
+        if (salvaged.length) {
+          upd(n => { n.cases[eff].containmentCoach = { status: 'done', giris: '', items: salvaged, sorular: [], truncated: true }; });
+        } else {
+          upd(n => { n.cases[eff].containmentCoach = { status: 'error', errMsg: String((e && e.message) || e) }; });
+        }
+      }
+    })();
+  }, [upd, effCase, callAi, systemFor]);
+
+  // Seçilen adayı YALNIZ boş alanlara aktarır — kullanıcının yazdıkları ezilmez.
+  const applyContainment = useCallback(idx => {
+    updC(cc => {
+      const sc = cc.containmentCoach;
+      const it = sc && sc.items && sc.items[idx];
+      if (!it) return;
+      cc.containment = cc.containment || { action: '', owner: '', until: '', removed: false };
+      if (!(cc.containment.action || '').trim() && it.onlem) cc.containment.action = it.onlem;
+      if (!(cc.containment.owner || '').trim() && it.rol) cc.containment.owner = it.rol;
+      if (!(cc.containment.until || '').trim() && it.kosul) cc.containment.until = it.kosul;
+      it.applied = true;
+    });
+  }, [updC]);
+
   // VAR/YOK belirtim taslağı (Adım 1) — üretir; kullanıcı yalnız boş alanlara aktarır.
   const runSpecCoach = useCallback(() => {
     const s0 = stateRef.current;
@@ -769,9 +824,9 @@ export function StoreProvider({ children }) {
     mainRef,
     upd, updC, setC, inp, goStep, toggleTheme, removeC, undoLast, canUndo,
     ensureCoach, runCoach, applyCoachItem, coachRefresh, coachMore,
-    runDecisionCoach, runActionCoach, runAudit, runBiasScan, runPremortem, runReportSummary, runSpecCoach, applySpecCoach,
+    runDecisionCoach, runActionCoach, runAudit, runBiasScan, runPremortem, runReportSummary, runSpecCoach, applySpecCoach, runContainmentCoach, applyContainment,
     askAi, askHelp, fieldHelp, addReference
-  }), [state, eff, upd, updC, setC, inp, goStep, toggleTheme, removeC, undoLast, canUndo, ensureCoach, runCoach, applyCoachItem, coachRefresh, coachMore, runDecisionCoach, runActionCoach, runAudit, runBiasScan, runPremortem, runReportSummary, runSpecCoach, applySpecCoach, askAi, askHelp, fieldHelp, addReference]);
+  }), [state, eff, upd, updC, setC, inp, goStep, toggleTheme, removeC, undoLast, canUndo, ensureCoach, runCoach, applyCoachItem, coachRefresh, coachMore, runDecisionCoach, runActionCoach, runAudit, runBiasScan, runPremortem, runReportSummary, runSpecCoach, applySpecCoach, runContainmentCoach, applyContainment, askAi, askHelp, fieldHelp, addReference]);
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
