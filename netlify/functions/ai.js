@@ -43,8 +43,11 @@ export const handler = async (event) => {
     // OpenAI uyumlu uç — M serisi ve thinking burada desteklenir; eski uç yalnız
     // MINIMAX_BASE_URL ile seçilirse kullanılır ve thinking parametresi gönderilmez.
     const upstreamUrl = process.env.MINIMAX_BASE_URL || 'https://api.minimax.io/v1/chat/completions';
-    const think = typeof body.thinking === 'string' ? body.thinking.trim() : '';
-    if (!upstreamUrl.includes('chatcompletion_v2') && (think === 'enabled' || think === 'adaptive' || think === 'disabled')) {
+    // Eski önbellekli istemciler 'enabled' gönderebilir; sağlayıcı yalnız
+    // adaptive|disabled kabul eder (2013 hatası) — adaptive'e eşlenir.
+    const rawThink = typeof body.thinking === 'string' ? body.thinking.trim() : '';
+    const think = rawThink === 'enabled' ? 'adaptive' : rawThink;
+    if (!upstreamUrl.includes('chatcompletion_v2') && (think === 'adaptive' || think === 'disabled')) {
       payload.thinking = { type: think };
       if (think !== 'disabled') payload.reasoning_split = true;
     }

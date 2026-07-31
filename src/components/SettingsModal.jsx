@@ -40,13 +40,12 @@ const LEVELS = [
 // Düşünme (reasoning) modu — MiniMax M3 ailesinin "thinking" parametresine karşılık gelir.
 const THINKS = [
   { key: 'disabled', label: 'Kapalı', hint: 'En hızlı ve en ucuz; kısa görevler için' },
-  { key: 'adaptive', label: 'Uyarlanabilir', hint: 'Model gerektiğinde düşünür — önerilen' },
-  { key: 'enabled', label: 'Yüksek', hint: 'Her yanıt öncesi akıl yürütür; en kaliteli, en pahalı' }
+  { key: 'adaptive', label: 'Açık (uyarlanabilir)', hint: 'Model gerektiğinde akıl yürütür — M3\'ün desteklediği en yüksek kademe' }
 ];
 
 // Bütçe göstergesinde kullanılan çarpanlar (store.jsx ile aynı).
 const DEPTH_LABEL = { standart: 1, genis: 1.6, derin: 2.5 };
-const THINK_LABEL = { disabled: 1, adaptive: 1.8, enabled: 2.4 };
+const THINK_LABEL = { disabled: 1, adaptive: 1.8 };
 
 const DEPTHS = [
   { key: 'standart', label: 'Standart', hint: 'Hızlı; şemadaki aday sayısı kadar' },

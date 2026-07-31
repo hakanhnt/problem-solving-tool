@@ -165,14 +165,14 @@ Kenar çubuğundaki **⚙ Ayarlar** panelinden:
   **analiz derinliği**, **yaratıcılık** (temperature) ve `top_p`.
 
   **Düşünme eforu (reasoning)** düşünen modellerde — MiniMax M3 ve benzerleri — modelin
-  cevaptan önce ne kadar akıl yürüteceğini belirler; sağlayıcıya `thinking: {type: …}` olarak
-  gider. `Kapalı` (disabled) en hızlı ve ucuz; `Uyarlanabilir` (adaptive, varsayılan) modelin
-  kendi kararına bırakır; `Yüksek` (enabled) her yanıt öncesi akıl yürütür. Desteklemeyen
-  modeller alanı yok sayar.
+  cevaptan önce akıl yürütüp yürütmeyeceğini belirler; sağlayıcıya `thinking: {type: …}`
+  olarak gider. M3 yalnızca iki değer kabul eder: `Kapalı` (disabled) en hızlı ve ucuz;
+  `Açık` (adaptive, varsayılan) modelin gerektiğinde akıl yürütmesine izin verir.
+  Desteklemeyen modeller alanı yok sayar; eski uçta (chatcompletion_v2) hiç gönderilmez.
 
   Düşünme tokenları da bütçeden harcandığı için etkin bütçe iki çarpanın çarpımıdır:
-  derinlik (standart ×1 · geniş ×1,6 · derin ×2,5) × düşünme (kapalı ×1 · uyarlanabilir ×1,8 ·
-  yüksek ×2,4), üst sınır 60.000 token. Ayarlar ekranı seçime göre etkin bütçeyi gösterir.
+  derinlik (standart ×1 · geniş ×1,6 · derin ×2,5) × düşünme (kapalı ×1 · açık ×1,8),
+  üst sınır 60.000 token. Ayarlar ekranı seçime göre etkin bütçeyi gösterir.
 
   > Düşünen modeller düşünceyi ya ayrı bir alanda (`reasoning_content`) ya da yanıtın içine
   > `<think>…</think>` olarak gömerek döndürür. Uygulama isteğe `reasoning_split: true` ekler,

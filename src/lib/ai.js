@@ -28,8 +28,11 @@ const PROVIDER_LABELS = {
   anthropic: 'Ayarlar\'da "Anthropic" sağlayıcısı seçili ama API anahtarı girilmemiş — anahtarı girin ya da "Otomatik" moda dönün'
 };
 
-/** Geçerli düşünme (reasoning) modları — MiniMax M3 ailesi destekler. */
-export const THINK_MODES = ['disabled', 'adaptive', 'enabled'];
+/**
+ * Geçerli düşünme (reasoning) modları — MiniMax M3 yalnızca bu ikisini kabul eder
+ * (thinking.type: adaptive | disabled; "enabled" sağlayıcıda 2013 hatası verir).
+ */
+export const THINK_MODES = ['disabled', 'adaptive'];
 
 /** Ayarlardaki üretim parametrelerini (sıcaklık / top_p / düşünme) istek gövdesine çevirir. */
 function genParams(S) {
@@ -38,7 +41,9 @@ function genParams(S) {
   const p = parseFloat(S.topP);
   if (isFinite(t)) o.temperature = Math.max(0, Math.min(2, t));
   if (isFinite(p)) o.top_p = Math.max(0.01, Math.min(1, p));
-  if (THINK_MODES.includes(S.thinking)) o.thinking = S.thinking;
+  // Eski kayıtlarda kalmış 'enabled' değeri sağlayıcıyı kızdırmasın: adaptive sayılır.
+  const th = S.thinking === 'enabled' ? 'adaptive' : S.thinking;
+  if (THINK_MODES.includes(th)) o.thinking = th;
   return o;
 }
 

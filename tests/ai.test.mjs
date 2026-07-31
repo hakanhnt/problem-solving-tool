@@ -54,6 +54,8 @@ test('parseJsonReply: JSON sonrası artık metin varsa ilk dengeli nesne alını
   assert.equal(j.giris, 'a');
 });
 
-test('THINK_MODES: yalnızca sağlayıcının kabul ettiği değerler', () => {
-  assert.deepEqual(THINK_MODES, ['disabled', 'adaptive', 'enabled']);
+test('THINK_MODES: yalnızca sağlayıcının kabul ettiği değerler (M3: adaptive|disabled)', () => {
+  assert.deepEqual(THINK_MODES, ['disabled', 'adaptive']);
+  // 'enabled' sağlayıcıda 2013 hatası verir — listede asla yer almamalı.
+  assert.ok(!THINK_MODES.includes('enabled'));
 });

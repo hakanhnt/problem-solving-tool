@@ -15,9 +15,9 @@ export const useStore = () => useContext(Ctx);
 
 /** Ayarlardaki analiz derinliğinin token bütçesi çarpanı. */
 const DEPTH_MULT = { standart: 1, genis: 1.6, derin: 2.5 };
-// Düşünen modellerde (M3 "adaptive"/"enabled") düşünme tokenları da bu bütçeden
+// Düşünen modellerde (M3 "adaptive") düşünme tokenları da bu bütçeden
 // harcanır; yanıtın kesilmemesi için bütçe ayrıca çarpılır.
-const THINK_MULT = { disabled: 1, adaptive: 1.8, enabled: 2.4 };
+const THINK_MULT = { disabled: 1, adaptive: 1.8 };
 
 function normalize(state) {
   const s = state;
@@ -43,6 +43,8 @@ function normalize(state) {
     temperature: 0.6, topP: '', depth: 'standart', thinking: 'adaptive',
     headerName: '', headerPrefix: 'Bearer ', extraHeaders: ''
   }, s.aiSettings || {});
+  // 'enabled' kısa süre seçenek olarak sunuldu; sağlayıcı kabul etmiyor — adaptive'e taşınır.
+  if (s.aiSettings.thinking === 'enabled' || !['disabled', 'adaptive'].includes(s.aiSettings.thinking)) s.aiSettings.thinking = 'adaptive';
   if (s.theme !== 'light' && s.theme !== 'dark') {
     const prefersDark = typeof matchMedia === 'function' && matchMedia('(prefers-color-scheme: dark)').matches;
     s.theme = prefersDark ? 'dark' : 'light';

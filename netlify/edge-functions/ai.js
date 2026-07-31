@@ -51,12 +51,14 @@ export default async (request) => {
   if (temperature !== undefined) payload.temperature = temperature;
   if (topP !== undefined) payload.top_p = topP;
 
-  // Düşünme (reasoning) modu — M3 ailesi destekler: enabled | adaptive | disabled.
+  // Düşünme (reasoning) modu — M3 yalnız adaptive | disabled kabul eder.
   // reasoning_split=true, düşünce metnini content'ten AYIRIR; aksi hâlde yanıtın
   // içine <think>...</think> olarak gömülür ve JSON ayrıştırması bozulur.
-  // Eski uç bu parametreleri tanımaz — orada hiç gönderilmez.
-  const think = typeof body.thinking === 'string' ? body.thinking.trim() : '';
-  if (!legacyUpstream && (think === 'enabled' || think === 'adaptive' || think === 'disabled')) {
+  // Eski uç bu parametreleri tanımaz — orada hiç gönderilmez. Eski önbellekli
+  // istemcilerin gönderebileceği 'enabled' (2013 hatası) adaptive'e eşlenir.
+  const rawThink = typeof body.thinking === 'string' ? body.thinking.trim() : '';
+  const think = rawThink === 'enabled' ? 'adaptive' : rawThink;
+  if (!legacyUpstream && (think === 'adaptive' || think === 'disabled')) {
     payload.thinking = { type: think };
     if (think !== 'disabled') payload.reasoning_split = true;
   }
