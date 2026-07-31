@@ -1,7 +1,7 @@
 import React from 'react';
 import { useStore } from '../lib/store.jsx';
 import { trackingBars, trackingGapText, isOverdue } from '../lib/derive.js';
-import { Card, GuidanceBox, MethodBox, AddButton, RemoveButton, S } from '../ui/primitives.jsx';
+import { Card, GuidanceBox, MethodBox, AddButton, RemoveButton, HButton, Spinner, S } from '../ui/primitives.jsx';
 import { DAILY_HABITS } from '../lib/thinking.js';
 
 const QUESTIONS = [
@@ -20,7 +20,10 @@ const STATUS_META = {
 };
 
 export default function Step7Tracking() {
-  const { c, updC, inp, removeC } = useStore();
+  const { c, updC, inp, removeC, runTrackingCoach, runRetroCoach, applyRetroCoach } = useStore();
+  const aiReady = (c.problem.statement || '').trim().length > 0;
+  const tc = c.trackingCoach;
+  const rc = c.retroCoach;
   const cont = c.containment || {};
   const actions = c.actions || [];
   const hasActions = actions.some(a => (a.text || '').trim());
@@ -115,6 +118,59 @@ export default function Step7Tracking() {
         <div style={S.cardSub}>{(c.problem.kpiName || 'KPI') + ' · Hedef: ' + (c.problem.target || '—')} — dönem dönem ölçüm girin; trend hedefe kapanıyor mu görün.</div>
         <MethodBox margin="0 0 14px">Karşı önlemin işe yarayıp yaramadığını sadece KPI söyler. Trend hedefe kapanmıyorsa kök neden ya da karşı önlem yanlıştır — 5. adıma dönüp analizi güncelleyin (PDCA).</MethodBox>
 
+        {/* Rehberden trend değerlendirmesi — analizdir, form doldurmaz */}
+        {aiReady && hasBars ? (
+          <div style={{ background: 'var(--pri-soft-2)', border: '1px solid var(--pri-border)', borderRadius: 8, padding: '12px 14px', margin: '0 0 14px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {!tc || tc.status === 'error' ? (
+              <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
+                <div style={{ font: '12.5px/1.5 Helvetica,Arial,sans-serif', color: 'var(--pri-ink-2)', flex: 1, minWidth: 220 }}>
+                  Rehber; ölçümlerinize, aksiyon durumlarınıza ve geçici önleme bakarak trendin hedefe kapanıp kapanmadığını değerlendirir, erken uyarı sinyallerini işaretler.
+                  {tc && tc.status === 'error' ? <span style={{ color: 'var(--alert)' }}> Değerlendirme yapılamadı{tc.errMsg ? ' (' + tc.errMsg + ')' : ''} — tekrar deneyin.</span> : null}
+                </div>
+                <HButton onClick={runTrackingCoach} style={{ flex: 'none', padding: '8px 14px', border: '1px solid var(--pri)', borderRadius: 8, background: 'var(--pri)', color: 'var(--on-pri)', font: '600 12px Helvetica,Arial,sans-serif', cursor: 'pointer' }} hover={{ background: 'var(--pri-hover)' }}>Rehberden trend değerlendirmesi al</HButton>
+              </div>
+            ) : null}
+            {tc && tc.status === 'busy' ? (
+              <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                <Spinner />
+                <div style={{ font: '600 12.5px Helvetica,Arial,sans-serif', color: 'var(--pri-ink)' }}>Trend ve aksiyon durumları değerlendiriliyor…</div>
+              </div>
+            ) : null}
+            {tc && tc.status === 'done' ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {(() => {
+                  const M = {
+                    kapaniyor: { label: '✓ Trend hedefe kapanıyor', bg: 'var(--ok-soft)', border: 'var(--ok-border)', ink: 'var(--ok-ink)' },
+                    belirsiz: { label: '? Trend henüz belirsiz', bg: 'var(--warn-soft)', border: 'var(--warn-border)', ink: 'var(--warn-ink)' },
+                    kapanmiyor: { label: '⚠ Trend hedefe kapanmıyor', bg: 'var(--alert-soft)', border: 'var(--alert-border)', ink: 'var(--alert)' }
+                  }[tc.durum] || { label: '?', bg: 'var(--warn-soft)', border: 'var(--warn-border)', ink: 'var(--warn-ink)' };
+                  return <div style={{ alignSelf: 'flex-start', font: '700 12px Helvetica,Arial,sans-serif', color: M.ink, background: M.bg, border: '1px solid ' + M.border, borderRadius: 20, padding: '5px 12px' }}>{M.label} <span style={{ fontWeight: 400 }}>— YZ değerlendirmesi, kesin hüküm değil</span></div>;
+                })()}
+                {tc.yorum ? <div style={{ font: '12.5px/1.6 Helvetica,Arial,sans-serif', color: 'var(--ink)' }}>{tc.yorum}</div> : null}
+                {(tc.uyarilar || []).length ? (
+                  <div>
+                    <div style={{ font: '700 10.5px Helvetica,Arial,sans-serif', color: 'var(--warn-ink)', letterSpacing: '.6px', margin: '0 0 4px' }}>ERKEN UYARILAR</div>
+                    <ul style={{ margin: 0, padding: '0 0 0 18px' }}>{tc.uyarilar.map((u, i) => <li key={i} style={{ font: '12px/1.55 Helvetica,Arial,sans-serif', color: 'var(--warn-ink-3)' }}>{u}</li>)}</ul>
+                  </div>
+                ) : null}
+                {(tc.oneriler || []).length ? (
+                  <div>
+                    <div style={{ font: '700 10.5px Helvetica,Arial,sans-serif', color: 'var(--pri-soft-ink)', letterSpacing: '.6px', margin: '0 0 4px' }}>ÖNERİLEN SONRAKİ ADIMLAR</div>
+                    <ul style={{ margin: 0, padding: '0 0 0 18px' }}>{tc.oneriler.map((o, i) => <li key={i} style={{ font: '12px/1.55 Helvetica,Arial,sans-serif', color: 'var(--ink-3)' }}>{o}</li>)}</ul>
+                  </div>
+                ) : null}
+                {(tc.sorular || []).length ? (
+                  <ul style={{ margin: 0, padding: '0 0 0 18px' }}>{tc.sorular.map((q, i) => <li key={i} style={{ font: '12px/1.5 Helvetica,Arial,sans-serif', color: 'var(--pri-ink-2)' }}>{q}</li>)}</ul>
+                ) : null}
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <HButton onClick={runTrackingCoach} style={{ padding: '7px 12px', border: '1px solid var(--pri-border)', borderRadius: 7, background: 'var(--surface)', color: 'var(--pri)', font: '600 11.5px Helvetica,Arial,sans-serif', cursor: 'pointer' }} hover={S.ghostHover}>Yeniden değerlendir</HButton>
+                  <HButton onClick={() => updC(cc => { delete cc.trackingCoach; })} style={{ padding: '7px 12px', border: 'none', background: 'transparent', color: 'var(--muted)', font: '600 11.5px Helvetica,Arial,sans-serif', cursor: 'pointer' }} hover={{ color: 'var(--ink-3)' }}>Kapat</HButton>
+                </div>
+              </div>
+            ) : null}
+          </div>
+        ) : null}
+
         {hasBars ? (
           <>
             <div style={{ display: 'flex', gap: 14, alignItems: 'flex-end', border: '1px solid var(--line-2)', borderRadius: 8, background: 'var(--surface-2)', padding: '16px 16px 10px', margin: '0 0 8px', overflowX: 'auto' }}>
@@ -150,6 +206,57 @@ export default function Step7Tracking() {
         <div style={{ ...S.cardTitle, margin: '0 0 4px' }}>Retrospektif</div>
         <div style={S.cardSub}>Döngüyü dürüstçe kapatın — bu cevaplar bir sonraki probleminizde sizi daha iyi yapacak.</div>
         <MethodBox margin="0 0 14px">Retrospektifte başarıyı da başarısızlığı da sahiplenin; işe yarayan karşı önlemi standarda bağlayın, yaramayanı belirti tedavisi olarak işaretleyip analize dönün.</MethodBox>
+
+        {/* Rehberden retrospektif taslağı — yalnız boş alanlara aktarılır */}
+        {aiReady ? (
+          <div style={{ background: 'var(--pri-soft-2)', border: '1px solid var(--pri-border)', borderRadius: 8, padding: '12px 14px', margin: '0 0 14px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {!rc || rc.status === 'error' ? (
+              <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
+                <div style={{ font: '12.5px/1.5 Helvetica,Arial,sans-serif', color: 'var(--pri-ink-2)', flex: 1, minWidth: 220 }}>
+                  Rehber; kök neden doğrulama durumlarına, KPI trendine ve aksiyonlara bakarak dört retrospektif sorusu için dürüst taslaklar hazırlayabilir.
+                  {rc && rc.status === 'error' ? <span style={{ color: 'var(--alert)' }}> Taslak hazırlanamadı{rc.errMsg ? ' (' + rc.errMsg + ')' : ''} — tekrar deneyin.</span> : null}
+                </div>
+                <HButton onClick={runRetroCoach} style={{ flex: 'none', padding: '8px 14px', border: '1px solid var(--pri)', borderRadius: 8, background: 'var(--pri)', color: 'var(--on-pri)', font: '600 12px Helvetica,Arial,sans-serif', cursor: 'pointer' }} hover={{ background: 'var(--pri-hover)' }}>Rehberden retrospektif taslağı al</HButton>
+              </div>
+            ) : null}
+            {rc && rc.status === 'busy' ? (
+              <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                <Spinner />
+                <div style={{ font: '600 12.5px Helvetica,Arial,sans-serif', color: 'var(--pri-ink)' }}>Çalışmanın bütünü değerlendirilip taslak yazılıyor…</div>
+              </div>
+            ) : null}
+            {rc && rc.status === 'done' ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                <div style={{ font: '700 10.5px Helvetica,Arial,sans-serif', color: 'var(--pri-soft-ink)', letterSpacing: '.8px' }}>RETROSPEKTİF TASLAĞI — dürüst başlangıç noktası; kendi cümlelerinizle düzenleyin</div>
+                {rc.giris ? <div style={{ font: '12.5px/1.6 Helvetica,Arial,sans-serif', color: 'var(--pri-ink-2)' }}>{rc.giris}</div> : null}
+                {[['valid', 'Kök neden tespiti doğru muydu?'], ['worked', 'Karşı önlemler işe yaradı mı?'], ['process', 'Süreç mi doğruydu, sonuç mu iyi?'], ['lessons', 'Öğrendiklerimiz']].map(([k, lb]) => (
+                  ((rc.draft || {})[k] || '').trim() ? (
+                    <div key={k} style={{ background: 'var(--surface)', border: '1px solid var(--pri-border-4)', borderRadius: 8, padding: '9px 12px' }}>
+                      <div style={{ font: '700 11px Helvetica,Arial,sans-serif', color: 'var(--pri-soft-ink)', margin: '0 0 3px' }}>{lb}</div>
+                      <div style={{ font: '12.5px/1.55 Helvetica,Arial,sans-serif', color: 'var(--ink)' }}>{rc.draft[k]}</div>
+                    </div>
+                  ) : null
+                ))}
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                  <HButton
+                    onClick={applyRetroCoach}
+                    disabled={rc.applied}
+                    style={{ padding: '8px 14px', border: '1px solid ' + (rc.applied ? 'var(--ok-border)' : 'var(--pri)'), borderRadius: 8, background: rc.applied ? 'var(--ok-soft)' : 'var(--pri)', color: rc.applied ? 'var(--ok)' : 'var(--on-pri)', font: '600 12px Helvetica,Arial,sans-serif', cursor: rc.applied ? 'default' : 'pointer' }}
+                    hover={rc.applied ? {} : { background: 'var(--pri-hover)' }}
+                  >{rc.applied ? 'Aktarıldı ✓' : 'Boş alanlara aktar'}</HButton>
+                  <HButton onClick={runRetroCoach} style={{ padding: '8px 14px', border: '1px solid var(--pri-border)', borderRadius: 8, background: 'var(--surface)', color: 'var(--pri)', font: '600 12px Helvetica,Arial,sans-serif', cursor: 'pointer' }} hover={S.ghostHover}>Yeniden öner</HButton>
+                  <HButton onClick={() => updC(cc => { delete cc.retroCoach; })} style={{ padding: '8px 14px', border: 'none', background: 'transparent', color: 'var(--muted)', font: '600 12px Helvetica,Arial,sans-serif', cursor: 'pointer' }} hover={{ color: 'var(--ink-3)' }}>Kapat</HButton>
+                </div>
+                {(rc.sorular || []).length ? (
+                  <ul style={{ margin: 0, padding: '0 0 0 18px', display: 'flex', flexDirection: 'column', gap: 4 }}>
+                    {rc.sorular.map((q, i) => <li key={i} style={{ font: '12px/1.5 Helvetica,Arial,sans-serif', color: 'var(--pri-ink-2)' }}>{q}</li>)}
+                  </ul>
+                ) : null}
+                <div style={{ font: '11px/1.5 Helvetica,Arial,sans-serif', color: 'var(--muted)' }}>Aktarım yalnız boş alanlara yapılır — yazdıklarınız ezilmez. Retrospektif sizin dürüst değerlendirmenizdir; taslağı olduğu gibi bırakmayın.</div>
+              </div>
+            ) : null}
+          </div>
+        ) : null}
 
         <label style={S.label}>Kök neden tespitimiz doğru muydu? Neyi gözden kaçırmışız?</label>
         <textarea className="pcx-field" value={(c.retro && c.retro.valid) || ''} onChange={inp('retro', 'valid')} style={{ ...S.textarea, minHeight: 52, margin: '0 0 12px' }} />

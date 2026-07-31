@@ -7,7 +7,7 @@ import {
   complete, buildSystem, buildCoachTask, coachItems, parseJsonReply,
   COACH_JSON_RULE, COACH_TEACH_TASK, COACH_FAST_SUFFIX, COACH_DEPTH_SUFFIX, ACTION_COACH_TASK,
   DECISION_COACH_TASK, AUDIT_TASK, BIAS_SCAN_TASK, PREMORTEM_TASK, REPORT_SUMMARY_TASK, REF_SUMMARY_SYSTEM,
-  SPEC_COACH_TASK, CONTAINMENT_COACH_TASK, MATRIX_COACH_TASK, buildHelpSystem, extractObjects
+  SPEC_COACH_TASK, CONTAINMENT_COACH_TASK, MATRIX_COACH_TASK, TRACKING_COACH_TASK, RETRO_COACH_TASK, buildHelpSystem, extractObjects
 } from './ai.js';
 
 const Ctx = createContext(null);
@@ -459,6 +459,76 @@ export function StoreProvider({ children }) {
     })();
   }, [upd, effCase, callAi, systemFor]);
 
+  // KPI izleme değerlendirmesi (Adım 7) — analizdir, form doldurmaz.
+  const runTrackingCoach = useCallback(() => {
+    const s0 = stateRef.current;
+    const eff = effCase(s0);
+    if (s0.cases[eff].trackingCoach && s0.cases[eff].trackingCoach.status === 'busy') return;
+    upd(n => { n.cases[eff].trackingCoach = { status: 'busy' }; });
+    (async () => {
+      try {
+        const c = stateRef.current.cases[eff];
+        const reply = await callAi({
+          max_tokens: 1600,
+          system: systemFor(7, c) + TRACKING_COACH_TASK,
+          messages: [{ role: 'user', content: 'KPI ölçümlerime ve aksiyon durumlarıma göre izleme değerlendirmesini JSON olarak üret.' }]
+        });
+        const j = parseJsonReply(reply);
+        const durum = ['kapaniyor', 'belirsiz', 'kapanmiyor'].includes(j.durum) ? j.durum : 'belirsiz';
+        upd(n => {
+          n.cases[eff].trackingCoach = {
+            status: 'done', durum, yorum: String(j.yorum || ''),
+            uyarilar: Array.isArray(j.uyarilar) ? j.uyarilar.map(String) : [],
+            oneriler: Array.isArray(j.oneriler) ? j.oneriler.map(String) : [],
+            sorular: Array.isArray(j.sorular) ? j.sorular.map(String) : []
+          };
+        });
+      } catch (e) {
+        upd(n => { n.cases[eff].trackingCoach = { status: 'error', errMsg: String((e && e.message) || e) }; });
+      }
+    })();
+  }, [upd, effCase, callAi, systemFor]);
+
+  // Retrospektif taslağı (Adım 7) — dört alan; yalnız boş alanlara aktarılır.
+  const runRetroCoach = useCallback(() => {
+    const s0 = stateRef.current;
+    const eff = effCase(s0);
+    if (s0.cases[eff].retroCoach && s0.cases[eff].retroCoach.status === 'busy') return;
+    upd(n => { n.cases[eff].retroCoach = { status: 'busy' }; });
+    (async () => {
+      try {
+        const c = stateRef.current.cases[eff];
+        const reply = await callAi({
+          max_tokens: 1800,
+          system: systemFor(7, c) + RETRO_COACH_TASK,
+          messages: [{ role: 'user', content: 'Çalışmamın bütününe göre retrospektif taslağını JSON olarak üret.' }]
+        });
+        const j = parseJsonReply(reply);
+        upd(n => {
+          n.cases[eff].retroCoach = {
+            status: 'done', giris: String(j.giris || ''),
+            draft: { valid: String(j.valid || ''), worked: String(j.worked || ''), process: String(j.process || ''), lessons: String(j.lessons || '') },
+            sorular: Array.isArray(j.sorular) ? j.sorular.map(String) : [], applied: false
+          };
+        });
+      } catch (e) {
+        upd(n => { n.cases[eff].retroCoach = { status: 'error', errMsg: String((e && e.message) || e) }; });
+      }
+    })();
+  }, [upd, effCase, callAi, systemFor]);
+
+  const applyRetroCoach = useCallback(() => {
+    updC(cc => {
+      const rc = cc.retroCoach;
+      if (!rc || rc.status !== 'done') return;
+      cc.retro = cc.retro || {};
+      ['valid', 'worked', 'process', 'lessons'].forEach(k => {
+        if (!(cc.retro[k] || '').trim() && ((rc.draft || {})[k] || '').trim()) cc.retro[k] = rc.draft[k];
+      });
+      rc.applied = true;
+    });
+  }, [updC]);
+
   // Karar matrisi puan önerileri (Adım 6) — önizlenir; boş hücrelere ya da (onayla) tümüne aktarılır.
   const runMatrixCoach = useCallback(() => {
     const s0 = stateRef.current;
@@ -882,9 +952,9 @@ export function StoreProvider({ children }) {
     mainRef,
     upd, updC, setC, inp, goStep, toggleTheme, removeC, undoLast, canUndo,
     ensureCoach, runCoach, applyCoachItem, coachRefresh, coachMore,
-    runDecisionCoach, runActionCoach, runAudit, runBiasScan, runPremortem, runReportSummary, runSpecCoach, applySpecCoach, runContainmentCoach, applyContainment, runMatrixCoach, applyMatrixCoach,
+    runDecisionCoach, runActionCoach, runAudit, runBiasScan, runPremortem, runReportSummary, runSpecCoach, applySpecCoach, runContainmentCoach, applyContainment, runMatrixCoach, applyMatrixCoach, runTrackingCoach, runRetroCoach, applyRetroCoach,
     askAi, askHelp, fieldHelp, addReference
-  }), [state, eff, upd, updC, setC, inp, goStep, toggleTheme, removeC, undoLast, canUndo, ensureCoach, runCoach, applyCoachItem, coachRefresh, coachMore, runDecisionCoach, runActionCoach, runAudit, runBiasScan, runPremortem, runReportSummary, runSpecCoach, applySpecCoach, runContainmentCoach, applyContainment, runMatrixCoach, applyMatrixCoach, askAi, askHelp, fieldHelp, addReference]);
+  }), [state, eff, upd, updC, setC, inp, goStep, toggleTheme, removeC, undoLast, canUndo, ensureCoach, runCoach, applyCoachItem, coachRefresh, coachMore, runDecisionCoach, runActionCoach, runAudit, runBiasScan, runPremortem, runReportSummary, runSpecCoach, applySpecCoach, runContainmentCoach, applyContainment, runMatrixCoach, applyMatrixCoach, runTrackingCoach, runRetroCoach, applyRetroCoach, askAi, askHelp, fieldHelp, addReference]);
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
