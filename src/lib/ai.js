@@ -325,6 +325,43 @@ export async function complete(settings, opts) {
   return text;
 }
 
+/**
+ * LLM JSON'larındaki en yaygın üç bozukluğu onarır:
+ * 1) Değer İÇİNDEKİ kaçışsız çift tırnak — dizgeyi erken kapatır ve
+ *    "Expected ',' or '}' after property value" hatasına yol açar. Kapanış
+ *    tırnağı sayılması için tırnaktan sonraki ilk anlamlı karakterin yapısal
+ *    (, } ] :) olması gerekir; değilse içerik tırnağıdır, \" ile kaçırılır.
+ * 2) Dizge içindeki çıplak satır sonu → \n.
+ * 3) Sondaki virgül (",}" / ",]") ve iki dizge arasında unutulan virgül.
+ */
+export function repairJson(s) {
+  let out = '';
+  let inStr = false, esc = false;
+  for (let i = 0; i < s.length; i++) {
+    const ch = s[i];
+    if (!inStr) {
+      if (ch === '"') inStr = true;
+      out += ch;
+      continue;
+    }
+    if (esc) { out += ch; esc = false; continue; }
+    if (ch === '\\') { out += ch; esc = true; continue; }
+    if (ch === '\n') { out += '\\n'; continue; }
+    if (ch === '\r') continue;
+    if (ch === '"') {
+      let j = i + 1;
+      while (j < s.length && /\s/.test(s[j])) j++;
+      const nx = s[j];
+      if (nx === ',' || nx === '}' || nx === ']' || nx === ':' || j >= s.length) { inStr = false; out += ch; }
+      else if (nx === '"') { inStr = false; out += ch + ','; }   // "a":"x" "b":… — virgül unutulmuş
+      else out += '\\"';                                          // içerik tırnağı
+      continue;
+    }
+    out += ch;
+  }
+  return out.replace(/,\s*([}\]])/g, '$1');
+}
+
 /** Metindeki ilk dengeli { … } bloğunu bulur (dizge içindeki süslü parantezleri sayma). */
 function firstBalancedObject(s, from) {
   let depth = 0, inStr = false, esc = false;
@@ -351,13 +388,17 @@ export function parseJsonReply(reply) {
   const clean = stripThinking(reply).replace(/```(json)?/gi, '');
   const a = clean.indexOf('{'), b = clean.lastIndexOf('}');
   if (a < 0 || b <= a) throw new Error('Yanıtta JSON bulunamadı');
-  try {
-    return JSON.parse(clean.slice(a, b + 1));
-  } catch (e) {
-    const first = firstBalancedObject(clean, a);
-    if (first) return JSON.parse(first);
-    throw e;
+  const cand = clean.slice(a, b + 1);
+  let firstErr = null;
+  // Sırayla: ham aday → ilk dengeli nesne → onarılmış aday → onarılmışın ilk dengeli nesnesi.
+  const attempts = [cand, firstBalancedObject(clean, a), repairJson(cand)];
+  const repaired = repairJson(clean);
+  attempts.push(firstBalancedObject(repaired, repaired.indexOf('{')));
+  for (const s of attempts) {
+    if (!s) continue;
+    try { return JSON.parse(s); } catch (e) { if (!firstErr) firstErr = e; }
   }
+  throw firstErr || new Error('Yanıttaki JSON ayrıştırılamadı');
 }
 
 /**
@@ -375,7 +416,8 @@ export function extractObjects(reply, requiredKey) {
     // Dış nesne kesik olsa da İÇİNDEKİ nesneler bütün olabilir — bir sonraki '{' denenir.
     if (!block) { i += 1; continue; }
     try {
-      const j = JSON.parse(block);
+      let j;
+      try { j = JSON.parse(block); } catch (e) { j = JSON.parse(repairJson(block)); }
       if (j && typeof j === 'object' && !Array.isArray(j) && (!requiredKey || j[requiredKey] !== undefined)) {
         out.push(j);
         i += block.length;                 // bulunanın içine tekrar girme
@@ -494,7 +536,7 @@ export function coachItems(step, j, principles) {
   return items;
 }
 
-export const COACH_JSON_RULE = '\n\nŞimdi koçluk sohbeti DEĞİL, yapılandırılmış öneri üretiyorsun. SADECE geçerli tek bir JSON nesnesi döndür; öncesinde ve sonrasında başka hiçbir metin yazma. Tüm metinler Türkçe ve kullanıcının problem alanına özgü olsun; genel geçer kalıplar yazma. Öneriler kesin doğrular değil, kullanıcının işi yapanlarla ve veriyle DOĞRULAMASI gereken hipotezlerdir; bu dili kullan.\n\n';
+export const COACH_JSON_RULE = '\n\nŞimdi koçluk sohbeti DEĞİL, yapılandırılmış öneri üretiyorsun. SADECE geçerli tek bir JSON nesnesi döndür; öncesinde ve sonrasında başka hiçbir metin yazma. JSON dizgelerinin İÇİNDE çift tırnak kullanma (vurgu gerekiyorsa tek tırnak kullan); dizge içinde satır sonu yerine \\n yaz. Tüm metinler Türkçe ve kullanıcının problem alanına özgü olsun; genel geçer kalıplar yazma. Öneriler kesin doğrular değil, kullanıcının işi yapanlarla ve veriyle DOĞRULAMASI gereken hipotezlerdir; bu dili kullan.\n\n';
 
 export const COACH_TEACH_TASK = 'Görev (ÖĞRETEN modu): Bu adımda hazır öneri/taslak ÜRETME. Kullanıcının bu adımı kendisinin doğru doldurması için, problemine özgü 6-8 yönlendirici Sokratik soru yaz. JSON şeması: {"giris":"bu adımda nasıl düşünmesi gerektiğine dair 2-3 cümlelik yöntem açıklaması","sorular":["...", "..."]}';
 
@@ -543,6 +585,6 @@ export function buildHelpSystem(step, stepTitles) {
 }
 
 /** VAR/YOK (Kepner-Tregoe) belirtim taslağı görevi — Adım 1'deki kart için. */
-export const SPEC_COACH_TASK = '\n\nŞimdi koçluk sohbeti DEĞİL, VAR/YOK BELİRTİMİ (Kepner-Tregoe IS / IS-NOT) taslağı üretiyorsun. Kullanıcının problem ifadesi, boyutları (yer/zaman/kırılım), KPI verisi ve varsa bulgularından yola çıkarak dört boyutta belirtim doldur: Nerede, Ne zaman, Kırılımda, Büyüklük. Her boyutta VAR tarafı problemin GÖRÜLDÜĞÜ yeri/zamanı/kırılımı/büyüklüğü; YOK tarafı ise görülebileceği hâlde GÖRÜLMEDİĞİ karşılaştırma noktasını yazar — YOK tarafı kök neden adaylarını test eden en değerli bilgidir. Kullanıcının verisinde karşılığı OLMAYAN yer, tarih ya da sayı uydurma: bilinmeyenleri "[doldurun: hangi bölgede görülmüyor?]" biçiminde yer tutucuyla bırak. Ayrıca "değişiklik" alanına, sapmanın başladığı dönemde ne değişmiş olabileceğine dair kullanıcının verisine dayanan (yoksa yer tutuculu) bir taslak yaz. SADECE geçerli tek bir JSON nesnesi döndür: {"giris":"1-2 cümlelik yönlendirme","belirtim":{"nerede":{"v":"...","y":"..."},"zaman":{"v":"...","y":"..."},"kirilim":{"v":"...","y":"..."},"buyukluk":{"v":"...","y":"..."}},"degisiklik":"...","sorular":["YOK tarafını doğrulamak için kullanıcının paydaşlarına sorması gereken 3-4 soru"]}';
+export const SPEC_COACH_TASK = '\n\nŞimdi koçluk sohbeti DEĞİL, VAR/YOK BELİRTİMİ (Kepner-Tregoe IS / IS-NOT) taslağı üretiyorsun. Kullanıcının problem ifadesi, boyutları (yer/zaman/kırılım), KPI verisi ve varsa bulgularından yola çıkarak dört boyutta belirtim doldur: Nerede, Ne zaman, Kırılımda, Büyüklük. Her boyutta VAR tarafı problemin GÖRÜLDÜĞÜ yeri/zamanı/kırılımı/büyüklüğü; YOK tarafı ise görülebileceği hâlde GÖRÜLMEDİĞİ karşılaştırma noktasını yazar — YOK tarafı kök neden adaylarını test eden en değerli bilgidir. Kullanıcının verisinde karşılığı OLMAYAN yer, tarih ya da sayı uydurma: bilinmeyenleri "[doldurun: hangi bölgede görülmüyor?]" biçiminde yer tutucuyla bırak. Ayrıca "değişiklik" alanına, sapmanın başladığı dönemde ne değişmiş olabileceğine dair kullanıcının verisine dayanan (yoksa yer tutuculu) bir taslak yaz. Dizgelerin içinde çift tırnak kullanma (vurgu gerekiyorsa tek tırnak). SADECE geçerli tek bir JSON nesnesi döndür: {"giris":"1-2 cümlelik yönlendirme","belirtim":{"nerede":{"v":"...","y":"..."},"zaman":{"v":"...","y":"..."},"kirilim":{"v":"...","y":"..."},"buyukluk":{"v":"...","y":"..."}},"degisiklik":"...","sorular":["YOK tarafını doğrulamak için kullanıcının paydaşlarına sorması gereken 3-4 soru"]}';
 
 export const REF_SUMMARY_SYSTEM ='Kullanıcının problem çözme çalışmasında referans olarak kullanılacak içeriği özetliyorsun. Sayısal verileri, adları ve önemli tespitleri koruyarak 10-15 cümlelik Türkçe bir özet yaz; sadece özet metnini döndür.';

@@ -2,7 +2,7 @@
 // Düşünce bloğu yanıt metnine sızarsa rehber kartları ve rapor üretimi bozulur.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { stripThinking, parseJsonReply, extractObjects, THINK_MODES } from '../src/lib/ai.js';
+import { stripThinking, parseJsonReply, extractObjects, repairJson, THINK_MODES } from '../src/lib/ai.js';
 
 test('stripThinking: kapalı <think> bloğu temizlenir', () => {
   const s = '<think>Önce bulguları sayayım... 3 tane var.</think>{"giris":"x"}';
@@ -85,4 +85,56 @@ test('extractObjects: hiç bütün nesne yoksa boş dizi (çökmez)', () => {
   assert.deepEqual(extractObjects('{"baslik":"yarim', 'baslik'), []);
   assert.deepEqual(extractObjects('', 'baslik'), []);
   assert.deepEqual(extractObjects('düz metin', 'baslik'), []);
+});
+
+// ---- Bozuk JSON onarımı (repairJson) — sahadaki gerçek hata sınıfları ----
+
+test('repairJson: değer içindeki kaçışsız çift tırnak kaçırılır', () => {
+  // Kullanıcının aldığı hata sınıfı: "Expected ',' or '}' after property value"
+  const bad = '{"v":"yeni "checklist" süreci devrede","y":"tamam"}';
+  const j = JSON.parse(repairJson(bad));
+  assert.equal(j.v, 'yeni "checklist" süreci devrede');
+  assert.equal(j.y, 'tamam');
+});
+
+test('repairJson: dizge içindeki çıplak satır sonu \\n olur', () => {
+  const bad = '{"v":"ilk satır\nikinci satır"}';
+  const j = JSON.parse(repairJson(bad));
+  assert.equal(j.v, 'ilk satır\nikinci satır');
+});
+
+test('repairJson: sondaki virgül ve unutulmuş virgül onarılır', () => {
+  assert.deepEqual(JSON.parse(repairJson('{"a":"x","b":"y",}')), { a: 'x', b: 'y' });
+  assert.deepEqual(JSON.parse(repairJson('{"a":"x" "b":"y"}')), { a: 'x', b: 'y' });
+});
+
+test('repairJson: geçerli JSON değişmeden ayrışır (kaçışlı tırnak ve Türkçe korunur)', () => {
+  const good = '{"v":"üretici \\"onay\\" bekliyor","n":42,"arr":[1,2],"tr":"ğüşiöç"}';
+  const j = JSON.parse(repairJson(good));
+  assert.equal(j.v, 'üretici "onay" bekliyor');
+  assert.equal(j.n, 42);
+  assert.deepEqual(j.arr, [1, 2]);
+  assert.equal(j.tr, 'ğüşiöç');
+});
+
+test('parseJsonReply: kaçışsız tırnaklı VAR/YOK yanıtı onarımla ayrışır', () => {
+  // Sahadaki hatanın küçük kopyası: iç içe nesne + değer içinde tırnak
+  const reply = '{"giris":"Taslak hazır","belirtim":{"nerede":{"v":"Bangladeş "yeni üretici" yüklemeleri","y":"Çin yüklemeleri"},"zaman":{"v":"Q1 sonrası","y":"Q4 öncesi"}},"degisiklik":"İki "yeni" üretici eklendi","sorular":["Soru?"]}';
+  const j = parseJsonReply(reply);
+  assert.equal(j.belirtim.nerede.v, 'Bangladeş "yeni üretici" yüklemeleri');
+  assert.equal(j.degisiklik, 'İki "yeni" üretici eklendi');
+  assert.equal(j.sorular.length, 1);
+});
+
+test('parseJsonReply: düşünce bloğu + bozuk JSON birlikte de ayrışır', () => {
+  const reply = '<think>tırnak koyayım mı?</think>{"giris":"a","v":"içinde "tırnak" var"}';
+  const j = parseJsonReply(reply);
+  assert.equal(j.v, 'içinde "tırnak" var');
+});
+
+test('extractObjects: bozuk iç nesne onarımla kurtarılır', () => {
+  const reply = '{"senaryolar":[{"baslik":"İçinde "tırnak" olan başlık","hikaye":"h"},{"baslik":"Yarım ka';
+  const objs = extractObjects(reply, 'baslik');
+  assert.equal(objs.length, 1);
+  assert.equal(objs[0].baslik, 'İçinde "tırnak" olan başlık');
 });
