@@ -33,7 +33,10 @@ export default async (request) => {
     return json(400, { error: 'Geçersiz istek gövdesi' });
   }
 
-  const upstreamUrl = env('MINIMAX_BASE_URL') || 'https://api.minimax.io/v1/text/chatcompletion_v2';
+  // OpenAI uyumlu uç — M serisi (M3) ve thinking parametresi burada desteklenir.
+  // Eski yerel uç (v1/text/chatcompletion_v2) yalnız MINIMAX_BASE_URL ile seçilirse kullanılır.
+  const upstreamUrl = env('MINIMAX_BASE_URL') || 'https://api.minimax.io/v1/chat/completions';
+  const legacyUpstream = upstreamUrl.includes('chatcompletion_v2');
   const num = (v, lo, hi) => (isFinite(parseFloat(v)) ? Math.max(lo, Math.min(hi, parseFloat(v))) : undefined);
   const model = (typeof body.model === 'string' && body.model.trim().slice(0, 64)) || env('MINIMAX_MODEL') || 'MiniMax-M3';
   const temperature = num(body.temperature, 0, 2);
@@ -51,8 +54,9 @@ export default async (request) => {
   // Düşünme (reasoning) modu — M3 ailesi destekler: enabled | adaptive | disabled.
   // reasoning_split=true, düşünce metnini content'ten AYIRIR; aksi hâlde yanıtın
   // içine <think>...</think> olarak gömülür ve JSON ayrıştırması bozulur.
+  // Eski uç bu parametreleri tanımaz — orada hiç gönderilmez.
   const think = typeof body.thinking === 'string' ? body.thinking.trim() : '';
-  if (think === 'enabled' || think === 'adaptive' || think === 'disabled') {
+  if (!legacyUpstream && (think === 'enabled' || think === 'adaptive' || think === 'disabled')) {
     payload.thinking = { type: think };
     if (think !== 'disabled') payload.reasoning_split = true;
   }
@@ -68,13 +72,28 @@ export default async (request) => {
     return json(502, { error: 'Sağlayıcıya ulaşılamadı: ' + String((e && e.message) || e) });
   }
 
-  if (!upstream.ok || !upstream.body) {
+  const upCt = (upstream.headers.get('content-type') || '').toLowerCase();
+
+  // MiniMax hataları çoğu kez HTTP 200 + JSON gövdeyle gelir (base_resp.status_code != 0).
+  // Böyle bir gövdeyi SSE diye iletirsek istemci "data:" satırı bulamaz ve gerçek hata
+  // yutulup "boş yanıt" olur — akış değilse gövdeyi burada açıp anlamlı hata döndürürüz.
+  if (!upstream.ok || !upstream.body || !upCt.includes('text/event-stream')) {
     let detail = 'Sağlayıcı hatası HTTP ' + upstream.status;
+    let text = '';
     try {
       const t = await upstream.text();
       const j = JSON.parse(t);
-      detail = (j.error && (j.error.message || j.error.type)) || (j.base_resp && j.base_resp.status_msg) || detail;
+      detail = (j.error && (j.error.message || j.error.type))
+        || (j.base_resp && j.base_resp.status_code && j.base_resp.status_msg)
+        || detail;
+      // Akışsız ama başarılı yanıt (bazı uyumluluk katmanları stream'i yok sayar):
+      // metni tek bir SSE olayına sarıp istemciye normal yoldan verelim.
+      text = (j.choices && j.choices[0] && j.choices[0].message && j.choices[0].message.content) || '';
     } catch (e) { /* gövde JSON değil — varsayılan mesaj kalsın */ }
+    if (upstream.ok && text) {
+      const sse = 'data: ' + JSON.stringify({ choices: [{ message: { content: text } }] }) + '\n\ndata: [DONE]\n\n';
+      return new Response(sse, { status: 200, headers: { ...CORS, 'content-type': 'text/event-stream; charset=utf-8', 'cache-control': 'no-cache' } });
+    }
     return json(502, { error: detail });
   }
 

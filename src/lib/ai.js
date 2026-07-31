@@ -178,18 +178,32 @@ async function streamBridge(S, opts) {
     }
   };
 
+  let raw = '';          // hiç "data:" satırı gelmezse gövdeyi teşhis için saklarız
+  let sawDataLine = false;
   for (;;) {
     const { done, value } = await reader.read();
     if (done) break;
-    buf += decoder.decode(value, { stream: true });
+    const chunk = decoder.decode(value, { stream: true });
+    buf += chunk;
+    if (raw.length < 4000) raw += chunk;
     let nl;
     while ((nl = buf.indexOf('\n')) >= 0) {
       const line = buf.slice(0, nl).replace(/\r$/, '');
       buf = buf.slice(nl + 1);
-      if (line.startsWith('data:')) consume(line.slice(5));
+      if (line.startsWith('data:')) { sawDataLine = true; consume(line.slice(5)); }
     }
   }
-  if (buf.startsWith('data:')) consume(buf.slice(5));
+  if (buf.startsWith('data:')) { sawDataLine = true; consume(buf.slice(5)); }
+
+  // Gövde SSE değil düz JSON'sa (sağlayıcı hatası ya da akışsız yanıt) buradan çöz.
+  if (!sawDataLine && raw.trim()) {
+    try {
+      const j = JSON.parse(raw);
+      const t = pickText(j);
+      if (t) { wholeText = t; }
+      else providerError = providerError || pickError(j);
+    } catch (e) { /* gövde JSON da değil — genel mesaja düşülür */ }
+  }
 
   const text = stripThinking(sawDelta ? deltaText : wholeText);
   if (!text.trim()) {
@@ -287,8 +301,8 @@ export async function complete(settings, opts) {
     return (j.content || []).map(b => b.text || '').join('');
   }
 
-  const base = (S.baseUrl || '').trim() || (prov === 'openai' ? 'https://api.openai.com/v1/chat/completions' : 'https://api.minimax.io/v1/text/chatcompletion_v2');
-  const model = (S.model || '').trim() || (prov === 'openai' ? 'gpt-4o-mini' : 'MiniMax-Text-01');
+  const base = (S.baseUrl || '').trim() || (prov === 'openai' ? 'https://api.openai.com/v1/chat/completions' : 'https://api.minimax.io/v1/chat/completions');
+  const model = (S.model || '').trim() || (prov === 'openai' ? 'gpt-4o-mini' : 'MiniMax-M3');
   const r = await fetch(base, {
     method: 'POST',
     headers: { 'content-type': 'application/json', authorization: 'Bearer ' + key },
