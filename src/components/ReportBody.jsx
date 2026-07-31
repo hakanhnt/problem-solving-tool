@@ -38,6 +38,12 @@ export default function ReportBody({ c, principles, sections, companyName, summa
   ].filter(d => (d.value || '').trim());
 
   const drivers = (c.drivers || []).filter(d => (d.name || '').trim());
+  const sipocRows = (c.sipoc || []).filter(r => [r.s, r.i, r.p, r.o, r.c].some(x => (x || '').trim()));
+  const fb = c.fishbone || {};
+  const FB_LABELS = [['insan', 'İnsan / Yetkinlik'], ['metot', 'Metot / Süreç'], ['sistem', 'Makine / Sistem'], ['girdi', 'Malzeme / Girdi'], ['olcum', 'Ölçüm'], ['cevre', 'Çevre / Dış Etken']];
+  const fbRows = FB_LABELS.filter(([k]) => (fb[k] || '').trim());
+  const chains = (c.whyChains || []).filter(ch => (ch.whys || []).some(w => (w || '').trim()));
+  const pmItems = (c.premortem && c.premortem.status === 'done' && (c.premortem.items || [])) || [];
   const da = (c.driverAnalysis || []).filter(d => (d.driver || '').trim() || (d.component || '').trim());
   const findings = (c.findings || []).filter(f => (f.text || '').trim());
   const whys = (c.whys || []).map((w, i) => ({ n: (i + 1) + '.', text: w || '' })).filter(w => w.text.trim());
@@ -193,6 +199,21 @@ export default function ReportBody({ c, principles, sections, companyName, summa
                 </div>
               ))}
             </div>
+            {sipocRows.length ? (
+              <div style={{ marginTop: 10 }}>
+                <div style={{ font: '600 11px Helvetica,Arial,sans-serif', color: 'var(--ink-3)', letterSpacing: '.4px', margin: '0 0 6px' }}>SIPOC (TEDARİKÇİ → GİRDİ → SÜREÇ → ÇIKTI → MÜŞTERİ)</div>
+                <div style={{ overflowX: 'auto' }}>
+                  <table style={{ borderCollapse: 'collapse', width: '100%' }}>
+                    <thead><tr>{['Tedarikçi', 'Girdi', 'Süreç', 'Çıktı', 'Müşteri'].map(h => <th key={h} style={th}>{h}</th>)}</tr></thead>
+                    <tbody>
+                      {sipocRows.map((r, i) => (
+                        <tr key={i}>{['s', 'i', 'p', 'o', 'c'].map(k => <td key={k} style={td}>{(r[k] || '').trim() || '—'}</td>)}</tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            ) : null}
           </div>
         ) : null}
 
@@ -224,12 +245,30 @@ export default function ReportBody({ c, principles, sections, companyName, summa
           </div>
         ) : null}
 
-        {whys.length && on('kok') ? (
+        {(whys.length || chains.length || fbRows.length) && on('kok') ? (
           <div>
             <div style={secTitle}>5 · KÖK NEDEN ANALİZİ (5 NEDEN)</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
               {whys.map((w, i) => <div key={i} style={body}><strong style={{ color: 'var(--pri-soft-ink)' }}>{w.n}</strong> {w.text}</div>)}
             </div>
+            {chains.map((ch, ci) => (
+              <div key={ci} style={{ marginTop: 8, paddingLeft: 10, borderLeft: '3px solid var(--pri-border)' }}>
+                <div style={{ font: '600 12px/1.5 Helvetica,Arial,sans-serif', color: 'var(--pri-soft-ink)', margin: '0 0 3px' }}>{(ch.label || '').trim() || 'Alternatif neden dalı ' + (ci + 1)}</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                  {(ch.whys || []).map((w, i) => (w || '').trim() ? <div key={i} style={body}><strong style={{ color: 'var(--pri-soft-ink)' }}>{i + 1}.</strong> {w}</div> : null)}
+                </div>
+              </div>
+            ))}
+            {fbRows.length ? (
+              <div style={{ marginTop: 10 }}>
+                <div style={{ font: '600 11px Helvetica,Arial,sans-serif', color: 'var(--ink-3)', letterSpacing: '.4px', margin: '0 0 6px' }}>BALIK KILÇIĞI (ISHIKAWA) KATEGORİLERİ</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                  {fbRows.map(([k, label]) => (
+                    <div key={k} style={body}><strong style={{ color: 'var(--pri-soft-ink)' }}>{label}:</strong> {fb[k]}</div>
+                  ))}
+                </div>
+              </div>
+            ) : null}
           </div>
         ) : null}
 
@@ -270,6 +309,12 @@ export default function ReportBody({ c, principles, sections, companyName, summa
                     ) : (rc.testPlan || '').trim() ? (
                       <div style={{ font: '11.5px/1.5 Helvetica,Arial,sans-serif', color: 'var(--muted)', marginTop: 2 }}>Planlanan test: {rc.testPlan}</div>
                     ) : null}
+                    {(rc.explainsSpec || '').trim() ? (
+                      <div style={{ font: '11.5px/1.5 Helvetica,Arial,sans-serif', color: 'var(--ink-3)', marginTop: 2 }}>VAR/YOK desenini açıklıyor mu: {rc.explainsSpec}</div>
+                    ) : null}
+                    {(rc.kpiExpected || '').trim() ? (
+                      <div style={{ font: '11.5px/1.5 Helvetica,Arial,sans-serif', color: 'var(--ink-3)', marginTop: 2 }}>Giderilirse beklenen etki: {rc.kpiExpected}</div>
+                    ) : null}
                     {(rc.principles || []).length ? (
                       <div style={{ font: '11.5px/1.5 Helvetica,Arial,sans-serif', color: 'var(--pri-soft-ink)', marginTop: 3 }}>
                         Prensipler: {(rc.principles || []).map(pi => (pi + 1) + '. ' + ((principles || [])[pi] || '')).join(' · ')}
@@ -290,7 +335,7 @@ export default function ReportBody({ c, principles, sections, companyName, summa
             <div style={secTitle}>6 · ALTERNATİFLER VE KARAR</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6, margin: '0 0 12px' }}>
               {alts.map((a, i) => (
-                <div key={i} style={body}><strong>A{i + 1}</strong> · {a.name}{(a.method || '').trim() ? <span style={{ color: 'var(--muted)' }}> ({a.method})</span> : null}</div>
+                <div key={i} style={body}><strong>A{i + 1}</strong> · {a.name}{(a.method || '').trim() ? <span style={{ color: 'var(--muted)' }}> ({a.method})</span> : null}{(a.note || '').trim() ? <span style={{ color: 'var(--ink-4)' }}> — {a.note}</span> : null}</div>
               ))}
             </div>
 
@@ -344,6 +389,7 @@ export default function ReportBody({ c, principles, sections, companyName, summa
               <div style={{ margin: '0 0 10px', font: '12.5px/1.55 Helvetica,Arial,sans-serif', color: 'var(--ink)' }}>
                 <strong style={{ color: cont.removed ? 'var(--ok-ink)' : 'var(--warn-ink)' }}>Geçici önlem{cont.removed ? ' (kaldırıldı)' : ' (devrede)'}:</strong> {cont.action}
                 {(cont.owner || '').trim() ? <span style={{ color: 'var(--muted)' }}> — {cont.owner}</span> : null}
+                {(cont.until || '').trim() ? <span style={{ color: 'var(--muted)' }}> · Kaldırma koşulu: {cont.until}</span> : null}
               </div>
             ) : null}
             {(c.decision.choice || '').trim() ? (
@@ -351,6 +397,21 @@ export default function ReportBody({ c, principles, sections, companyName, summa
                 <div style={{ font: '700 10.5px Helvetica,Arial,sans-serif', color: 'var(--ok)', letterSpacing: '.8px', margin: '0 0 6px' }}>KARAR</div>
                 <div style={{ font: '600 13px/1.55 Helvetica,Arial,sans-serif', color: 'var(--ink)' }}>{c.decision.choice}</div>
                 {(c.decision.rationale || '').trim() ? <div style={{ font: '12.5px/1.55 Helvetica,Arial,sans-serif', color: 'var(--ok-ink)', marginTop: 6 }}>{c.decision.rationale}</div> : null}
+              </div>
+            ) : null}
+
+            {pmItems.length ? (
+              <div style={{ marginTop: 12 }}>
+                <div style={{ font: '600 11px Helvetica,Arial,sans-serif', color: 'var(--ink-3)', letterSpacing: '.4px', margin: '0 0 6px' }}>PRE-MORTEM — ÖNGÖRÜLEN BAŞARISIZLIK SENARYOLARI</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  {pmItems.map((it, i) => (
+                    <div key={i} style={body}>
+                      <strong>{it.baslik}</strong>{(it.hikaye || '').trim() ? <span style={{ color: 'var(--ink-4)' }}> — {it.hikaye}</span> : null}
+                      {(it.sinyal || '').trim() ? <div style={{ font: '11.5px/1.5 Helvetica,Arial,sans-serif', color: 'var(--warn-ink)' }}>Erken sinyal: {it.sinyal}</div> : null}
+                      {(it.onlem || '').trim() ? <div style={{ font: '11.5px/1.5 Helvetica,Arial,sans-serif', color: 'var(--ok-ink)' }}>Önleyici tedbir: {it.onlem}{it.added ? ' (aksiyon planına eklendi)' : ''}</div> : null}
+                    </div>
+                  ))}
+                </div>
               </div>
             ) : null}
           </div>
@@ -366,6 +427,7 @@ export default function ReportBody({ c, principles, sections, companyName, summa
                 const STATUS_TR = { tamam: 'tamamlandı', devam: 'devam ediyor', bekliyor: 'bekliyor', gecikti: 'gecikti' };
                 const meta = [
                   a.owner,
+                  (a.startDate || '').trim() ? 'başlangıç ' + a.startDate : '',
                   (a.dueDate || '').trim() ? 'termin ' + a.dueDate : (a.due || ''),
                   STATUS_TR[a.status] || '',
                   p.score > -100 ? p.label : ''
