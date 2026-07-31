@@ -24,6 +24,7 @@ function normalize(state) {
   s.aiBusy = false;
   s.aiInput = '';
   s.showSettings = false;
+  s.dashOpen = false;
   s.refForm = null;
   s.undoToast = null;
   s.saveError = '';

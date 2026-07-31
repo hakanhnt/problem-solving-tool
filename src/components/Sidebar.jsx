@@ -80,6 +80,12 @@ export default function Sidebar({ onNavigate }) {
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '14px 16px 6px' }}>
         <div style={{ flex: 1, font: '700 10.5px Helvetica,Arial,sans-serif', color: 'var(--muted)', letterSpacing: '.8px' }}>ÇALIŞMALAR</div>
         <HButton
+          onClick={() => { upd(n => { n.dashOpen = true; }); if (onNavigate) onNavigate(); }}
+          title="Vaka panosu — tüm çalışmaların durumu tek ekranda"
+          style={{ flex: 'none', padding: '5px 10px', border: '1px solid var(--pri-border)', borderRadius: 6, background: 'var(--surface)', color: 'var(--pri)', font: '600 11px Helvetica,Arial,sans-serif', cursor: 'pointer' }}
+          hover={{ background: 'var(--pri-soft)' }}
+        >📊 Pano</HButton>
+        <HButton
           onClick={() => setTplOpen(true)}
           style={{ flex: 'none', padding: '5px 10px', border: '1px solid var(--pri)', borderRadius: 6, background: 'var(--pri)', color: 'var(--on-pri)', font: '600 11px Helvetica,Arial,sans-serif', cursor: 'pointer' }}
           hover={{ background: 'var(--pri-hover)' }}

@@ -4,6 +4,7 @@ import { parseShareHash } from './lib/share.js';
 import SharedView from './components/SharedView.jsx';
 import { STEPS } from './lib/defaults.js';
 import Sidebar from './components/Sidebar.jsx';
+import Dashboard from './components/Dashboard.jsx';
 import CoachPanel from './components/CoachPanel.jsx';
 import StepHeader from './components/StepHeader.jsx';
 import AssistantChat from './components/AssistantChat.jsx';
@@ -106,6 +107,11 @@ export default function App() {
         <Sidebar />
       )}
 
+      {state.dashOpen ? (
+        <main data-main="1" style={{ flex: 1, minWidth: 0, overflow: 'auto' }}>
+          <Dashboard />
+        </main>
+      ) : (
       <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
       <main ref={mainRef} data-main="1" style={{ flex: 1, overflow: 'auto' }}>
         <div style={{ maxWidth: 880, margin: '0 auto', padding: narrow ? '20px 16px 90px' : '34px 44px 90px' }}>
@@ -164,6 +170,7 @@ export default function App() {
         ) : null}
       </div>
       </div>
+      )}
 
       {state.undoToast ? (
         <div data-noprint="1" style={{ position: 'fixed', left: '50%', bottom: 22, transform: 'translateX(-50%)', zIndex: 70, display: 'flex', gap: 10, alignItems: 'center', background: 'var(--ink)', color: 'var(--bg)', borderRadius: 10, padding: '10px 14px', boxShadow: '0 8px 26px rgba(0,0,0,.3)' }}>
