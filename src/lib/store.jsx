@@ -14,6 +14,9 @@ export const useStore = () => useContext(Ctx);
 
 /** Ayarlardaki analiz derinliğinin token bütçesi çarpanı. */
 const DEPTH_MULT = { standart: 1, genis: 1.6, derin: 2.5 };
+// Düşünen modellerde (M3 "adaptive"/"enabled") düşünme tokenları da bu bütçeden
+// harcanır; yanıtın kesilmemesi için bütçe ayrıca çarpılır.
+const THINK_MULT = { disabled: 1, adaptive: 1.8, enabled: 2.4 };
 
 function normalize(state) {
   const s = state;
@@ -31,7 +34,7 @@ function normalize(state) {
     provider: 'auto', apiKey: '', model: '', baseUrl: '',
     level: 'dengeli', auto: true, context: '',
     length: 'kisa', tone: 'resmi', critic: 'nazik',
-    temperature: 0.6, topP: '', depth: 'standart',
+    temperature: 0.6, topP: '', depth: 'standart', thinking: 'adaptive',
     headerName: '', headerPrefix: 'Bearer ', extraHeaders: ''
   }, s.aiSettings || {});
   if (s.theme !== 'light' && s.theme !== 'dark') {
@@ -188,8 +191,8 @@ export function StoreProvider({ children }) {
   // Analiz derinliği token bütçesini ölçekler; üst sınır köprünün kabul ettiği tavandır.
   const callAi = useCallback(opts => {
     const S = stateRef.current.aiSettings || {};
-    const mult = DEPTH_MULT[S.depth] || 1;
-    const max = Math.min(Math.round((opts.max_tokens || 2000) * mult), 16000);
+    const mult = (DEPTH_MULT[S.depth] || 1) * (THINK_MULT[S.thinking] || 1);
+    const max = Math.min(Math.round((opts.max_tokens || 2000) * mult), 60000);
     return complete(S, { ...opts, max_tokens: max });
   }, []);
 

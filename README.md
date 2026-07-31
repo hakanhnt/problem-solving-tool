@@ -138,7 +138,7 @@ Gereksinim: Node 18+.
 | Ortam değişkeni | Zorunlu | Açıklama |
 | --- | --- | --- |
 | `MINIMAX_API_KEY` | evet | "Otomatik" modda kullanılan anahtar; tarayıcıya hiç inmez |
-| `MINIMAX_MODEL` | hayır | varsayılan `MiniMax-Text-01` |
+| `MINIMAX_MODEL` | hayır | varsayılan `MiniMax-M3` |
 | `MINIMAX_BASE_URL` | hayır | varsayılan MiniMax chat/completions ucu |
 
 Sunucu uçları:
@@ -161,9 +161,24 @@ Kenar çubuğundaki **⚙ Ayarlar** panelinden:
   LM Studio, Azure OpenAI. Kimlik başlığı adı/ön eki ve ek başlıklar ayarlanabilir; anahtar boşsa
   hiç yetki başlığı gönderilmez (yerel sunucular). *Uç noktanın CORS izni vermesi gerekir;
   Ollama için `OLLAMA_ORIGINS=*`.*
-- **Model üretim ayarları** — model adı (Otomatik modda da geçerli), **analiz derinliği**
-  (standart / geniş / derin → token bütçesini ×1, ×1,6, ×2,5 ölçekler ve prompt'a derinlik
-  kuralı ekler), **yaratıcılık** (temperature) ve `top_p`.
+- **Model üretim ayarları** — model adı (Otomatik modda da geçerli), **düşünme eforu**,
+  **analiz derinliği**, **yaratıcılık** (temperature) ve `top_p`.
+
+  **Düşünme eforu (reasoning)** düşünen modellerde — MiniMax M3 ve benzerleri — modelin
+  cevaptan önce ne kadar akıl yürüteceğini belirler; sağlayıcıya `thinking: {type: …}` olarak
+  gider. `Kapalı` (disabled) en hızlı ve ucuz; `Uyarlanabilir` (adaptive, varsayılan) modelin
+  kendi kararına bırakır; `Yüksek` (enabled) her yanıt öncesi akıl yürütür. Desteklemeyen
+  modeller alanı yok sayar.
+
+  Düşünme tokenları da bütçeden harcandığı için etkin bütçe iki çarpanın çarpımıdır:
+  derinlik (standart ×1 · geniş ×1,6 · derin ×2,5) × düşünme (kapalı ×1 · uyarlanabilir ×1,8 ·
+  yüksek ×2,4), üst sınır 60.000 token. Ayarlar ekranı seçime göre etkin bütçeyi gösterir.
+
+  > Düşünen modeller düşünceyi ya ayrı bir alanda (`reasoning_content`) ya da yanıtın içine
+  > `<think>…</think>` olarak gömerek döndürür. Uygulama isteğe `reasoning_split: true` ekler,
+  > akışta düşünce delta'larını yok sayar ve her sağlayıcı yolunda `stripThinking()` ile
+  > kalıntı blokları temizler — aksi hâlde rehber kartlarının JSON ayrıştırması bozulurdu.
+  > Bu davranış `tests/ai.test.mjs` ile test edilir.
 - **Rehber ayarları** — rehberlik seviyesi, otomatik öneri, alan/sektör bağlamı, yanıt uzunluğu,
   ton, eleştirellik.
 - **Kurum prensipleri** — 20 varsayılan prensip düzenlenebilir/silinebilir; kök neden

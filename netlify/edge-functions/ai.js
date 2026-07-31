@@ -35,18 +35,27 @@ export default async (request) => {
 
   const upstreamUrl = env('MINIMAX_BASE_URL') || 'https://api.minimax.io/v1/text/chatcompletion_v2';
   const num = (v, lo, hi) => (isFinite(parseFloat(v)) ? Math.max(lo, Math.min(hi, parseFloat(v))) : undefined);
-  const model = (typeof body.model === 'string' && body.model.trim().slice(0, 64)) || env('MINIMAX_MODEL') || 'MiniMax-Text-01';
+  const model = (typeof body.model === 'string' && body.model.trim().slice(0, 64)) || env('MINIMAX_MODEL') || 'MiniMax-M3';
   const temperature = num(body.temperature, 0, 2);
   const topP = num(body.top_p, 0.01, 1);
 
   const payload = {
     model,
-    max_tokens: Math.min(body.max_tokens || 2000, 16000),
+    max_tokens: Math.min(body.max_tokens || 2000, 64000),
     stream: true,
     messages: [{ role: 'system', content: body.system || '' }].concat(Array.isArray(body.messages) ? body.messages : [])
   };
   if (temperature !== undefined) payload.temperature = temperature;
   if (topP !== undefined) payload.top_p = topP;
+
+  // Düşünme (reasoning) modu — M3 ailesi destekler: enabled | adaptive | disabled.
+  // reasoning_split=true, düşünce metnini content'ten AYIRIR; aksi hâlde yanıtın
+  // içine <think>...</think> olarak gömülür ve JSON ayrıştırması bozulur.
+  const think = typeof body.thinking === 'string' ? body.thinking.trim() : '';
+  if (think === 'enabled' || think === 'adaptive' || think === 'disabled') {
+    payload.thinking = { type: think };
+    if (think !== 'disabled') payload.reasoning_split = true;
+  }
 
   let upstream;
   try {

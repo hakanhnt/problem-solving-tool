@@ -28,14 +28,31 @@ const PROVIDER_LABELS = {
   anthropic: 'Ayarlar\'da "Anthropic" sağlayıcısı seçili ama API anahtarı girilmemiş — anahtarı girin ya da "Otomatik" moda dönün'
 };
 
-/** Ayarlardaki üretim parametrelerini (sıcaklık / top_p) istek gövdesine çevirir. */
+/** Geçerli düşünme (reasoning) modları — MiniMax M3 ailesi destekler. */
+export const THINK_MODES = ['disabled', 'adaptive', 'enabled'];
+
+/** Ayarlardaki üretim parametrelerini (sıcaklık / top_p / düşünme) istek gövdesine çevirir. */
 function genParams(S) {
   const o = {};
   const t = parseFloat(S.temperature);
   const p = parseFloat(S.topP);
   if (isFinite(t)) o.temperature = Math.max(0, Math.min(2, t));
   if (isFinite(p)) o.top_p = Math.max(0.01, Math.min(1, p));
+  if (THINK_MODES.includes(S.thinking)) o.thinking = S.thinking;
   return o;
+}
+
+/**
+ * Düşünen modellerin yanıt gövdesine sızabilen düşünce bloklarını temizler.
+ * reasoning_split=true istendiğinde düşünce ayrı alanda gelir; yine de sağlayıcı
+ * ya da ara katman bunu yok sayarsa <think>…</think> içeriği metne karışır ve
+ * JSON ayrıştırması bozulur. Kapanmamış blok da (kesilen yanıt) temizlenir.
+ */
+export function stripThinking(text) {
+  let s = String(text == null ? '' : text);
+  s = s.replace(/<think(?:ing)?\b[^>]*>[\s\S]*?<\/think(?:ing)?>/gi, '');
+  s = s.replace(/<think(?:ing)?\b[^>]*>[\s\S]*$/i, '');
+  return s.replace(/^\s*<\/think(?:ing)?>/i, '').trim();
 }
 
 /** "Ad: değer" satırlarını başlık nesnesine çevirir (özel sağlayıcı ek başlıkları). */
@@ -51,17 +68,21 @@ function parseHeaderLines(raw) {
   return out;
 }
 
-/** Farklı uyumluluk katmanlarının yanıt biçimlerinden metni çıkarır. */
+/**
+ * Farklı uyumluluk katmanlarının yanıt biçimlerinden metni çıkarır.
+ * Düşünen modellerin reasoning_content alanı bilerek alınmaz; content içine
+ * sızmış <think> blokları da temizlenir.
+ */
 function pickText(j) {
   if (!j) return '';
   const ch = j.choices && j.choices[0];
   if (ch) {
-    if (ch.message && ch.message.content) return ch.message.content;   // OpenAI uyumlu
-    if (ch.text) return ch.text;                                        // eski completions
+    if (ch.message && ch.message.content) return stripThinking(ch.message.content);   // OpenAI uyumlu
+    if (ch.text) return stripThinking(ch.text);                                       // eski completions
   }
-  if (j.message && j.message.content) return j.message.content;         // Ollama yerel biçim
-  if (Array.isArray(j.content)) return j.content.map(b => b.text || '').join(''); // Anthropic biçimi
-  if (typeof j.response === 'string') return j.response;                // Ollama /api/generate
+  if (j.message && j.message.content) return stripThinking(j.message.content);        // Ollama yerel biçim
+  if (Array.isArray(j.content)) return stripThinking(j.content.filter(b => b && b.type !== 'thinking').map(b => b.text || '').join('')); // Anthropic biçimi
+  if (typeof j.response === 'string') return stripThinking(j.response);               // Ollama /api/generate
   return '';
 }
 
@@ -126,6 +147,7 @@ async function streamBridge(S, opts) {
   let deltaText = '';   // delta.content parçalarının birleşimi
   let wholeText = '';   // message.content ile gelen tam metin (son paket kazanır)
   let sawDelta = false;
+  let sawThinking = false;   // model düşündü mü (arayüzde "düşünüyor" bilgisi için)
   let providerError = '';
 
   // MiniMax delta'ların ardından son pakette tüm metni message.content olarak tekrar
@@ -140,8 +162,11 @@ async function streamBridge(S, opts) {
     if (j.error && (j.error.message || j.error.type)) providerError = j.error.message || j.error.type;
     const ch = (j.choices && j.choices[0]) || null;
     if (!ch) return;
+    // Düşünce parçaları (reasoning_content / reasoning_details) BİLEREK yok sayılır:
+    // yanıt metnine karışırsa JSON ayrıştırması bozulur. Yalnız content birleştirilir.
     const dp = ch.delta && ch.delta.content;
     if (dp) { sawDelta = true; deltaText += dp; notify(); return; }
+    if (ch.delta && (ch.delta.reasoning_content || ch.delta.reasoning_details)) { sawThinking = true; return; }
     const mp = ch.message && ch.message.content;
     if (mp) { wholeText = mp; notify(); }
   };
@@ -149,7 +174,7 @@ async function streamBridge(S, opts) {
   // onDelta: o ana kadarki tam metinle çağrılır; arayüz kendisi throttle eder.
   const notify = () => {
     if (typeof opts.onDelta === 'function') {
-      try { opts.onDelta(sawDelta ? deltaText : wholeText); } catch (e) { /* arayüz hatası akışı durdurmasın */ }
+      try { opts.onDelta(sawDelta ? deltaText : wholeText, { thinking: sawThinking }); } catch (e) { /* arayüz hatası akışı durdurmasın */ }
     }
   };
 
@@ -166,8 +191,11 @@ async function streamBridge(S, opts) {
   }
   if (buf.startsWith('data:')) consume(buf.slice(5));
 
-  const text = sawDelta ? deltaText : wholeText;
-  if (!text.trim()) throw new Error(providerError || ('Sağlayıcıdan boş yanıt geldi' + BRIDGE_HINT));
+  const text = stripThinking(sawDelta ? deltaText : wholeText);
+  if (!text.trim()) {
+    if (sawThinking) throw new Error('Model düşündü ama yanıt üretmeden bütçe doldu — Ayarlar\'dan analiz derinliğini artırın ya da düşünme modunu "Kapalı"ya alın.');
+    throw new Error(providerError || ('Sağlayıcıdan boş yanıt geldi' + BRIDGE_HINT));
+  }
   return text;
 }
 
@@ -183,7 +211,7 @@ async function plainBridge(S, opts) {
   if (!r.ok || !j || !j.text) {
     throw new Error((j && j.error) || ('Demo YZ hizmetine ulaşılamadı (HTTP ' + r.status + ')' + BRIDGE_HINT));
   }
-  return j.text;
+  return stripThinking(j.text);
 }
 
 export async function complete(settings, opts) {
@@ -301,7 +329,7 @@ function firstBalancedObject(s, from) {
  * Model JSON'un ardına açıklama eklerse ya da metni tekrarlarsa ilk dengeli nesneye düşer.
  */
 export function parseJsonReply(reply) {
-  const clean = String(reply).replace(/```(json)?/gi, '');
+  const clean = stripThinking(reply).replace(/```(json)?/gi, '');
   const a = clean.indexOf('{'), b = clean.lastIndexOf('}');
   if (a < 0 || b <= a) throw new Error('Yanıtta JSON bulunamadı');
   try {

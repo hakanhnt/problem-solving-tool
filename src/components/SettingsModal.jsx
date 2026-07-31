@@ -37,6 +37,17 @@ const LEVELS = [
   { key: 'hizli', label: 'Hızlandıran', hint: 'Eksiksiz taslaklar üretir' }
 ];
 
+// Düşünme (reasoning) modu — MiniMax M3 ailesinin "thinking" parametresine karşılık gelir.
+const THINKS = [
+  { key: 'disabled', label: 'Kapalı', hint: 'En hızlı ve en ucuz; kısa görevler için' },
+  { key: 'adaptive', label: 'Uyarlanabilir', hint: 'Model gerektiğinde düşünür — önerilen' },
+  { key: 'enabled', label: 'Yüksek', hint: 'Her yanıt öncesi akıl yürütür; en kaliteli, en pahalı' }
+];
+
+// Bütçe göstergesinde kullanılan çarpanlar (store.jsx ile aynı).
+const DEPTH_LABEL = { standart: 1, genis: 1.6, derin: 2.5 };
+const THINK_LABEL = { disabled: 1, adaptive: 1.8, enabled: 2.4 };
+
 const DEPTHS = [
   { key: 'standart', label: 'Standart', hint: 'Hızlı; şemadaki aday sayısı kadar' },
   { key: 'genis', label: 'Geniş', hint: 'Aday sayısı üst sınırda + gerekçeli' },
@@ -60,6 +71,12 @@ export default function SettingsModal() {
   if (!state.showSettings) return null;
   const A = state.aiSettings;
   const close = () => upd(n => { n.showSettings = false; });
+
+  // Tipik bir rehber çağrısı (2.600 token) için etkin bütçe — kullanıcı maliyeti görsün.
+  const tokenBudget = Math.min(
+    Math.round(2600 * (DEPTH_LABEL[A.depth || 'standart'] || 1) * (THINK_LABEL[A.thinking || 'adaptive'] || 1)),
+    60000
+  ).toLocaleString('tr-TR');
 
   const exportData = () => {
     const now = new Date();
@@ -205,7 +222,7 @@ export default function SettingsModal() {
               <input
                 className="pcx-field-sm" value={A.model || ''}
                 onChange={e => upd(n => { n.aiSettings.model = e.target.value; })}
-                placeholder="Örn. MiniMax-Text-01"
+                placeholder="Örn. MiniMax-M3"
                 style={{ width: '100%', boxSizing: 'border-box', padding: '8px 11px', border: '1px solid var(--field-border)', borderRadius: 6, font: '13px/1.4 Helvetica,Arial,sans-serif', color: 'var(--ink)', background: 'var(--surface)', outline: 'none' }}
               />
             </div>
@@ -277,9 +294,23 @@ export default function SettingsModal() {
           <div style={{ font: '700 10.5px Helvetica,Arial,sans-serif', color: 'var(--muted)', letterSpacing: '.8px' }}>MODEL ÜRETİM AYARLARI</div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6, margin: '0 0 4px' }}>
-            <label style={{ font: '600 12px Helvetica,Arial,sans-serif', color: 'var(--ink-3)' }}>Analiz derinliği <span style={{ fontWeight: 400, color: 'var(--muted)' }}>— daha derin analiz daha uzun sürer</span></label>
+            <label style={{ font: '600 12px Helvetica,Arial,sans-serif', color: 'var(--ink-3)' }}>Düşünme eforu <span style={{ fontWeight: 400, color: 'var(--muted)' }}>(reasoning) — modelin cevaptan önce ne kadar akıl yürüteceği</span></label>
+            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+              {THINKS.map(d => seg((A.thinking || 'adaptive') === d.key, d.label, d.hint, () => upd(n => { n.aiSettings.thinking = d.key; }), true))}
+            </div>
+            <div style={{ font: '11px/1.5 Helvetica,Arial,sans-serif', color: 'var(--muted)' }}>
+              Yalnızca düşünen modellerde (MiniMax M3 ve benzerleri) etkilidir; desteklemeyen modeller bu ayarı yok sayar.
+              Düşünme tokenları da token bütçenizden harcanır — "Yüksek" seçimi maliyeti ve süreyi belirgin artırır.
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6, margin: '0 0 4px' }}>
+            <label style={{ font: '600 12px Helvetica,Arial,sans-serif', color: 'var(--ink-3)' }}>Analiz derinliği <span style={{ fontWeight: 400, color: 'var(--muted)' }}>— çıktı uzunluğu bütçesi</span></label>
             <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
               {DEPTHS.map(d => seg((A.depth || 'standart') === d.key, d.label, d.hint, () => upd(n => { n.aiSettings.depth = d.key; }), true))}
+            </div>
+            <div style={{ font: '11px/1.5 Helvetica,Arial,sans-serif', color: 'var(--muted)' }}>
+              Etkin token bütçesi: <strong>{tokenBudget}</strong> (derinlik ×{DEPTH_LABEL[A.depth || 'standart']} · düşünme ×{THINK_LABEL[A.thinking || 'adaptive']}, üst sınır 60.000).
             </div>
           </div>
 

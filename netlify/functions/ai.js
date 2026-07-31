@@ -32,14 +32,21 @@ export const handler = async (event) => {
     const { system, messages, max_tokens } = body;
     const num = (v, lo, hi) => (isFinite(parseFloat(v)) ? Math.max(lo, Math.min(hi, parseFloat(v))) : undefined);
     const payload = {
-      model: (typeof body.model === 'string' && body.model.trim().slice(0, 64)) || process.env.MINIMAX_MODEL || 'MiniMax-Text-01',
-      max_tokens: Math.min(max_tokens || 2000, 16000),
+      model: (typeof body.model === 'string' && body.model.trim().slice(0, 64)) || process.env.MINIMAX_MODEL || 'MiniMax-M3',
+      max_tokens: Math.min(max_tokens || 2000, 64000),
       messages: [{ role: 'system', content: system || '' }].concat(Array.isArray(messages) ? messages : [])
     };
     const temperature = num(body.temperature, 0, 2);
     const topP = num(body.top_p, 0.01, 1);
     if (temperature !== undefined) payload.temperature = temperature;
     if (topP !== undefined) payload.top_p = topP;
+    // Bu yol 9 sn'lik kesme sınırına tabi; düşünme süresi bütçeyi yiyeceği için
+    // yedek yolda düşünme varsayılan olarak kapatılır (yalnız açıkça istenirse açılır).
+    const think = typeof body.thinking === 'string' ? body.thinking.trim() : '';
+    if (think === 'enabled' || think === 'adaptive' || think === 'disabled') {
+      payload.thinking = { type: think };
+      if (think !== 'disabled') payload.reasoning_split = true;
+    }
 
     const r = await fetch(process.env.MINIMAX_BASE_URL || 'https://api.minimax.io/v1/text/chatcompletion_v2', {
       method: 'POST',
