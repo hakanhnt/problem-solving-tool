@@ -7,7 +7,7 @@ import {
   complete, buildSystem, buildCoachTask, coachItems, parseJsonReply,
   COACH_JSON_RULE, COACH_TEACH_TASK, COACH_FAST_SUFFIX, COACH_DEPTH_SUFFIX, ACTION_COACH_TASK,
   DECISION_COACH_TASK, AUDIT_TASK, BIAS_SCAN_TASK, PREMORTEM_TASK, REPORT_SUMMARY_TASK, REF_SUMMARY_SYSTEM,
-  buildHelpSystem, extractObjects
+  SPEC_COACH_TASK, buildHelpSystem, extractObjects
 } from './ai.js';
 
 const Ctx = createContext(null);
@@ -459,6 +459,54 @@ export function StoreProvider({ children }) {
     })();
   }, [upd, effCase, callAi, systemFor]);
 
+  // VAR/YOK belirtim taslağı (Adım 1) — üretir; kullanıcı yalnız boş alanlara aktarır.
+  const runSpecCoach = useCallback(() => {
+    const s0 = stateRef.current;
+    const eff = effCase(s0);
+    if (s0.cases[eff].specCoach && s0.cases[eff].specCoach.status === 'busy') return;
+    upd(n => { n.cases[eff].specCoach = { status: 'busy' }; });
+    (async () => {
+      try {
+        const c = stateRef.current.cases[eff];
+        const reply = await callAi({
+          max_tokens: 1600,
+          system: systemFor(1, c) + SPEC_COACH_TASK,
+          messages: [{ role: 'user', content: 'Problem tanımıma göre VAR/YOK belirtim taslağını JSON olarak üret.' }]
+        });
+        const j = parseJsonReply(reply);
+        const B = j.belirtim || {};
+        const row = k => ({ v: String((B[k] || {}).v || ''), y: String((B[k] || {}).y || '') });
+        upd(n => {
+          n.cases[eff].specCoach = {
+            status: 'done', giris: String(j.giris || ''),
+            belirtim: { nerede: row('nerede'), zaman: row('zaman'), kirilim: row('kirilim'), buyukluk: row('buyukluk') },
+            degisiklik: String(j.degisiklik || ''),
+            sorular: Array.isArray(j.sorular) ? j.sorular.map(String) : [],
+            applied: false
+          };
+        });
+      } catch (e) {
+        upd(n => { n.cases[eff].specCoach = { status: 'error', errMsg: String((e && e.message) || e) }; });
+      }
+    })();
+  }, [upd, effCase, callAi, systemFor]);
+
+  // Taslağı YALNIZ boş alanlara aktarır — kullanıcının yazdığı hiçbir hücre ezilmez.
+  const applySpecCoach = useCallback(() => {
+    updC(cc => {
+      const sc = cc.specCoach;
+      if (!sc || sc.status !== 'done') return;
+      ['nerede', 'zaman', 'kirilim', 'buyukluk'].forEach(k => {
+        cc.spec[k] = cc.spec[k] || { v: '', y: '' };
+        const src = (sc.belirtim || {})[k] || {};
+        if (!(cc.spec[k].v || '').trim() && (src.v || '').trim()) cc.spec[k].v = src.v;
+        if (!(cc.spec[k].y || '').trim() && (src.y || '').trim()) cc.spec[k].y = src.y;
+      });
+      if (!(cc.spec.degisiklik || '').trim() && (sc.degisiklik || '').trim()) cc.spec.degisiklik = sc.degisiklik;
+      sc.applied = true;
+    });
+  }, [updC]);
+
   const runPremortem = useCallback(() => {
     const s0 = stateRef.current;
     const eff = effCase(s0);
@@ -721,9 +769,9 @@ export function StoreProvider({ children }) {
     mainRef,
     upd, updC, setC, inp, goStep, toggleTheme, removeC, undoLast, canUndo,
     ensureCoach, runCoach, applyCoachItem, coachRefresh, coachMore,
-    runDecisionCoach, runActionCoach, runAudit, runBiasScan, runPremortem, runReportSummary,
+    runDecisionCoach, runActionCoach, runAudit, runBiasScan, runPremortem, runReportSummary, runSpecCoach, applySpecCoach,
     askAi, askHelp, fieldHelp, addReference
-  }), [state, eff, upd, updC, setC, inp, goStep, toggleTheme, removeC, undoLast, canUndo, ensureCoach, runCoach, applyCoachItem, coachRefresh, coachMore, runDecisionCoach, runActionCoach, runAudit, runBiasScan, runPremortem, runReportSummary, askAi, askHelp, fieldHelp, addReference]);
+  }), [state, eff, upd, updC, setC, inp, goStep, toggleTheme, removeC, undoLast, canUndo, ensureCoach, runCoach, applyCoachItem, coachRefresh, coachMore, runDecisionCoach, runActionCoach, runAudit, runBiasScan, runPremortem, runReportSummary, runSpecCoach, applySpecCoach, askAi, askHelp, fieldHelp, addReference]);
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

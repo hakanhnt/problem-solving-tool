@@ -22,8 +22,9 @@ const QUESTIONS = [
 ];
 
 export default function Step1Problem() {
-  const { state, c, upd, updC, inp, fieldHelp, addReference, removeC } = useStore();
+  const { state, c, upd, updC, inp, fieldHelp, addReference, removeC, runSpecCoach, applySpecCoach } = useStore();
   const p = c.problem;
+  const sc = c.specCoach;
   const aiReady = (p.statement || '').trim().length > 0;
   const g = gapInfo(p);
   const { hasGap, kpiGapText } = g;
@@ -217,6 +218,75 @@ export default function Step1Problem() {
           helpTitle="YZ'den VAR/YOK belirtimi için yardım al"
         />
         <MethodBox>Kepner-Tregoe belirtimi — problemin görüldüğü yer ile görülebileceği hâlde görülmediği yer arasındaki <strong>fark</strong>, kök neden adaylarını üretir ve test eder: gerçek kök neden hem VAR'ı hem YOK'u açıklamak zorundadır.</MethodBox>
+
+        {/* Rehberden VAR/YOK taslağı — üretilen tablo önizlenir, yalnız boş alanlara aktarılır */}
+        {aiReady ? (
+          <div style={{ background: 'var(--pri-soft-2)', border: '1px solid var(--pri-border)', borderRadius: 8, padding: '12px 14px', margin: '0 0 14px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {!sc || sc.status === 'error' ? (
+              <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
+                <div style={{ font: '12.5px/1.5 Helvetica,Arial,sans-serif', color: 'var(--pri-ink-2)', flex: 1, minWidth: 220 }}>
+                  Rehber; problem ifadenize, boyutlarınıza ve varsa bulgularınıza bakarak VAR/YOK tablosu için bir taslak hazırlayabilir. Bilmediği hücreleri "[doldurun: …]" diye işaretler.
+                  {sc && sc.status === 'error' ? <span style={{ color: 'var(--alert)' }}> Taslak hazırlanamadı{sc.errMsg ? ' (' + sc.errMsg + ')' : ''} — tekrar deneyin.</span> : null}
+                </div>
+                <HButton onClick={runSpecCoach} style={{ flex: 'none', padding: '8px 14px', border: '1px solid var(--pri)', borderRadius: 8, background: 'var(--pri)', color: 'var(--on-pri)', font: '600 12px Helvetica,Arial,sans-serif', cursor: 'pointer' }} hover={{ background: 'var(--pri-hover)' }}>Rehberden VAR/YOK taslağı al</HButton>
+              </div>
+            ) : null}
+
+            {sc && sc.status === 'busy' ? (
+              <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                <span style={{ width: 16, height: 16, border: '2px solid var(--spinner-track)', borderTopColor: 'var(--pri)', borderRadius: '50%', display: 'inline-block', animation: 'pcxspin .8s linear infinite' }} />
+                <div style={{ font: '600 12.5px Helvetica,Arial,sans-serif', color: 'var(--pri-ink)' }}>VAR/YOK taslağı hazırlanıyor…</div>
+              </div>
+            ) : null}
+
+            {sc && sc.status === 'done' ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                <div style={{ font: '700 10.5px Helvetica,Arial,sans-serif', color: 'var(--pri-soft-ink)', letterSpacing: '.8px' }}>REHBERİN VAR/YOK TASLAĞI — hipotezdir, veriyle doğrulayın</div>
+                {sc.giris ? <div style={{ font: '12.5px/1.6 Helvetica,Arial,sans-serif', color: 'var(--pri-ink-2)' }}>{sc.giris}</div> : null}
+                <div style={{ overflowX: 'auto' }}>
+                  <table style={{ borderCollapse: 'collapse', width: '100%', background: 'var(--surface)', borderRadius: 6 }}>
+                    <thead>
+                      <tr>
+                        <th style={{ padding: '6px 9px', border: '1px solid var(--line)', font: '700 11px Helvetica,Arial,sans-serif', color: 'var(--pri-ink)', background: 'var(--pri-soft)', textAlign: 'left' }}> </th>
+                        <th style={{ padding: '6px 9px', border: '1px solid var(--line)', font: '700 11px Helvetica,Arial,sans-serif', color: 'var(--ok-ink)', background: 'var(--pri-soft)', textAlign: 'left' }}>VAR</th>
+                        <th style={{ padding: '6px 9px', border: '1px solid var(--line)', font: '700 11px Helvetica,Arial,sans-serif', color: 'var(--alert)', background: 'var(--pri-soft)', textAlign: 'left' }}>YOK</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {SPEC_ROWS.map(row => {
+                        const r = (sc.belirtim || {})[row.key] || {};
+                        return (
+                          <tr key={row.key}>
+                            <td style={{ padding: '6px 9px', border: '1px solid var(--line)', font: '700 11.5px Helvetica,Arial,sans-serif', color: 'var(--ink-3)', whiteSpace: 'nowrap' }}>{row.label}</td>
+                            <td style={{ padding: '6px 9px', border: '1px solid var(--line)', font: '12px/1.5 Helvetica,Arial,sans-serif', color: 'var(--ink)' }}>{r.v || '—'}</td>
+                            <td style={{ padding: '6px 9px', border: '1px solid var(--line)', font: '12px/1.5 Helvetica,Arial,sans-serif', color: 'var(--ink)' }}>{r.y || '—'}</td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+                {sc.degisiklik ? <div style={{ font: '12px/1.5 Helvetica,Arial,sans-serif', color: 'var(--ink-3)' }}><strong>Değişiklik taslağı:</strong> {sc.degisiklik}</div> : null}
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                  <HButton
+                    onClick={applySpecCoach}
+                    disabled={sc.applied}
+                    style={{ padding: '8px 14px', border: '1px solid ' + (sc.applied ? 'var(--ok-border)' : 'var(--pri)'), borderRadius: 8, background: sc.applied ? 'var(--ok-soft)' : 'var(--pri)', color: sc.applied ? 'var(--ok)' : 'var(--on-pri)', font: '600 12px Helvetica,Arial,sans-serif', cursor: sc.applied ? 'default' : 'pointer' }}
+                    hover={sc.applied ? {} : { background: 'var(--pri-hover)' }}
+                  >{sc.applied ? 'Aktarıldı ✓' : 'Boş alanlara aktar'}</HButton>
+                  <HButton onClick={runSpecCoach} style={{ padding: '8px 14px', border: '1px solid var(--pri-border)', borderRadius: 8, background: 'var(--surface)', color: 'var(--pri)', font: '600 12px Helvetica,Arial,sans-serif', cursor: 'pointer' }} hover={S.ghostHover}>Yeniden öner</HButton>
+                  <HButton onClick={() => updC(cc => { delete cc.specCoach; })} style={{ padding: '8px 14px', border: 'none', background: 'transparent', color: 'var(--muted)', font: '600 12px Helvetica,Arial,sans-serif', cursor: 'pointer' }} hover={{ color: 'var(--ink-3)' }}>Kapat</HButton>
+                </div>
+                {(sc.sorular || []).length ? (
+                  <ul style={{ margin: 0, padding: '0 0 0 18px', display: 'flex', flexDirection: 'column', gap: 4 }}>
+                    {sc.sorular.map((q, i) => <li key={i} style={{ font: '12px/1.5 Helvetica,Arial,sans-serif', color: 'var(--pri-ink-2)' }}>{q}</li>)}
+                  </ul>
+                ) : null}
+                <div style={{ font: '11px/1.5 Helvetica,Arial,sans-serif', color: 'var(--muted)' }}>Aktarım yalnız boş hücrelere yapılır — yazdıklarınız ezilmez. "[doldurun: …]" işaretli yerleri kendi verinizle değiştirin; özellikle YOK tarafını paydaşlarınızla doğrulayın.</div>
+              </div>
+            ) : null}
+          </div>
+        ) : null}
         <div style={{ display: 'grid', gridTemplateColumns: narrow ? '1fr' : '90px 1fr 1fr', gap: 10, alignItems: 'start' }}>
           {!narrow ? (
             <>
