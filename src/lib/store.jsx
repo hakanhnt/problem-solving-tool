@@ -34,7 +34,8 @@ function normalize(state) {
   s.helpChat.forEach(m => { delete m.live; });
   s.helpOpen = false;
   s.helpBusy = false;
-  s.reportCfg = Object.assign({ company: '', sections: {} }, s.reportCfg || {});
+  s.reportCfg = Object.assign({ company: '', sections: {}, view: 'full' }, s.reportCfg || {});
+  if (s.reportCfg.view !== 'a3') s.reportCfg.view = 'full';
   s.reportCfg.sections = Object.assign({ tanim: true, driver: true, analiz: true, bulgu: true, kok: true, karar: true, izleme: true, dusunme: true, referans: true }, s.reportCfg.sections);
   s.aiSettings = Object.assign({
     provider: 'auto', apiKey: '', model: '', baseUrl: '',

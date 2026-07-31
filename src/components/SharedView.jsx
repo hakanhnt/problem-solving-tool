@@ -4,10 +4,12 @@
 import React from 'react';
 import { useStore } from '../lib/store.jsx';
 import ReportBody from './ReportBody.jsx';
+import A3Body from './A3Body.jsx';
 import { HButton } from '../ui/primitives.jsx';
 
 export default function SharedView({ payload, onExit }) {
   const { upd } = useStore();
+  const [view, setView] = React.useState('full');
 
   const copyToMine = () => {
     const id = 'c' + Date.now();
@@ -52,7 +54,21 @@ export default function SharedView({ payload, onExit }) {
           >Kapat ×</HButton>
         </div>
 
-        <ReportBody c={payload.c} principles={payload.principles} companyName={payload.company} />
+        <div data-noprint="1" style={{ display: 'flex', gap: 6, margin: '0 0 12px' }}>
+          {[['full', 'Tam rapor'], ['a3', 'A3 özeti']].map(([k, lb]) => (
+            <button key={k} onClick={() => setView(k)} aria-pressed={view === k}
+              style={{ padding: '6px 12px', borderRadius: 20, border: '1px solid ' + (view === k ? 'var(--pri)' : 'var(--field-border)'), background: view === k ? 'var(--pri)' : 'var(--surface)', color: view === k ? 'var(--on-pri)' : 'var(--ink-3)', font: '600 11.5px Helvetica,Arial,sans-serif', cursor: 'pointer' }}
+            >{lb}</button>
+          ))}
+        </div>
+        {view === 'a3' ? (
+          <>
+            <style>{'@media print { @page { size: A3 landscape; margin: 10mm } }'}</style>
+            <A3Body c={payload.c} companyName={payload.company} />
+          </>
+        ) : (
+          <ReportBody c={payload.c} principles={payload.principles} companyName={payload.company} />
+        )}
       </div>
     </div>
   );
