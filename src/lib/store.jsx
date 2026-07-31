@@ -7,7 +7,7 @@ import {
   complete, buildSystem, buildCoachTask, coachItems, parseJsonReply,
   COACH_JSON_RULE, COACH_TEACH_TASK, COACH_FAST_SUFFIX, COACH_DEPTH_SUFFIX, ACTION_COACH_TASK,
   DECISION_COACH_TASK, AUDIT_TASK, BIAS_SCAN_TASK, PREMORTEM_TASK, REPORT_SUMMARY_TASK, REF_SUMMARY_SYSTEM,
-  SPEC_COACH_TASK, CONTAINMENT_COACH_TASK, MATRIX_COACH_TASK, TRACKING_COACH_TASK, RETRO_COACH_TASK, buildHelpSystem, extractObjects
+  SPEC_COACH_TASK, CONTAINMENT_COACH_TASK, MATRIX_COACH_TASK, TRACKING_COACH_TASK, RETRO_COACH_TASK, buildHelpSystem, extractObjects, stripThinking
 } from './ai.js';
 
 const Ctx = createContext(null);
@@ -499,7 +499,7 @@ export function StoreProvider({ children }) {
       try {
         const c = stateRef.current.cases[eff];
         const reply = await callAi({
-          max_tokens: 1800,
+          max_tokens: 2400,
           system: systemFor(7, c) + RETRO_COACH_TASK,
           messages: [{ role: 'user', content: 'Çalışmamın bütününe göre retrospektif taslağını JSON olarak üret.' }]
         });
@@ -736,7 +736,7 @@ export function StoreProvider({ children }) {
           system: systemFor(8, c) + AUDIT_TASK,
           messages: [{ role: 'user', content: 'Çalışmamın uçtan uca tutarlılık denetimini yap.' }]
         });
-        upd(n => { n.cases[eff].audit = { status: 'done', text: String(reply || '').trim() }; });
+        upd(n => { n.cases[eff].audit = { status: 'done', text: stripThinking(String(reply || '')).trim() }; });
       } catch (e) {
         upd(n => { n.cases[eff].audit = { status: 'error', text: '', errMsg: String((e && e.message) || e) }; });
       }
@@ -757,7 +757,7 @@ export function StoreProvider({ children }) {
           system: systemFor(7, c) + REPORT_SUMMARY_TASK,
           messages: [{ role: 'user', content: 'Çalışmamın yönetici özetini yaz.' }]
         });
-        upd(n => { n.cases[eff].report = { status: 'done', text: String(reply || '').trim() }; });
+        upd(n => { n.cases[eff].report = { status: 'done', text: stripThinking(String(reply || '')).trim() }; });
       } catch (e) {
         upd(n => { n.cases[eff].report = { status: 'error', text: '', errMsg: String((e && e.message) || e) }; });
       }
@@ -804,14 +804,15 @@ export function StoreProvider({ children }) {
         };
         const reply = await callAi({
           max_tokens: 2500, system: systemFor(step, c), messages,
-          onDelta: text => {
+          onDelta: raw => {
+            const text = stripThinking(raw);
             const now = Date.now();
             if (now - lastTick < 250 || !text.trim()) return;
             lastTick = now;
             writeLive(text, false);
           }
         });
-        writeLive(reply, true);
+        writeLive(stripThinking(String(reply)).trim() || '(Model yanıt yerine yalnız akıl yürütme üretti — lütfen yeniden deneyin.)', true);
       } catch (e) {
         upd(n => {
           const cc = n.cases[eff];
@@ -855,14 +856,15 @@ export function StoreProvider({ children }) {
           max_tokens: 1800,
           system: buildHelpSystem(s.step, STEPS.map(x => x.title)),
           messages,
-          onDelta: t => {
+          onDelta: raw => {
+            const txt = stripThinking(raw);
             const now = Date.now();
-            if (now - lastTick < 250 || !t.trim()) return;
+            if (now - lastTick < 250 || !txt.trim()) return;
             lastTick = now;
-            writeLive(t, false);
+            writeLive(txt, false);
           }
         });
-        writeLive(String(reply).trim(), true);
+        writeLive(stripThinking(String(reply)).trim() || '(Model yanıt yerine yalnız akıl yürütme üretti — lütfen yeniden deneyin.)', true);
       } catch (e) {
         upd(n => {
           n.helpChat.push({ role: 'assistant', content: 'Cevap alınamadı: ' + ((e && e.message) || e) });
@@ -894,7 +896,7 @@ export function StoreProvider({ children }) {
           system: REF_SUMMARY_SYSTEM,
           messages: [{ role: 'user', content: r.text.slice(0, 30000) }]
         });
-        setRefField(eff, id, 'summary', String(s).trim());
+        setRefField(eff, id, 'summary', stripThinking(String(s)).trim());
       } catch (e) { /* özet başarısız — ham metin kullanılır */ }
       setRefField(eff, id, 'summarizing', false);
     })();

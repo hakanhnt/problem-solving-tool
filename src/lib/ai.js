@@ -82,12 +82,12 @@ function pickText(j) {
   if (!j) return '';
   const ch = j.choices && j.choices[0];
   if (ch) {
-    if (ch.message && ch.message.content) return stripThinking(ch.message.content);   // OpenAI uyumlu
-    if (ch.text) return stripThinking(ch.text);                                       // eski completions
+    if (ch.message && ch.message.content) return ch.message.content;   // OpenAI uyumlu
+    if (ch.text) return ch.text;                                        // eski completions
   }
-  if (j.message && j.message.content) return stripThinking(j.message.content);        // Ollama yerel biçim
-  if (Array.isArray(j.content)) return stripThinking(j.content.filter(b => b && b.type !== 'thinking').map(b => b.text || '').join('')); // Anthropic biçimi
-  if (typeof j.response === 'string') return stripThinking(j.response);               // Ollama /api/generate
+  if (j.message && j.message.content) return j.message.content;         // Ollama yerel biçim
+  if (Array.isArray(j.content)) return j.content.filter(b => b && b.type !== 'thinking').map(b => b.text || '').join(''); // Anthropic biçimi
+  if (typeof j.response === 'string') return j.response;                // Ollama /api/generate
   return '';
 }
 
@@ -210,7 +210,8 @@ async function streamBridge(S, opts) {
     } catch (e) { /* gövde JSON da değil — genel mesaja düşülür */ }
   }
 
-  const text = stripThinking(sawDelta ? deltaText : wholeText);
+  // Ham metin döndürülür: düşünce bloğuna gömülü JSON'u parseJsonReply kurtarabilsin.
+  const text = sawDelta ? deltaText : wholeText;
   if (!text.trim()) {
     if (sawThinking) throw new Error('Model düşündü ama yanıt üretmeden bütçe doldu — Ayarlar\'dan analiz derinliğini artırın ya da düşünme modunu "Kapalı"ya alın.');
     throw new Error(providerError || ('Sağlayıcıdan boş yanıt geldi' + BRIDGE_HINT));
@@ -230,7 +231,7 @@ async function plainBridge(S, opts) {
   if (!r.ok || !j || !j.text) {
     throw new Error((j && j.error) || ('Demo YZ hizmetine ulaşılamadı (HTTP ' + r.status + ')' + BRIDGE_HINT));
   }
-  return stripThinking(j.text);
+  return j.text;
 }
 
 export async function complete(settings, opts) {
@@ -303,7 +304,7 @@ export async function complete(settings, opts) {
     });
     const j = await r.json();
     if (!r.ok) throw new Error((j.error && j.error.message) || ('HTTP ' + r.status));
-    return (j.content || []).map(b => b.text || '').join('');
+    return (j.content || []).filter(b => b && b.type !== 'thinking').map(b => b.text || '').join('');
   }
 
   const base = (S.baseUrl || '').trim() || (prov === 'openai' ? 'https://api.openai.com/v1/chat/completions' : 'https://api.minimax.io/v1/chat/completions');
@@ -384,21 +385,42 @@ function firstBalancedObject(s, from) {
  * YZ yanıtından tek bir JSON nesnesi ayıklar (kod bloğu işaretlerini temizler).
  * Model JSON'un ardına açıklama eklerse ya da metni tekrarlarsa ilk dengeli nesneye düşer.
  */
-export function parseJsonReply(reply) {
-  const clean = stripThinking(reply).replace(/```(json)?/gi, '');
-  const a = clean.indexOf('{'), b = clean.lastIndexOf('}');
-  if (a < 0 || b <= a) throw new Error('Yanıtta JSON bulunamadı');
-  const cand = clean.slice(a, b + 1);
-  let firstErr = null;
-  // Sırayla: ham aday → ilk dengeli nesne → onarılmış aday → onarılmışın ilk dengeli nesnesi.
-  const attempts = [cand, firstBalancedObject(clean, a), repairJson(cand)];
-  const repaired = repairJson(clean);
-  attempts.push(firstBalancedObject(repaired, repaired.indexOf('{')));
-  for (const s of attempts) {
-    if (!s) continue;
-    try { return JSON.parse(s); } catch (e) { if (!firstErr) firstErr = e; }
+/** Metindeki SON dengeli { … } bloğu — düşünce içindeki şema taslaklarını atlamak için. */
+function lastBalancedObject(s) {
+  let i = 0, last = null;
+  while ((i = s.indexOf('{', i)) >= 0) {
+    const block = firstBalancedObject(s, i);
+    if (block) { last = block; i += block.length; }
+    else i += 1;
   }
-  throw firstErr || new Error('Yanıttaki JSON ayrıştırılamadı');
+  return last;
+}
+
+export function parseJsonReply(reply) {
+  // Önce düşünce temizlenmiş metin denenir. Orada hiç JSON yoksa (model tüm
+  // yanıtı — JSON dahil — kapanmamış bir <think> bloğuna gömmüş olabilir)
+  // SON ÇARE olarak ham metne bakılır; orada ilk nesne çoğu kez düşüncedeki
+  // şema taslağı olduğundan SON dengeli nesne önceliklidir.
+  const sources = [
+    stripThinking(reply).replace(/```(json)?/gi, ''),
+    String(reply == null ? '' : reply).replace(/```(json)?/gi, '')
+  ];
+  let firstErr = null;
+  for (let si = 0; si < sources.length; si++) {
+    const clean = sources[si];
+    const a = clean.indexOf('{'), b = clean.lastIndexOf('}');
+    if (a < 0 || b <= a) continue;
+    const cand = clean.slice(a, b + 1);
+    const repaired = repairJson(clean);
+    const attempts = si === 0
+      ? [cand, firstBalancedObject(clean, a), repairJson(cand), firstBalancedObject(repaired, repaired.indexOf('{'))]
+      : [lastBalancedObject(clean), lastBalancedObject(repaired), repairJson(cand)];
+    for (const s of attempts) {
+      if (!s) continue;
+      try { return JSON.parse(s); } catch (e) { if (!firstErr) firstErr = e; }
+    }
+  }
+  throw firstErr || new Error('Yanıtta JSON bulunamadı — model düz metin döndürdü; tekrar deneyin');
 }
 
 /**

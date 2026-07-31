@@ -138,3 +138,25 @@ test('extractObjects: bozuk iç nesne onarımla kurtarılır', () => {
   assert.equal(objs.length, 1);
   assert.equal(objs[0].baslik, 'İçinde "tırnak" olan başlık');
 });
+
+// ---- Kapanmamış <think> bloğuna gömülü JSON (sahadaki 'Yanıtta JSON bulunamadı') ----
+
+test('parseJsonReply: JSON kapanmamış think bloğunun içinde kalsa da bulunur', () => {
+  // Model her şeyi düşünce bloğuna gömdü ve bloğu hiç kapatmadı; stripThinking
+  // hepsini silince eskiden 'Yanıtta JSON bulunamadı' atılıyordu.
+  const reply = '<think>Retrospektif için şema {"ornek":"taslak"} gibi olmalı. Şimdi yazayım: '
+    + '{"giris":"Taslak hazır","valid":"KN1 doğrulandı","worked":"KPI 65ten 52ye indi","process":"Süreç matrisle yürüdü","lessons":"Ara metrik standardı","sorular":["S?"]}';
+  const j = parseJsonReply(reply);
+  assert.equal(j.valid, 'KN1 doğrulandı');           // şema taslağı değil, SON nesne alındı
+  assert.equal(j.sorular.length, 1);
+});
+
+test('parseJsonReply: düşünce dışında JSON varsa ham metne hiç bakılmaz', () => {
+  // Düşüncede sahte nesne var ama gerçek yanıt dışarıda — dışarıdaki kazanmalı.
+  const reply = '<think>şema: {"valid":"SAHTE"}</think>{"valid":"GERÇEK","sorular":[]}';
+  assert.equal(parseJsonReply(reply).valid, 'GERÇEK');
+});
+
+test('parseJsonReply: hiç JSON yoksa açıklayıcı hata atılır', () => {
+  assert.throws(() => parseJsonReply('Üzgünüm, bu konuda düz metin yazacağım.'), /JSON bulunamadı/);
+});
