@@ -7,7 +7,7 @@ import {
   complete, buildSystem, buildCoachTask, coachItems, parseJsonReply,
   COACH_JSON_RULE, COACH_TEACH_TASK, COACH_FAST_SUFFIX, COACH_DEPTH_SUFFIX, ACTION_COACH_TASK,
   DECISION_COACH_TASK, AUDIT_TASK, BIAS_SCAN_TASK, PREMORTEM_TASK, REPORT_SUMMARY_TASK, REF_SUMMARY_SYSTEM,
-  SPEC_COACH_TASK, CONTAINMENT_COACH_TASK, MATRIX_COACH_TASK, TRACKING_COACH_TASK, RETRO_COACH_TASK, buildHelpSystem, extractObjects, stripThinking
+  SPEC_COACH_TASK, CONTAINMENT_COACH_TASK, MATRIX_COACH_TASK, TRACKING_COACH_TASK, TRACKING_PLAN_TASK, RETRO_COACH_TASK, buildHelpSystem, extractObjects, stripThinking
 } from './ai.js';
 
 const Ctx = createContext(null);
@@ -459,35 +459,65 @@ export function StoreProvider({ children }) {
     })();
   }, [upd, effCase, callAi, systemFor]);
 
-  // KPI izleme değerlendirmesi (Adım 7) — analizdir, form doldurmaz.
+  // KPI izleme desteği (Adım 7) — ölçüm varsa TREND değerlendirmesi (analiz, form
+  // doldurmaz), henüz ölçüm yoksa İZLEME PLANI önerisi (dönem satırları eklenebilir).
   const runTrackingCoach = useCallback(() => {
     const s0 = stateRef.current;
     const eff = effCase(s0);
     if (s0.cases[eff].trackingCoach && s0.cases[eff].trackingCoach.status === 'busy') return;
+    const hasMeasure = (s0.cases[eff].tracking || []).some(x => isFinite(parseFloat(String(x.value).replace(',', '.'))));
     upd(n => { n.cases[eff].trackingCoach = { status: 'busy' }; });
     (async () => {
       try {
         const c = stateRef.current.cases[eff];
         const reply = await callAi({
           max_tokens: 1600,
-          system: systemFor(7, c) + TRACKING_COACH_TASK,
-          messages: [{ role: 'user', content: 'KPI ölçümlerime ve aksiyon durumlarıma göre izleme değerlendirmesini JSON olarak üret.' }]
+          system: systemFor(7, c) + (hasMeasure ? TRACKING_COACH_TASK : TRACKING_PLAN_TASK),
+          messages: [{ role: 'user', content: hasMeasure
+            ? 'KPI ölçümlerime ve aksiyon durumlarıma göre izleme değerlendirmesini JSON olarak üret.'
+            : 'Henüz ölçüm girmedim; KPI tanımıma ve kök nedenlerime göre izleme planını JSON olarak üret.' }]
         });
         const j = parseJsonReply(reply);
-        const durum = ['kapaniyor', 'belirsiz', 'kapanmiyor'].includes(j.durum) ? j.durum : 'belirsiz';
-        upd(n => {
-          n.cases[eff].trackingCoach = {
-            status: 'done', durum, yorum: String(j.yorum || ''),
-            uyarilar: Array.isArray(j.uyarilar) ? j.uyarilar.map(String) : [],
-            oneriler: Array.isArray(j.oneriler) ? j.oneriler.map(String) : [],
-            sorular: Array.isArray(j.sorular) ? j.sorular.map(String) : []
-          };
-        });
+        if (hasMeasure) {
+          const durum = ['kapaniyor', 'belirsiz', 'kapanmiyor'].includes(j.durum) ? j.durum : 'belirsiz';
+          upd(n => {
+            n.cases[eff].trackingCoach = {
+              status: 'done', mode: 'trend', durum, yorum: String(j.yorum || ''),
+              uyarilar: Array.isArray(j.uyarilar) ? j.uyarilar.map(String) : [],
+              oneriler: Array.isArray(j.oneriler) ? j.oneriler.map(String) : [],
+              sorular: Array.isArray(j.sorular) ? j.sorular.map(String) : []
+            };
+          });
+        } else {
+          upd(n => {
+            n.cases[eff].trackingCoach = {
+              status: 'done', mode: 'plan', giris: String(j.giris || ''),
+              siklik: String(j.siklik || ''),
+              donemler: (Array.isArray(j.donemler) ? j.donemler.map(String) : []).filter(Boolean).slice(0, 12),
+              araMetrikler: Array.isArray(j.araMetrikler) ? j.araMetrikler.map(String) : [],
+              sorular: Array.isArray(j.sorular) ? j.sorular.map(String) : [], applied: false
+            };
+          });
+        }
       } catch (e) {
         upd(n => { n.cases[eff].trackingCoach = { status: 'error', errMsg: String((e && e.message) || e) }; });
       }
     })();
   }, [upd, effCase, callAi, systemFor]);
+
+  // Plan modundaki dönem etiketlerini boş ölçüm satırları olarak ekler (değerleri kullanıcı ölçer).
+  const applyTrackingPlan = useCallback(() => {
+    updC(cc => {
+      const tc = cc.trackingCoach;
+      if (!tc || tc.status !== 'done' || tc.mode !== 'plan') return;
+      cc.tracking = cc.tracking || [];
+      const existing = new Set(cc.tracking.map(x => (x.label || '').trim().toLowerCase()));
+      (tc.donemler || []).forEach(lb => {
+        if (!existing.has(lb.trim().toLowerCase())) cc.tracking.push({ label: lb, value: '' });
+      });
+      tc.applied = true;
+    });
+  }, [updC]);
 
   // Retrospektif taslağı (Adım 7) — dört alan; yalnız boş alanlara aktarılır.
   const runRetroCoach = useCallback(() => {
@@ -954,9 +984,9 @@ export function StoreProvider({ children }) {
     mainRef,
     upd, updC, setC, inp, goStep, toggleTheme, removeC, undoLast, canUndo,
     ensureCoach, runCoach, applyCoachItem, coachRefresh, coachMore,
-    runDecisionCoach, runActionCoach, runAudit, runBiasScan, runPremortem, runReportSummary, runSpecCoach, applySpecCoach, runContainmentCoach, applyContainment, runMatrixCoach, applyMatrixCoach, runTrackingCoach, runRetroCoach, applyRetroCoach,
+    runDecisionCoach, runActionCoach, runAudit, runBiasScan, runPremortem, runReportSummary, runSpecCoach, applySpecCoach, runContainmentCoach, applyContainment, runMatrixCoach, applyMatrixCoach, runTrackingCoach, applyTrackingPlan, runRetroCoach, applyRetroCoach,
     askAi, askHelp, fieldHelp, addReference
-  }), [state, eff, upd, updC, setC, inp, goStep, toggleTheme, removeC, undoLast, canUndo, ensureCoach, runCoach, applyCoachItem, coachRefresh, coachMore, runDecisionCoach, runActionCoach, runAudit, runBiasScan, runPremortem, runReportSummary, runSpecCoach, applySpecCoach, runContainmentCoach, applyContainment, runMatrixCoach, applyMatrixCoach, runTrackingCoach, runRetroCoach, applyRetroCoach, askAi, askHelp, fieldHelp, addReference]);
+  }), [state, eff, upd, updC, setC, inp, goStep, toggleTheme, removeC, undoLast, canUndo, ensureCoach, runCoach, applyCoachItem, coachRefresh, coachMore, runDecisionCoach, runActionCoach, runAudit, runBiasScan, runPremortem, runReportSummary, runSpecCoach, applySpecCoach, runContainmentCoach, applyContainment, runMatrixCoach, applyMatrixCoach, runTrackingCoach, applyTrackingPlan, runRetroCoach, applyRetroCoach, askAi, askHelp, fieldHelp, addReference]);
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

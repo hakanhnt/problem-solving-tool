@@ -20,7 +20,7 @@ const STATUS_META = {
 };
 
 export default function Step7Tracking() {
-  const { c, updC, inp, removeC, runTrackingCoach, runRetroCoach, applyRetroCoach } = useStore();
+  const { c, updC, inp, removeC, runTrackingCoach, applyTrackingPlan, runRetroCoach, applyRetroCoach } = useStore();
   const aiReady = (c.problem.statement || '').trim().length > 0;
   const tc = c.trackingCoach;
   const rc = c.retroCoach;
@@ -119,24 +119,26 @@ export default function Step7Tracking() {
         <MethodBox margin="0 0 14px">Karşı önlemin işe yarayıp yaramadığını sadece KPI söyler. Trend hedefe kapanmıyorsa kök neden ya da karşı önlem yanlıştır — 5. adıma dönüp analizi güncelleyin (PDCA).</MethodBox>
 
         {/* Rehberden trend değerlendirmesi — analizdir, form doldurmaz */}
-        {aiReady && hasBars ? (
+        {aiReady ? (
           <div style={{ background: 'var(--pri-soft-2)', border: '1px solid var(--pri-border)', borderRadius: 8, padding: '12px 14px', margin: '0 0 14px', display: 'flex', flexDirection: 'column', gap: 10 }}>
             {!tc || tc.status === 'error' ? (
               <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
                 <div style={{ font: '12.5px/1.5 Helvetica,Arial,sans-serif', color: 'var(--pri-ink-2)', flex: 1, minWidth: 220 }}>
-                  Rehber; ölçümlerinize, aksiyon durumlarınıza ve geçici önleme bakarak trendin hedefe kapanıp kapanmadığını değerlendirir, erken uyarı sinyallerini işaretler.
+                  {hasBars
+                    ? 'Rehber; ölçümlerinize, aksiyon durumlarınıza ve geçici önleme bakarak trendin hedefe kapanıp kapanmadığını değerlendirir, erken uyarı sinyallerini işaretler.'
+                    : 'Henüz ölçüm yok. Rehber; KPI tanımınıza ve kök nedenlerinize bakarak ölçüm sıklığı, dönem satırları ve izlenecek ara metrikleri içeren bir izleme planı önerebilir.'}
                   {tc && tc.status === 'error' ? <span style={{ color: 'var(--alert)' }}> Değerlendirme yapılamadı{tc.errMsg ? ' (' + tc.errMsg + ')' : ''} — tekrar deneyin.</span> : null}
                 </div>
-                <HButton onClick={runTrackingCoach} style={{ flex: 'none', padding: '8px 14px', border: '1px solid var(--pri)', borderRadius: 8, background: 'var(--pri)', color: 'var(--on-pri)', font: '600 12px Helvetica,Arial,sans-serif', cursor: 'pointer' }} hover={{ background: 'var(--pri-hover)' }}>Rehberden trend değerlendirmesi al</HButton>
+                <HButton onClick={runTrackingCoach} style={{ flex: 'none', padding: '8px 14px', border: '1px solid var(--pri)', borderRadius: 8, background: 'var(--pri)', color: 'var(--on-pri)', font: '600 12px Helvetica,Arial,sans-serif', cursor: 'pointer' }} hover={{ background: 'var(--pri-hover)' }}>{hasBars ? 'Rehberden trend değerlendirmesi al' : 'Rehberden izleme planı al'}</HButton>
               </div>
             ) : null}
             {tc && tc.status === 'busy' ? (
               <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
                 <Spinner />
-                <div style={{ font: '600 12.5px Helvetica,Arial,sans-serif', color: 'var(--pri-ink)' }}>Trend ve aksiyon durumları değerlendiriliyor…</div>
+                <div style={{ font: '600 12.5px Helvetica,Arial,sans-serif', color: 'var(--pri-ink)' }}>{hasBars ? 'Trend ve aksiyon durumları değerlendiriliyor…' : 'KPI tanımınıza göre izleme planı hazırlanıyor…'}</div>
               </div>
             ) : null}
-            {tc && tc.status === 'done' ? (
+            {tc && tc.status === 'done' && tc.mode !== 'plan' ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {(() => {
                   const M = {
@@ -166,6 +168,44 @@ export default function Step7Tracking() {
                   <HButton onClick={runTrackingCoach} style={{ padding: '7px 12px', border: '1px solid var(--pri-border)', borderRadius: 7, background: 'var(--surface)', color: 'var(--pri)', font: '600 11.5px Helvetica,Arial,sans-serif', cursor: 'pointer' }} hover={S.ghostHover}>Yeniden değerlendir</HButton>
                   <HButton onClick={() => updC(cc => { delete cc.trackingCoach; })} style={{ padding: '7px 12px', border: 'none', background: 'transparent', color: 'var(--muted)', font: '600 11.5px Helvetica,Arial,sans-serif', cursor: 'pointer' }} hover={{ color: 'var(--ink-3)' }}>Kapat</HButton>
                 </div>
+              </div>
+            ) : null}
+
+            {tc && tc.status === 'done' && tc.mode === 'plan' ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                <div style={{ font: '700 10.5px Helvetica,Arial,sans-serif', color: 'var(--pri-soft-ink)', letterSpacing: '.8px' }}>İZLEME PLANI ÖNERİSİ — değerleri siz ölçersiniz</div>
+                {tc.giris ? <div style={{ font: '12.5px/1.6 Helvetica,Arial,sans-serif', color: 'var(--pri-ink-2)' }}>{tc.giris}</div> : null}
+                {tc.siklik ? <div style={{ font: '12.5px/1.6 Helvetica,Arial,sans-serif', color: 'var(--ink)' }}><strong>Ölçüm sıklığı:</strong> {tc.siklik}</div> : null}
+                {(tc.donemler || []).length ? (
+                  <div>
+                    <div style={{ font: '700 10.5px Helvetica,Arial,sans-serif', color: 'var(--pri-soft-ink)', letterSpacing: '.6px', margin: '0 0 5px' }}>ÖNERİLEN DÖNEM SATIRLARI</div>
+                    <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                      {tc.donemler.map((d, i) => <span key={i} style={{ font: '600 11.5px Helvetica,Arial,sans-serif', color: 'var(--pri-ink)', background: 'var(--pri-soft)', border: '1px solid var(--pri-border-5)', borderRadius: 20, padding: '4px 11px' }}>{d}</span>)}
+                    </div>
+                  </div>
+                ) : null}
+                {(tc.araMetrikler || []).length ? (
+                  <div>
+                    <div style={{ font: '700 10.5px Helvetica,Arial,sans-serif', color: 'var(--pri-soft-ink)', letterSpacing: '.6px', margin: '0 0 4px' }}>ANA KPI'IN YANINDA İZLENECEK ARA METRİKLER</div>
+                    <ul style={{ margin: 0, padding: '0 0 0 18px' }}>{tc.araMetrikler.map((m, i) => <li key={i} style={{ font: '12px/1.55 Helvetica,Arial,sans-serif', color: 'var(--ink-3)' }}>{m}</li>)}</ul>
+                  </div>
+                ) : null}
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                  {(tc.donemler || []).length ? (
+                    <HButton
+                      onClick={applyTrackingPlan}
+                      disabled={tc.applied}
+                      style={{ padding: '8px 14px', border: '1px solid ' + (tc.applied ? 'var(--ok-border)' : 'var(--pri)'), borderRadius: 8, background: tc.applied ? 'var(--ok-soft)' : 'var(--pri)', color: tc.applied ? 'var(--ok)' : 'var(--on-pri)', font: '600 12px Helvetica,Arial,sans-serif', cursor: tc.applied ? 'default' : 'pointer' }}
+                      hover={tc.applied ? {} : { background: 'var(--pri-hover)' }}
+                    >{tc.applied ? 'Eklendi ✓' : 'Dönem satırlarını ekle'}</HButton>
+                  ) : null}
+                  <HButton onClick={runTrackingCoach} style={{ padding: '8px 14px', border: '1px solid var(--pri-border)', borderRadius: 8, background: 'var(--surface)', color: 'var(--pri)', font: '600 12px Helvetica,Arial,sans-serif', cursor: 'pointer' }} hover={S.ghostHover}>Yeniden öner</HButton>
+                  <HButton onClick={() => updC(cc => { delete cc.trackingCoach; })} style={{ padding: '8px 14px', border: 'none', background: 'transparent', color: 'var(--muted)', font: '600 12px Helvetica,Arial,sans-serif', cursor: 'pointer' }} hover={{ color: 'var(--ink-3)' }}>Kapat</HButton>
+                </div>
+                {(tc.sorular || []).length ? (
+                  <ul style={{ margin: 0, padding: '0 0 0 18px' }}>{tc.sorular.map((q, i) => <li key={i} style={{ font: '12px/1.5 Helvetica,Arial,sans-serif', color: 'var(--pri-ink-2)' }}>{q}</li>)}</ul>
+                ) : null}
+                <div style={{ font: '11px/1.5 Helvetica,Arial,sans-serif', color: 'var(--muted)' }}>Satırlar boş eklenir — değerleri gerçek ölçümlerinizle siz doldurursunuz; YZ ölçüm değeri üretmez. İlk satır baz çizgisi (mevcut durum) olmalıdır.</div>
               </div>
             ) : null}
           </div>
