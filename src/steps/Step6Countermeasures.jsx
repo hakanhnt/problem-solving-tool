@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useStore, prioMeta } from '../lib/store.jsx';
+import { preCheckItemsFor } from '../lib/mindcheck.js';
 import { THINKING_METHODS, thinkingMethodsFor } from '../lib/defaults.js';
 import { fmtNum } from '../lib/i18n.js';
 import { THINKING_METHOD_INFO } from '../lib/thinking.js';
@@ -463,6 +464,33 @@ export default function Step6Countermeasures() {
           onHelp={() => fieldHelp(t('Karar ve gerekçe', 'Decision and rationale'), (c.decision.choice || '') + t(' | Gerekçe: ', ' | Rationale: ') + (c.decision.rationale || ''))}
           helpTitle={t("YZ'den karar için yardım al", 'Get AI help with the decision')}
         />
+
+        {/* Karar öncesi zihin kontrolü — üç soruya da yanıt verilince işaretlenir */}
+        <div data-noprint="1" style={{ background: '#fbf7f3', border: '1px solid #e5d9cd', borderRadius: 8, padding: '12px 14px', margin: '0 0 12px' }}>
+          <div style={{ font: '700 10.5px Helvetica,Arial,sans-serif', color: '#8c6a35', letterSpacing: '.5px', margin: '0 0 8px' }}>
+            {t('KARAR ALMADAN ÖNCE KENDİNİZE SORUN — üçünü de yanıtladıysanız işaretleyin', 'ASK YOURSELF BEFORE DECIDING — check each once you have answered all three')}
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            {preCheckItemsFor(lang).map(q => {
+              const on = !!(c.precheck || {})[q.key];
+              return (
+                <button
+                  key={q.key} type="button"
+                  onClick={() => updC(cc => { cc.precheck = cc.precheck || { p1: false, p2: false, p3: false }; cc.precheck[q.key] = !cc.precheck[q.key]; })}
+                  aria-pressed={on}
+                  style={{ display: 'flex', gap: 10, alignItems: 'flex-start', textAlign: 'left', width: '100%', background: '#fff', border: '1px solid #ecdfd0', borderRadius: 8, padding: '9px 11px', cursor: 'pointer', font: 'inherit' }}
+                >
+                  <span aria-hidden="true" style={{ flex: 'none', width: 18, height: 18, borderRadius: 4, border: on ? 'none' : '1px solid #ddcdb8', background: on ? '#35506e' : '#fff', color: '#fff', font: '700 12px/18px Helvetica,Arial,sans-serif', textAlign: 'center', marginTop: 1 }}>{on ? '✓' : ''}</span>
+                  <span style={{ flex: 1, minWidth: 0 }}>
+                    <span style={{ display: 'block', font: '600 12.5px/1.5 Helvetica,Arial,sans-serif', color: '#4a453e' }}>{q.soru}</span>
+                    <span style={{ display: 'block', font: '11px/1.4 Helvetica,Arial,sans-serif', color: '#8a857c', marginTop: 2 }}>{q.not}</span>
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
         <MethodBox>{t('Kararı kök nedenle ilişkilendirin — seçilen çözüm kök nedeni gidermiyorsa belirti tedavisidir. Gerekçenizde kısıt ve riskleri nasıl karşıladığınızı yazın.', 'Tie the decision to the root cause — if the chosen solution does not eliminate the root cause, it is symptom treatment. In your rationale, explain how you handle constraints and risks.')}</MethodBox>
 
         <div style={{ background: 'var(--pri-soft-2)', border: '1px solid var(--pri-border)', borderRadius: 8, padding: '12px 14px', margin: '0 0 14px', display: 'flex', flexDirection: 'column', gap: 10 }}>

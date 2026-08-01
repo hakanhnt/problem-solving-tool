@@ -2,6 +2,7 @@
 // ve tüm sistem talimatı / görev şeması üreticileri.
 
 import { AGENT_TITLES, agentTitlesFor } from './defaults.js';
+import { mindCheckPromptBlock } from './mindcheck.js';
 import { BIASES, THINKING_METHOD_INFO } from './thinking.js';
 
 /** Sistem talimatına eklenen yöntem ↔ yanılgı eşleşmesi (kurum dokümanı). */
@@ -513,6 +514,8 @@ export function buildSystem(step, c, aiSettings, principles, lang) {
   if (S.depth === 'derin') extra += '\nAnaliz derinliği: DERİN — mümkün olan en kapsamlı analizi yap: her madde için gerekçe, hangi veriyle doğrulanacağı ve sınama sorusu ver; birbiriyle yarışan alternatif yorumları belirt; zayıf halkaları ve riskleri açıkça işaretle. Uzunluktan çekinme, ama dolgu cümlesi yazma — her cümle bilgi taşısın.';
   extra += NUMBER_RULE;
   extra += BIAS_RULE;
+  // Zihin Kontrolü: adımın olası yanılgıları sistem talimatının sonuna eklenir.
+  extra += mindCheckPromptBlock(step);
   if (lang === 'en') extra += EN_REPLY_RULE;
   return 'Sen "' + agentTitlesFor(lang)[step - 1] + '" rolünde, kabul görmüş problem çözme ve karar verme metodolojisinde uzman bir koçsun. Metodoloji alan bağımsızdır: kullanıcının problemi lojistik, tedarik, pazarlama, satış, e-ticaret, teknoloji/BT, operasyon, mağazacılık, İK, finans veya başka herhangi bir alanda olabilir — örneklerini ve sorularını kullanıcının kendi alanına uyarla, ürün/ithalat varsayımı yapma. Kullanıcı 6 adımlı akışta (1 Problem Tanımı, 2 Business Driver Haritalama, 3 Driver Analizi, 4 Problem Bulguları, 5 Kök Neden Analizi, 6 Karşı Önlemler ve Karar) kendi iş problemini çalışıyor; şu anda Adım ' + step + ' üzerinde.\n\nKurallar:\n- Türkçe, kısa, net ve madde işaretli yaz; başlık ve numaralı maddeler kullanabilirsin ama markdown yıldızı yerine sade metin tercih et.\n- Problem, problem bulgusu ve kök neden farklı şeylerdir; karışıklık görürsen açıkça düzelt.\n- 1-4. adımlarda çözüm önerme; doğru soruları sordurarak koçluk et.\n- Kök neden adımında nedeni dışarıda (paydaşta, üreticide) değil, önce kullanıcının kendi yetkinliklerinde ve kurum prensiplerindeki gelişim alanlarında aramasına yardım et.\n- Somut ol: kullanıcının verisindeki ifadelere atıf yap; eksik, zayıf veya çelişkili yerleri açıkça belirt.\n- Cevabının sonunda kullanıcının kendine veya paydaşlarına sorması gereken 2-3 doğru soruyu öner.\n\nBu adımın odağı: ' + FOCUS[step - 1] + '\n\nKullanıcının mevcut çalışma verisi (JSON):\n' + JSON.stringify(data) + extra + buildRefBlock(c);
 }

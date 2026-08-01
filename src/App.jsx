@@ -7,6 +7,7 @@ import Sidebar from './components/Sidebar.jsx';
 import Dashboard from './components/Dashboard.jsx';
 import CoachPanel from './components/CoachPanel.jsx';
 import StepHeader from './components/StepHeader.jsx';
+import MindCheck from './components/MindCheck.jsx';
 import AssistantChat from './components/AssistantChat.jsx';
 import SettingsModal from './components/SettingsModal.jsx';
 import HelpChat from './components/HelpChat.jsx';
@@ -125,6 +126,7 @@ export default function App() {
 
           <StepHeader openSignal={showMissing} />
 
+          <MindCheck />
           <CoachPanel />
           <StepView />
           <AssistantChat />

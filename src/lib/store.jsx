@@ -27,6 +27,8 @@ function normalize(state) {
   s.showSettings = false;
   s.dashOpen = false;
   if (s.lang !== 'en') s.lang = 'tr';
+  // Zihin Kontrolü paneli aç/kapa tercihi — adım değişince korunur, varsayılan kapalı.
+  if (typeof s.mindOpen !== 'boolean') s.mindOpen = false;
   s.refForm = null;
   s.undoToast = null;
   s.saveError = '';
@@ -64,6 +66,8 @@ function normalize(state) {
     if (!cc.thinking) cc.thinking = { assume: '', alt: '', cost: '' };
     if (!cc.spec) cc.spec = { nerede: { v: '', y: '' }, zaman: { v: '', y: '' }, kirilim: { v: '', y: '' }, buyukluk: { v: '', y: '' }, degisiklik: '' };
     if (!cc.containment) cc.containment = { action: '', owner: '', until: '', removed: false };
+    // Karar öncesi zihin kontrolü işaretleri — eski kayıtlar kayıpsız açılır.
+    if (!cc.precheck) cc.precheck = { p1: false, p2: false, p3: false };
     // Yeni veri modeli (KPI yönü, kök neden doğrulama, izlenebilirlik) — eski kayıtlar kayıpsız taşınır.
     if (!cc.problem) cc.problem = { statement: '', geo: '', time: '', brand: '', kpiName: '', target: '', actual: '' };
     if (cc.problem.direction === undefined) cc.problem.direction = '';
