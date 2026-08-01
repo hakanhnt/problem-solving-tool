@@ -5,20 +5,20 @@ import ReportBody from '../components/ReportBody.jsx';
 import A3Body from '../components/A3Body.jsx';
 import { HButton, Spinner, S } from '../ui/primitives.jsx';
 
-const SECTION_CHIPS = [
-  { key: 'tanim', label: 'Problem tanımı' },
-  { key: 'driver', label: 'İş sürücüsü haritası' },
-  { key: 'analiz', label: 'İş sürücüsü analizi' },
-  { key: 'bulgu', label: 'Bulgular' },
-  { key: 'kok', label: 'Kök neden' },
-  { key: 'karar', label: 'Alternatifler + karar' },
-  { key: 'dusunme', label: 'Düşünme kontrolü' },
-  { key: 'izleme', label: 'İzleme + retrospektif' },
-  { key: 'referans', label: 'Referanslar' }
+const SECTION_CHIPS = t => [
+  { key: 'tanim', label: t('Problem tanımı', 'Problem definition') },
+  { key: 'driver', label: t('İş sürücüsü haritası', 'Business driver map') },
+  { key: 'analiz', label: t('İş sürücüsü analizi', 'Business driver analysis') },
+  { key: 'bulgu', label: t('Bulgular', 'Findings') },
+  { key: 'kok', label: t('Kök neden', 'Root cause') },
+  { key: 'karar', label: t('Alternatifler + karar', 'Alternatives + decision') },
+  { key: 'dusunme', label: t('Düşünme kontrolü', 'Thinking check') },
+  { key: 'izleme', label: t('İzleme + retrospektif', 'Tracking + retrospective') },
+  { key: 'referans', label: t('Referanslar', 'References') }
 ];
 
 export default function Step8Report() {
-  const { state, c, principles, upd, runReportSummary, runAudit, updC } = useStore();
+  const { state, c, principles, upd, runReportSummary, runAudit, updC, t, lang } = useStore();
   const cfg = state.reportCfg;
   const [shareMsg, setShareMsg] = useState('');
 
@@ -28,23 +28,30 @@ export default function Step8Report() {
   const auditIdle = !audit || audit.status === 'idle' || audit.status === 'error' || audit.status === 'done';
 
   const shareLink = async () => {
-    const onay = confirm(
+    const onay = confirm(t(
       'Paylaşım linki nasıl çalışır?\n\n'
       + '• Çalışmanızın TÜM içeriği sıkıştırılıp linkin kendisine gömülür; sunucuya yüklenmez.\n'
       + '• Link kimde varsa raporun tamamını görebilir — şifre ya da erişim kontrolü yoktur.\n'
       + '• Linki geri çekemez, sonradan iptal edemezsiniz.\n'
       + '• Uzun linkler e-posta/mesajlaşma geçmişinde ve tarayıcı kayıtlarında kalabilir.\n\n'
       + 'Ticari sır, kişisel veri ya da gizli bilgi içeriyorsa link yerine PDF paylaşmayı tercih edin.\n\n'
-      + 'Linki yine de oluşturmak istiyor musunuz?'
-    );
+      + 'Linki yine de oluşturmak istiyor musunuz?',
+      'How does the share link work?\n\n'
+      + '• The ENTIRE content of your case is compressed and embedded in the link itself; nothing is uploaded to a server.\n'
+      + '• Anyone who has the link can see the full report — there is no password or access control.\n'
+      + '• You cannot recall or revoke the link afterwards.\n'
+      + '• Long links may persist in email/messaging history and browser records.\n\n'
+      + 'If it contains trade secrets, personal data or confidential information, prefer sharing a PDF instead of a link.\n\n'
+      + 'Do you still want to create the link?'
+    ));
     if (!onay) return;
     const hash = buildShareHash(c, principles, cfg.company);
     const url = location.origin + location.pathname + hash;
     try {
       await navigator.clipboard.writeText(url);
-      setShareMsg('Link kopyalandı (' + Math.round(url.length / 1024) + ' KB) — veriler linkin içinde taşınır, alıcı salt-okunur raporu görür');
+      setShareMsg(t('Link kopyalandı (', 'Link copied (') + Math.round(url.length / 1024) + t(' KB) — veriler linkin içinde taşınır, alıcı salt-okunur raporu görür', ' KB) — the data travels inside the link; the recipient sees a read-only report'));
     } catch (e) {
-      prompt('Linki kopyalayın:', url);
+      prompt(t('Linki kopyalayın:', 'Copy the link:'), url);
       setShareMsg('');
     }
     setTimeout(() => setShareMsg(''), 9000);
@@ -58,28 +65,28 @@ export default function Step8Report() {
           onClick={() => window.print()}
           style={{ padding: '10px 16px', border: '1px solid var(--pri)', borderRadius: 8, background: 'var(--pri)', color: 'var(--on-pri)', font: '600 13px Helvetica,Arial,sans-serif', cursor: 'pointer' }}
           hover={S.primaryHover}
-        >Yazdır / PDF olarak kaydet</HButton>
+        >{t('Yazdır / PDF olarak kaydet', 'Print / Save as PDF')}</HButton>
 
         <HButton
           onClick={shareLink}
           style={{ padding: '10px 16px', border: '1px solid var(--pri-border)', borderRadius: 8, background: 'var(--surface)', color: 'var(--pri)', font: '600 13px Helvetica,Arial,sans-serif', cursor: 'pointer' }}
           hover={S.ghostHover}
-        >🔗 Paylaşım linki kopyala</HButton>
+        >{t('🔗 Paylaşım linki kopyala', '🔗 Copy share link')}</HButton>
 
         {rsIdle ? (
           <HButton
             onClick={runReportSummary}
             style={{ padding: '10px 16px', border: '1px solid var(--pri-border)', borderRadius: 8, background: 'var(--surface)', color: 'var(--pri)', font: '600 13px Helvetica,Arial,sans-serif', cursor: 'pointer' }}
             hover={S.ghostHover}
-          >YZ ile yönetici özeti oluştur</HButton>
+          >{t('YZ ile yönetici özeti oluştur', 'Generate executive summary with AI')}</HButton>
         ) : null}
         {report && report.status === 'busy' ? (
           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-            <Spinner size={14} /><div style={{ font: '600 12px Helvetica,Arial,sans-serif', color: 'var(--pri)' }}>Yönetici özeti hazırlanıyor…</div>
+            <Spinner size={14} /><div style={{ font: '600 12px Helvetica,Arial,sans-serif', color: 'var(--pri)' }}>{t('Yönetici özeti hazırlanıyor…', 'Preparing executive summary…')}</div>
           </div>
         ) : null}
         {report && report.status === 'error' ? (
-          <div style={{ font: '12px Helvetica,Arial,sans-serif', color: 'var(--alert)' }}>Özet oluşturulamadı{report && report.errMsg ? ' (' + report.errMsg + ')' : ''} — tekrar deneyin.</div>
+          <div style={{ font: '12px Helvetica,Arial,sans-serif', color: 'var(--alert)' }}>{t('Özet oluşturulamadı', 'Summary generation failed')}{report && report.errMsg ? ' (' + report.errMsg + ')' : ''}{t(' — tekrar deneyin.', ' — try again.')}</div>
         ) : null}
 
         {auditIdle ? (
@@ -87,16 +94,16 @@ export default function Step8Report() {
             onClick={runAudit}
             style={{ padding: '10px 16px', border: '1px solid var(--alert)', borderRadius: 8, background: 'var(--surface)', color: 'var(--alert)', font: '600 13px Helvetica,Arial,sans-serif', cursor: 'pointer' }}
             hover={{ background: 'var(--alert-soft)' }}
-          >🔎 Tutarlılık denetimi</HButton>
+          >{t('🔎 Tutarlılık denetimi', '🔎 Consistency audit')}</HButton>
         ) : null}
         {audit && audit.status === 'busy' ? (
           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
             <Spinner size={14} track="var(--alert-border)" color="var(--alert)" />
-            <div style={{ font: '600 12px Helvetica,Arial,sans-serif', color: 'var(--alert)' }}>Denetçi tüm vakayı uçtan uca inceliyor…</div>
+            <div style={{ font: '600 12px Helvetica,Arial,sans-serif', color: 'var(--alert)' }}>{t('Denetçi tüm vakayı uçtan uca inceliyor…', 'The auditor is reviewing the entire case end to end…')}</div>
           </div>
         ) : null}
         {audit && audit.status === 'error' ? (
-          <div style={{ font: '12px Helvetica,Arial,sans-serif', color: 'var(--alert)' }}>Denetim yapılamadı{audit && audit.errMsg ? ' (' + audit.errMsg + ')' : ''} — tekrar deneyin.</div>
+          <div style={{ font: '12px Helvetica,Arial,sans-serif', color: 'var(--alert)' }}>{t('Denetim yapılamadı', 'Audit failed')}{audit && audit.errMsg ? ' (' + audit.errMsg + ')' : ''}{t(' — tekrar deneyin.', ' — try again.')}</div>
         ) : null}
       </div>
 
@@ -107,8 +114,8 @@ export default function Step8Report() {
       {audit && audit.status === 'done' && (audit.text || '').trim() ? (
         <div data-noprint="1" style={{ background: 'var(--alert-soft-2)', border: '1px solid var(--alert-border)', borderRadius: 10, padding: '16px 18px', margin: '0 0 18px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '0 0 10px' }}>
-            <div style={{ font: '700 12px Helvetica,Arial,sans-serif', color: 'var(--alert)', letterSpacing: '.6px' }}>🔎 TUTARLILIK DENETİM RAPORU</div>
-            <HButton onClick={runAudit} style={{ marginLeft: 'auto', padding: '5px 10px', border: '1px solid var(--alert-border)', borderRadius: 6, background: 'var(--surface)', color: 'var(--alert)', font: '600 11px Helvetica,Arial,sans-serif', cursor: 'pointer' }} hover={{ background: 'var(--alert-soft)' }}>Yeniden denetle</HButton>
+            <div style={{ font: '700 12px Helvetica,Arial,sans-serif', color: 'var(--alert)', letterSpacing: '.6px' }}>{t('🔎 TUTARLILIK DENETİM RAPORU', '🔎 CONSISTENCY AUDIT REPORT')}</div>
+            <HButton onClick={runAudit} style={{ marginLeft: 'auto', padding: '5px 10px', border: '1px solid var(--alert-border)', borderRadius: 6, background: 'var(--surface)', color: 'var(--alert)', font: '600 11px Helvetica,Arial,sans-serif', cursor: 'pointer' }} hover={{ background: 'var(--alert-soft)' }}>{t('Yeniden denetle', 'Re-audit')}</HButton>
             <HButton onClick={() => updC(cc => { delete cc.audit; })} style={{ border: 'none', background: 'transparent', color: 'var(--muted-2)', font: '700 14px/1 Helvetica,Arial,sans-serif', cursor: 'pointer' }} hover={{ color: 'var(--ink-3)' }}>×</HButton>
           </div>
           <div style={{ font: '13px/1.65 Helvetica,Arial,sans-serif', color: 'var(--ink)', whiteSpace: 'pre-wrap' }}>{audit.text}</div>
@@ -117,13 +124,13 @@ export default function Step8Report() {
 
       <div data-noprint="1" style={{ display: 'flex', gap: 14, alignItems: 'center', flexWrap: 'wrap', background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 10, padding: '12px 16px', margin: '0 0 18px' }}>
         <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
-          <div style={{ font: '700 10.5px Helvetica,Arial,sans-serif', color: 'var(--muted)', letterSpacing: '.6px', marginRight: 2 }}>GÖRÜNÜM:</div>
-          {[['full', 'Tam rapor'], ['a3', 'A3 özeti']].map(([k, lb]) => (
+          <div style={{ font: '700 10.5px Helvetica,Arial,sans-serif', color: 'var(--muted)', letterSpacing: '.6px', marginRight: 2 }}>{t('GÖRÜNÜM:', 'VIEW:')}</div>
+          {[['full', t('Tam rapor', 'Full report')], ['a3', t('A3 özeti', 'A3 summary')]].map(([k, lb]) => (
             <button
               key={k}
               onClick={() => upd(n => { n.reportCfg.view = k; })}
               aria-pressed={cfg.view === k}
-              title={k === 'a3' ? 'Tek sayfalık Toyota A3 düzeni — A3 yatay yazdırılır' : 'Tüm bölümleriyle ayrıntılı rapor'}
+              title={k === 'a3' ? t('Tek sayfalık Toyota A3 düzeni — A3 yatay yazdırılır', 'One-page Toyota A3 layout — prints on A3 landscape') : t('Tüm bölümleriyle ayrıntılı rapor', 'Detailed report with all sections')}
               style={{
                 padding: '6px 12px', borderRadius: 20,
                 border: '1px solid ' + (cfg.view === k ? 'var(--pri)' : 'var(--field-border)'),
@@ -134,8 +141,8 @@ export default function Step8Report() {
             >{lb}</button>
           ))}
           <span style={{ width: 10 }} />
-          {cfg.view === 'full' ? <div style={{ font: '700 10.5px Helvetica,Arial,sans-serif', color: 'var(--muted)', letterSpacing: '.6px', marginRight: 2 }}>RAPORA DAHİL:</div> : null}
-          {cfg.view === 'full' ? SECTION_CHIPS.map(s => {
+          {cfg.view === 'full' ? <div style={{ font: '700 10.5px Helvetica,Arial,sans-serif', color: 'var(--muted)', letterSpacing: '.6px', marginRight: 2 }}>{t('RAPORA DAHİL:', 'INCLUDED IN REPORT:')}</div> : null}
+          {cfg.view === 'full' ? SECTION_CHIPS(t).map(s => {
             const active = cfg.sections[s.key] !== false;
             return (
               <button
@@ -150,14 +157,14 @@ export default function Step8Report() {
                 }}
               >{s.label}</button>
             );
-          }) : <span style={{ font: '11.5px/1.5 Helvetica,Arial,sans-serif', color: 'var(--muted)' }}>A3 özeti sabit tek sayfa düzenidir; A3 yatay kâğıda yazdırın.</span>}
+          }) : <span style={{ font: '11.5px/1.5 Helvetica,Arial,sans-serif', color: 'var(--muted)' }}>{t('A3 özeti sabit tek sayfa düzenidir; A3 yatay kâğıda yazdırın.', 'The A3 summary is a fixed one-page layout; print on A3 landscape paper.')}</span>}
         </div>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center', flex: 1, minWidth: 240 }}>
-          <label style={{ flex: 'none', font: '600 11.5px Helvetica,Arial,sans-serif', color: 'var(--ink-3)' }}>Şirket / birim:</label>
+          <label style={{ flex: 'none', font: '600 11.5px Helvetica,Arial,sans-serif', color: 'var(--ink-3)' }}>{t('Şirket / birim:', 'Company / unit:')}</label>
           <input
             className="pcx-field-sm" value={cfg.company || ''}
             onChange={e => upd(n => { n.reportCfg.company = e.target.value; })}
-            placeholder="Rapor başlığında görünür"
+            placeholder={t('Rapor başlığında görünür', 'Shown in the report header')}
             style={{ flex: 1, boxSizing: 'border-box', padding: '7px 10px', border: '1px solid var(--field-border)', borderRadius: 6, font: '12.5px/1.4 Helvetica,Arial,sans-serif', color: 'var(--ink)', background: 'var(--surface)', outline: 'none' }}
           />
         </div>
@@ -167,10 +174,10 @@ export default function Step8Report() {
         <>
           {/* A3 yatay sayfa — yalnız A3 görünümü aktifken */}
           <style>{'@media print { @page { size: A3 landscape; margin: 10mm } }'}</style>
-          <A3Body c={c} companyName={cfg.company} />
+          <A3Body c={c} companyName={cfg.company} lang={lang} />
         </>
       ) : (
-        <ReportBody c={c} principles={principles} sections={cfg.sections} companyName={cfg.company} />
+        <ReportBody c={c} principles={principles} sections={cfg.sections} companyName={cfg.company} lang={lang} />
       )}
     </div>
   );

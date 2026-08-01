@@ -10,16 +10,16 @@ import { HButton, Spinner, useNarrow } from '../ui/primitives.jsx';
 import { LogoGlyph } from '../ui/Logo.jsx';
 
 const STARTERS = [
-  'İş Sürücüsü Haritalama nedir, nasıl yapılır?',
-  'İş Sürücüsü Analizi nedir, nasıl yapılır?',
-  'Problem, bulgu ve kök neden arasındaki fark nedir?',
-  'Karar matrisini nasıl puanlarım, ağırlıkları nasıl belirlerim?',
-  'VAR/YOK belirtimi ne işe yarar?',
-  '5 Neden zincirini nerede durdurmalıyım?'
+  ['İş Sürücüsü Haritalama nedir, nasıl yapılır?', 'What is Business Driver Mapping and how is it done?'],
+  ['İş Sürücüsü Analizi nedir, nasıl yapılır?', 'What is Business Driver Analysis and how is it done?'],
+  ['Problem, bulgu ve kök neden arasındaki fark nedir?', 'What is the difference between a problem, a finding, and a root cause?'],
+  ['Karar matrisini nasıl puanlarım, ağırlıkları nasıl belirlerim?', 'How do I score the decision matrix and set the weights?'],
+  ['VAR/YOK belirtimi ne işe yarar?', 'What is the IS / IS-NOT specification for?'],
+  ['5 Neden zincirini nerede durdurmalıyım?', 'Where should I stop the 5 Whys chain?']
 ];
 
 export default function HelpChat() {
-  const { state, upd, askHelp } = useStore();
+  const { state, upd, askHelp, t } = useStore();
   const narrow = useNarrow();
   const [draft, setDraft] = React.useState('');
   const open = !!state.helpOpen;
@@ -59,8 +59,8 @@ export default function HelpChat() {
         <button
           type="button"
           onClick={toggle}
-          aria-label="Yöntem Danışmanını aç — metodoloji ve uygulama hakkında serbest soru sorun"
-          title="Yöntem Danışmanı — serbest soru sorun"
+          aria-label={t('Yöntem Danışmanını aç — metodoloji ve uygulama hakkında serbest soru sorun', 'Open the Method Advisor — ask free-form questions about the methodology and the app')}
+          title={t('Yöntem Danışmanı — serbest soru sorun', 'Method Advisor — ask free-form questions')}
           data-noprint="1"
           style={{
             position: 'fixed', right: 18, bottom: 74, zIndex: 44,
@@ -83,7 +83,7 @@ export default function HelpChat() {
       {open ? (
         <div
           data-noprint="1"
-          role="dialog" aria-modal={narrow ? 'true' : undefined} aria-label="Yöntem Danışmanı"
+          role="dialog" aria-modal={narrow ? 'true' : undefined} aria-label={t('Yöntem Danışmanı', 'Method Advisor')}
           style={{
             position: 'fixed', top: 0, right: 0, bottom: 0, zIndex: 48,
             width: narrow ? '100%' : 400, maxWidth: '100vw',
@@ -95,20 +95,20 @@ export default function HelpChat() {
           <div style={{ flex: 'none', display: 'flex', gap: 10, alignItems: 'center', padding: '13px 16px', background: 'var(--pri)' }}>
             <LogoGlyph size={20} />
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ font: '700 13.5px Helvetica,Arial,sans-serif', color: 'var(--on-pri)' }}>Yöntem Danışmanı</div>
-              <div style={{ font: '10.5px/1.35 Helvetica,Arial,sans-serif', color: 'var(--on-pri-muted)' }}>Metodoloji ve uygulama hakkında serbest sorular</div>
+              <div style={{ font: '700 13.5px Helvetica,Arial,sans-serif', color: 'var(--on-pri)' }}>{t('Yöntem Danışmanı', 'Method Advisor')}</div>
+              <div style={{ font: '10.5px/1.35 Helvetica,Arial,sans-serif', color: 'var(--on-pri-muted)' }}>{t('Metodoloji ve uygulama hakkında serbest sorular', 'Free-form questions about the methodology and the app')}</div>
             </div>
             {messages.length ? (
               <HButton
-                onClick={() => { if (confirm('Sohbet geçmişi silinsin mi?')) upd(n => { n.helpChat = []; }); }}
-                aria-label="Sohbet geçmişini temizle"
+                onClick={() => { if (confirm(t('Sohbet geçmişi silinsin mi?', 'Delete the chat history?'))) upd(n => { n.helpChat = []; }); }}
+                aria-label={t('Sohbet geçmişini temizle', 'Clear chat history')}
                 style={{ flex: 'none', border: 'none', background: 'transparent', color: 'var(--on-pri-muted)', font: '600 11.5px Helvetica,Arial,sans-serif', cursor: 'pointer', padding: '4px 6px' }}
                 hover={{ color: 'var(--on-pri)' }}
-              >Temizle</HButton>
+              >{t('Temizle', 'Clear')}</HButton>
             ) : null}
             <HButton
               onClick={toggle}
-              aria-label="Yöntem Danışmanını kapat"
+              aria-label={t('Yöntem Danışmanını kapat', 'Close the Method Advisor')}
               style={{ flex: 'none', width: 28, height: 28, border: 'none', borderRadius: 6, background: 'transparent', color: 'var(--on-pri-muted)', font: '700 16px/1 Helvetica,Arial,sans-serif', cursor: 'pointer' }}
               hover={{ color: 'var(--on-pri)' }}
             >×</HButton>
@@ -118,19 +118,21 @@ export default function HelpChat() {
             {!messages.length ? (
               <>
                 <div style={{ font: '12.5px/1.6 Helvetica,Arial,sans-serif', color: 'var(--ink-4)' }}>
-                  Metodoloji, yöntemler ya da uygulamanın kullanımı hakkında istediğinizi sorun.
-                  Çalışmanızdaki girdileri değerlendirmem gerekiyorsa, ilgili adım sayfasının altındaki <strong>YZ Asistan</strong>'ı kullanın — ben girdilerinizi görmem, yöntemi öğretirim.
+                  {t('Metodoloji, yöntemler ya da uygulamanın kullanımı hakkında istediğinizi sorun. Çalışmanızdaki girdileri değerlendirmem gerekiyorsa, ilgili adım sayfasının altındaki ', 'Ask anything about the methodology, the methods, or how to use the app. If you need your inputs evaluated, use the ')}<strong>{t('YZ Asistan', 'AI Assistant')}</strong>{t("'ı kullanın — ben girdilerinizi görmem, yöntemi öğretirim.", ' at the bottom of the relevant step page — I do not see your inputs; I teach the method.')}
                 </div>
-                <div style={{ font: '700 10.5px Helvetica,Arial,sans-serif', color: 'var(--muted)', letterSpacing: '.6px', marginTop: 4 }}>ÖRNEK SORULAR</div>
+                <div style={{ font: '700 10.5px Helvetica,Arial,sans-serif', color: 'var(--muted)', letterSpacing: '.6px', marginTop: 4 }}>{t('ÖRNEK SORULAR', 'EXAMPLE QUESTIONS')}</div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                  {STARTERS.map(q => (
-                    <HButton
-                      key={q}
-                      onClick={() => send(q)}
-                      style={{ textAlign: 'left', padding: '9px 12px', border: '1px solid var(--pri-border-5)', borderRadius: 9, background: 'var(--pri-soft-2)', color: 'var(--pri-ink)', font: '12.5px/1.45 Helvetica,Arial,sans-serif', cursor: 'pointer' }}
-                      hover={{ background: 'var(--pri-soft)' }}
-                    >{q}</HButton>
-                  ))}
+                  {STARTERS.map(([qtr, qen]) => {
+                    const q = t(qtr, qen);
+                    return (
+                      <HButton
+                        key={qtr}
+                        onClick={() => send(q)}
+                        style={{ textAlign: 'left', padding: '9px 12px', border: '1px solid var(--pri-border-5)', borderRadius: 9, background: 'var(--pri-soft-2)', color: 'var(--pri-ink)', font: '12.5px/1.45 Helvetica,Arial,sans-serif', cursor: 'pointer' }}
+                        hover={{ background: 'var(--pri-soft)' }}
+                      >{q}</HButton>
+                    );
+                  })}
                 </div>
               </>
             ) : null}
@@ -149,14 +151,14 @@ export default function HelpChat() {
 
             {busy && !messages.some(m => m.live) ? (
               <div style={{ display: 'flex', gap: 8, alignItems: 'center', font: 'italic 12px Helvetica,Arial,sans-serif', color: 'var(--muted)' }}>
-                <Spinner size={13} border={2} />Danışman düşünüyor…
+                <Spinner size={13} border={2} />{t('Danışman düşünüyor…', 'Advisor is thinking…')}
               </div>
             ) : null}
           </div>
 
           {/* Ekran okuyucuya cevap durumu */}
           <div className="pcx-sr-only" role="status" aria-live="polite">
-            {busy ? 'Danışman cevap yazıyor.' : (messages.length && messages[messages.length - 1].role === 'assistant' ? 'Cevap hazır.' : '')}
+            {busy ? t('Danışman cevap yazıyor.', 'The advisor is writing a reply.') : (messages.length && messages[messages.length - 1].role === 'assistant' ? t('Cevap hazır.', 'Reply ready.') : '')}
           </div>
 
           <div style={{ flex: 'none', display: 'flex', gap: 8, padding: '10px 14px', borderTop: '1px solid var(--line-3)', background: 'var(--surface-2)' }}>
@@ -166,17 +168,17 @@ export default function HelpChat() {
               value={draft}
               onChange={e => setDraft(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } }}
-              placeholder="Sorunuzu yazın — Enter ile gönderin"
-              aria-label="Yöntem Danışmanına sorunuz"
+              placeholder={t('Sorunuzu yazın — Enter ile gönderin', 'Type your question — press Enter to send')}
+              aria-label={t('Yöntem Danışmanına sorunuz', 'Your question for the Method Advisor')}
               rows={2}
               style={{ flex: 1, boxSizing: 'border-box', padding: '9px 11px', border: '1px solid var(--field-border)', borderRadius: 8, font: '12.5px/1.5 Helvetica,Arial,sans-serif', color: 'var(--ink)', background: 'var(--surface)', outline: 'none', resize: 'none' }}
             />
             <HButton
               onClick={() => send()}
-              aria-label="Soruyu gönder"
+              aria-label={t('Soruyu gönder', 'Send question')}
               style={{ flex: 'none', alignSelf: 'flex-end', padding: '9px 16px', border: '1px solid var(--pri)', borderRadius: 8, background: busy ? 'var(--pri-bar)' : 'var(--pri)', color: 'var(--on-pri)', font: '600 12.5px Helvetica,Arial,sans-serif', cursor: busy ? 'default' : 'pointer' }}
               hover={busy ? {} : { background: 'var(--pri-hover)' }}
-            >Gönder</HButton>
+            >{t('Gönder', 'Send')}</HButton>
           </div>
         </div>
       ) : null}

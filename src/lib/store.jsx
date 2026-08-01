@@ -103,25 +103,26 @@ function persist(state) {
   } catch (e) {
     // Kota dolduğunda sessizce veri kaybetmeyelim — kullanıcıya söylenir.
     state.saveError = (e && e.name === 'QuotaExceededError')
-      ? 'Tarayıcı depolama alanı dolu — değişiklikler kaydedilemiyor. Ayarlar\'dan yedek alıp gereksiz çalışmaları silin.'
-      : 'Değişiklikler bu tarayıcıya kaydedilemedi (' + ((e && e.message) || mkT(stateRef.current.lang)('bilinmeyen hata', 'unknown error')) + ').';
+      ? mkT(state.lang)('Tarayıcı depolama alanı dolu — değişiklikler kaydedilemiyor. Ayarlar\'dan yedek alıp gereksiz çalışmaları silin.', 'Browser storage is full — changes cannot be saved. Download a JSON backup from Settings and delete unneeded cases.')
+      : mkT(state.lang)('Değişiklikler bu tarayıcıya kaydedilemedi (', 'Changes could not be saved to this browser (') + ((e && e.message) || mkT(state.lang)('bilinmeyen hata', 'unknown error')) + ').';
   }
 }
 
 /** Öncelik rozeti — kullanıcı elle seçtiyse o geçerli, yoksa etki/efor puanlarından türetilir. */
-export function prioMeta(a) {
+export function prioMeta(a, lang) {
+  const T = mkT(lang);
   const MANUAL = {
-    yuksek: { label: 'Yüksek öncelik', bg: 'var(--alert-soft)', color: 'var(--alert)', border: 'var(--alert-border)', score: 100 },
-    orta: { label: 'Orta öncelik', bg: 'var(--pri-soft)', color: 'var(--pri)', border: 'var(--pri-border-2)', score: 50 },
-    dusuk: { label: 'Düşük öncelik', bg: 'var(--surface-4)', color: 'var(--ink-4)', border: 'var(--line-strong)', score: 10 }
+    yuksek: { label: T('Yüksek öncelik', 'High priority'), bg: 'var(--alert-soft)', color: 'var(--alert)', border: 'var(--alert-border)', score: 100 },
+    orta: { label: T('Orta öncelik', 'Medium priority'), bg: 'var(--pri-soft)', color: 'var(--pri)', border: 'var(--pri-border-2)', score: 50 },
+    dusuk: { label: T('Düşük öncelik', 'Low priority'), bg: 'var(--surface-4)', color: 'var(--ink-4)', border: 'var(--line-strong)', score: 10 }
   };
   if (a.priority && MANUAL[a.priority]) return MANUAL[a.priority];
   const e = parseInt(a.etki, 10) || 0, f = parseInt(a.efor, 10) || 0;
-  if (!e || !f) return { label: 'Puanlayın', bg: 'var(--surface-4)', color: 'var(--muted)', border: 'var(--line-strong)', score: -100 };
-  if (e >= 4 && f <= 2) return { label: 'Hızlı kazanım', bg: 'var(--ok-soft)', color: 'var(--ok-ink)', border: 'var(--ok-border)', score: e * 2 - f + 20 };
-  if (e >= 4) return { label: 'Stratejik', bg: 'var(--pri-soft)', color: 'var(--pri)', border: 'var(--pri-border-2)', score: e * 2 - f + 10 };
-  if (f <= 2) return { label: 'Ara kazanım', bg: 'var(--warn-soft)', color: 'var(--warn-ink)', border: 'var(--warn-border)', score: e * 2 - f };
-  return { label: 'Sorgulanmalı', bg: 'var(--alert-soft)', color: 'var(--alert)', border: 'var(--alert-border)', score: e * 2 - f - 10 };
+  if (!e || !f) return { label: T('Puanlayın', 'Score it'), bg: 'var(--surface-4)', color: 'var(--muted)', border: 'var(--line-strong)', score: -100 };
+  if (e >= 4 && f <= 2) return { label: T('Hızlı kazanım', 'Quick win'), bg: 'var(--ok-soft)', color: 'var(--ok-ink)', border: 'var(--ok-border)', score: e * 2 - f + 20 };
+  if (e >= 4) return { label: T('Stratejik', 'Strategic'), bg: 'var(--pri-soft)', color: 'var(--pri)', border: 'var(--pri-border-2)', score: e * 2 - f + 10 };
+  if (f <= 2) return { label: T('Ara kazanım', 'Minor win'), bg: 'var(--warn-soft)', color: 'var(--warn-ink)', border: 'var(--warn-border)', score: e * 2 - f };
+  return { label: T('Sorgulanmalı', 'Question it'), bg: 'var(--alert-soft)', color: 'var(--alert)', border: 'var(--alert-border)', score: e * 2 - f - 10 };
 }
 
 /** YZ önerisiyle eklenen kayıtların doğrulama rozeti. */

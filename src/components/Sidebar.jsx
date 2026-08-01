@@ -1,6 +1,6 @@
 import React from 'react';
 import { useStore } from '../lib/store.jsx';
-import { STEPS, blankCase, exampleCase, CASE_TEMPLATES } from '../lib/defaults.js';
+import { blankCase, exampleCase, stepsFor, caseTemplatesFor } from '../lib/defaults.js';
 import { stepChecklist, caseMaturity } from '../lib/derive.js';
 import { HButton, HA } from '../ui/primitives.jsx';
 import Logo from '../ui/Logo.jsx';
@@ -19,10 +19,11 @@ function stepDone(c, n) {
 }
 
 export default function Sidebar({ onNavigate }) {
-  const { state, eff, c, step, upd, goStep, ensureCoach, toggleTheme } = useStore();
+  const { state, eff, c, step, upd, goStep, ensureCoach, toggleTheme, lang, setLang, t } = useStore();
+  const steps = stepsFor(lang);
   const doneSteps = [1, 2, 3, 4, 5, 6, 7, 8].filter(n => stepDone(c, n));
   const doneCount = doneSteps.length;
-  const maturity = caseMaturity(c);
+  const maturity = caseMaturity(c, lang);
   // Hiç yedek alınmadıysa ya da üzerinden bir haftadan fazla geçtiyse hatırlat.
   const backupStale = !state.lastBackup || (Date.now() - new Date(state.lastBackup).getTime()) > 7 * 86400000;
 
@@ -32,16 +33,16 @@ export default function Sidebar({ onNavigate }) {
   const selectCase = k => { upd(n => { n.activeCase = k; }); setTimeout(() => ensureCoach(), 60); if (onNavigate) onNavigate(); };
 
   const renameCase = k => {
-    const name = prompt('Çalışmanın yeni adı:', state.cases[k].name || '');
+    const name = prompt(t('Çalışmanın yeni adı:', 'New name for the case:'), state.cases[k].name || '');
     if (name && name.trim()) upd(n => { n.cases[k].name = name.trim(); });
   };
 
   const deleteCase = k => {
-    if (!confirm('"' + (state.cases[k].name || k) + '" çalışması silinecek. Silme sonrası "Geri al" ile kurtarabilirsiniz. Emin misiniz?')) return;
+    if (!confirm(t('"' + (state.cases[k].name || k) + '" çalışması silinecek. Silme sonrası "Geri al" ile kurtarabilirsiniz. Emin misiniz?', 'The case "' + (state.cases[k].name || k) + '" will be deleted. You can recover it with "Undo" afterwards. Are you sure?'))) return;
     upd(n => {
       n.trash = { key: k, data: n.cases[k], name: n.cases[k].name || k };
       delete n.cases[k];
-      if (!Object.keys(n.cases).some(x => x !== 'ornek')) n.cases['c' + Date.now()] = blankCase();
+      if (!Object.keys(n.cases).some(x => x !== 'ornek')) n.cases['c' + Date.now()] = blankCase(undefined, n.lang);
       if (n.activeCase === k) { n.activeCase = Object.keys(n.cases).find(x => x !== 'ornek') || Object.keys(n.cases)[0]; n.step = 1; }
     });
   };
@@ -52,7 +53,7 @@ export default function Sidebar({ onNavigate }) {
   const createCase = tpl => {
     const id = 'c' + Date.now();
     upd(n => {
-      const nc = blankCase((tplName || '').trim() || (tpl.key === 'bos' ? 'Yeni Çalışma' : tpl.ad));
+      const nc = blankCase((tplName || '').trim() || (tpl.key === 'bos' ? (n.lang === 'en' ? 'New Case' : 'Yeni Çalışma') : tpl.ad), n.lang);
       if (tpl.fill) {
         if (tpl.fill.problem) Object.assign(nc.problem, tpl.fill.problem);
         if (tpl.fill.drivers) nc.drivers = structuredClone(tpl.fill.drivers);
@@ -69,27 +70,27 @@ export default function Sidebar({ onNavigate }) {
   return (
     <aside data-noprint="1" style={{ width: 288, flex: 'none', background: 'var(--surface)', borderRight: '1px solid var(--line-strong)', display: 'flex', flexDirection: 'column' }}>
       <div style={{ padding: '18px 18px 14px', borderBottom: '1px solid var(--line-3)', background: 'linear-gradient(180deg,var(--brand-grad) 0%,var(--surface) 100%)' }}>
-        <Logo sub="Problemi tanımlayın, kök nedeni doğrulayın, doğru kararı uygulayın." />
+        <Logo sub={t('Problemi tanımlayın, kök nedeni doğrulayın, doğru kararı uygulayın.', 'Define the problem, verify the root cause, execute the right decision.')} />
         <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', marginTop: 11 }}>
-          {['8 adımlık akış', 'YZ destekli', 'Alan bağımsız'].map(t => (
-            <span key={t} style={{ font: '600 10px Helvetica,Arial,sans-serif', color: 'var(--pri-soft-ink)', background: 'var(--pri-soft)', border: '1px solid var(--pri-border-5)', borderRadius: 20, padding: '3px 8px' }}>{t}</span>
+          {[t('8 adımlık akış', '8-step flow'), t('YZ destekli', 'AI-assisted'), t('Alan bağımsız', 'Domain-agnostic')].map(chip => (
+            <span key={chip} style={{ font: '600 10px Helvetica,Arial,sans-serif', color: 'var(--pri-soft-ink)', background: 'var(--pri-soft)', border: '1px solid var(--pri-border-5)', borderRadius: 20, padding: '3px 8px' }}>{chip}</span>
           ))}
         </div>
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '14px 16px 6px' }}>
-        <div style={{ flex: 1, font: '700 10.5px Helvetica,Arial,sans-serif', color: 'var(--muted)', letterSpacing: '.8px' }}>ÇALIŞMALAR</div>
+        <div style={{ flex: 1, font: '700 10.5px Helvetica,Arial,sans-serif', color: 'var(--muted)', letterSpacing: '.8px' }}>{t('ÇALIŞMALAR', 'CASES')}</div>
         <HButton
           onClick={() => { upd(n => { n.dashOpen = true; }); if (onNavigate) onNavigate(); }}
-          title="Vaka panosu — tüm çalışmaların durumu tek ekranda"
+          title={t('Vaka panosu — tüm çalışmaların durumu tek ekranda', 'Case dashboard — status of all cases on one screen')}
           style={{ flex: 'none', padding: '5px 10px', border: '1px solid var(--pri-border)', borderRadius: 6, background: 'var(--surface)', color: 'var(--pri)', font: '600 11px Helvetica,Arial,sans-serif', cursor: 'pointer' }}
           hover={{ background: 'var(--pri-soft)' }}
-        >📊 Pano</HButton>
+        >📊 {t('Pano', 'Dashboard')}</HButton>
         <HButton
           onClick={() => setTplOpen(true)}
           style={{ flex: 'none', padding: '5px 10px', border: '1px solid var(--pri)', borderRadius: 6, background: 'var(--pri)', color: 'var(--on-pri)', font: '600 11px Helvetica,Arial,sans-serif', cursor: 'pointer' }}
           hover={{ background: 'var(--pri-hover)' }}
-        >+ Yeni</HButton>
+        >+ {t('Yeni', 'New')}</HButton>
       </div>
 
       <div style={{ padding: '2px 12px 8px', display: 'flex', flexDirection: 'column', gap: 2, maxHeight: 190, overflow: 'auto', borderBottom: '1px solid var(--line-3)' }}>
@@ -101,20 +102,20 @@ export default function Sidebar({ onNavigate }) {
                 type="button"
                 onClick={() => selectCase(k)}
                 aria-current={act ? 'true' : undefined}
-                aria-label={'Çalışmayı aç: ' + (state.cases[k].name || k) + (act ? ' (açık)' : '')}
+                aria-label={t('Çalışmayı aç: ', 'Open case: ') + (state.cases[k].name || k) + (act ? t(' (açık)', ' (open)') : '')}
                 style={{ flex: 1, minWidth: 0, cursor: 'pointer', border: 'none', background: 'transparent', textAlign: 'left', padding: 0, font: '600 12.5px/1.3 Helvetica,Arial,sans-serif', color: act ? 'var(--pri)' : 'var(--ink-3)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
               >{state.cases[k].name || k}</button>
               {k !== 'ornek' ? (
                 <>
                   <HButton
-                    onClick={() => renameCase(k)} title="Yeniden adlandır"
-                    aria-label={'"' + (state.cases[k].name || k) + '" çalışmasını yeniden adlandır'}
+                    onClick={() => renameCase(k)} title={t('Yeniden adlandır', 'Rename')}
+                    aria-label={t('"' + (state.cases[k].name || k) + '" çalışmasını yeniden adlandır', 'Rename case "' + (state.cases[k].name || k) + '"')}
                     style={{ flex: 'none', width: 22, height: 22, border: 'none', borderRadius: 5, background: 'transparent', color: 'var(--muted-2)', font: '12px/1 Helvetica,Arial,sans-serif', cursor: 'pointer' }}
                     hover={{ background: 'var(--line-3)', color: 'var(--ink-3)' }}
                   >✎</HButton>
                   <HButton
-                    onClick={() => deleteCase(k)} title="Çalışmayı sil"
-                    aria-label={'"' + (state.cases[k].name || k) + '" çalışmasını sil'}
+                    onClick={() => deleteCase(k)} title={t('Çalışmayı sil', 'Delete case')}
+                    aria-label={t('"' + (state.cases[k].name || k) + '" çalışmasını sil', 'Delete case "' + (state.cases[k].name || k) + '"')}
                     style={{ flex: 'none', width: 22, height: 22, border: 'none', borderRadius: 5, background: 'transparent', color: 'var(--muted-2)', font: '700 13px/1 Helvetica,Arial,sans-serif', cursor: 'pointer' }}
                     hover={{ background: 'var(--alert-soft)', color: 'var(--danger)' }}
                   >×</HButton>
@@ -127,14 +128,14 @@ export default function Sidebar({ onNavigate }) {
 
       {state.trash ? (
         <div style={{ margin: '8px 12px 0', background: 'var(--warn-soft-2)', border: '1px solid var(--warn-border-2)', borderRadius: 8, padding: '9px 11px', display: 'flex', gap: 8, alignItems: 'center' }}>
-          <div style={{ flex: 1, minWidth: 0, font: '12px/1.4 Helvetica,Arial,sans-serif', color: 'var(--warn-ink-3)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>"{state.trash.name}" silindi</div>
+          <div style={{ flex: 1, minWidth: 0, font: '12px/1.4 Helvetica,Arial,sans-serif', color: 'var(--warn-ink-3)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t('"' + state.trash.name + '" silindi', '"' + state.trash.name + '" deleted')}</div>
           <HButton
             onClick={() => upd(n => { if (!n.trash) return; n.cases[n.trash.key] = n.trash.data; n.activeCase = n.trash.key; n.trash = null; })}
             style={{ flex: 'none', padding: '5px 10px', border: '1px solid var(--pri)', borderRadius: 6, background: 'var(--pri)', color: 'var(--on-pri)', font: '600 11px Helvetica,Arial,sans-serif', cursor: 'pointer' }}
             hover={{ background: 'var(--pri-hover)' }}
-          >Geri al</HButton>
+          >{t('Geri al', 'Undo')}</HButton>
           <HButton
-            onClick={() => upd(n => { n.trash = null; })} title="Kalıcı olarak kaldır"
+            onClick={() => upd(n => { n.trash = null; })} title={t('Kalıcı olarak kaldır', 'Remove permanently')}
             style={{ flex: 'none', width: 20, height: 20, border: 'none', background: 'transparent', color: 'var(--muted-2)', font: '700 12px/1 Helvetica,Arial,sans-serif', cursor: 'pointer' }}
             hover={{ color: 'var(--ink-3)' }}
           >×</HButton>
@@ -143,36 +144,36 @@ export default function Sidebar({ onNavigate }) {
 
       <div style={{ padding: '12px 16px 8px' }}>
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, margin: '0 0 6px' }}>
-          <div style={{ flex: 1, font: '700 10.5px Helvetica,Arial,sans-serif', color: 'var(--muted)', letterSpacing: '.8px' }}>ÇALIŞMA İLERLEMESİ</div>
+          <div style={{ flex: 1, font: '700 10.5px Helvetica,Arial,sans-serif', color: 'var(--muted)', letterSpacing: '.8px' }}>{t('ÇALIŞMA İLERLEMESİ', 'CASE PROGRESS')}</div>
           <div style={{ font: '700 11px Helvetica,Arial,sans-serif', color: doneCount === 8 ? 'var(--ok-ink)' : 'var(--pri)' }}>{doneCount}/8</div>
         </div>
-        <div style={{ display: 'flex', gap: 3 }} role="img" aria-label={'8 adımdan ' + doneCount + ' adımda içerik var'}>
+        <div style={{ display: 'flex', gap: 3 }} role="img" aria-label={t('8 adımdan ' + doneCount + ' adımda içerik var', 'Content in ' + doneCount + ' of 8 steps')}>
           {[1, 2, 3, 4, 5, 6, 7, 8].map(n => {
-            const ck = stepChecklist(c, n);
+            const ck = stepChecklist(c, n, lang);
             return (
               <div
                 key={n}
-                title={n + '. ' + STEPS[n - 1].title + ' — ' + (ck.missing === 0 ? 'tamamlanma ölçütleri karşılandı' : ck.missing + ' ölçüt eksik: ' + ck.items.filter(x => !x.ok).map(x => x.label).join(', '))}
+                title={n + '. ' + steps[n - 1].title + ' — ' + (ck.missing === 0 ? t('tamamlanma ölçütleri karşılandı', 'completion criteria met') : ck.missing + t(' ölçüt eksik: ', ' criteria missing: ') + ck.items.filter(x => !x.ok).map(x => x.label).join(', '))}
                 style={{ flex: 1, height: 4, borderRadius: 2, background: ck.missing === 0 ? 'var(--ok)' : (doneSteps.includes(n) ? 'var(--pri)' : 'var(--line)') }}
               />
             );
           })}
         </div>
         <div
-          title="Alan doluluğu değil, metodolojik olgunluk: kanıt, doğrulama ve KPI ile teyit durumunu gösterir."
+          title={t('Alan doluluğu değil, metodolojik olgunluk: kanıt, doğrulama ve KPI ile teyit durumunu gösterir.', 'Methodological maturity, not field completion: shows the status of evidence, verification and KPI confirmation.')}
           style={{ marginTop: 8, display: 'inline-block', font: '600 10.5px Helvetica,Arial,sans-serif', letterSpacing: '.3px', borderRadius: 20, padding: '3px 9px', color: maturity.key === 'dogrulandi' ? 'var(--ok-ink)' : 'var(--pri-ink)', background: maturity.key === 'dogrulandi' ? 'var(--ok-soft)' : 'var(--pri-soft)', border: '1px solid ' + (maturity.key === 'dogrulandi' ? 'var(--ok-border)' : 'var(--pri-border-5)') }}
-        >Olgunluk: {maturity.label}</div>
+        >{t('Olgunluk: ', 'Maturity: ')}{maturity.label}</div>
       </div>
 
-      <nav aria-label="Çalışma adımları" style={{ padding: '2px 12px 8px', display: 'flex', flexDirection: 'column', gap: 2, flex: 1, overflow: 'auto' }}>
-        {STEPS.map((s, i) => {
+      <nav aria-label={t('Çalışma adımları', 'Case steps')} style={{ padding: '2px 12px 8px', display: 'flex', flexDirection: 'column', gap: 2, flex: 1, overflow: 'auto' }}>
+        {steps.map((s, i) => {
           const n = i + 1, active = step === n, done = doneSteps.includes(n);
-          const ck = stepChecklist(c, n);
+          const ck = stepChecklist(c, n, lang);
           return (
             <button
               key={n} type="button"
               aria-current={active ? 'step' : undefined}
-              aria-label={n + '. adım: ' + s.title + ' — ' + (ck.missing === 0 ? 'tamamlandı' : ck.missing + ' ölçüt eksik')}
+              aria-label={t(n + '. adım: ', 'Step ' + n + ': ') + s.title + ' — ' + (ck.missing === 0 ? t('tamamlandı', 'completed') : ck.missing + t(' ölçüt eksik', ' criteria missing'))}
               onClick={() => { goStep(n); if (onNavigate) onNavigate(); }}
               style={{
                 display: 'flex', gap: 10, alignItems: 'flex-start', padding: 10, borderRadius: 8, cursor: 'pointer',
@@ -188,7 +189,7 @@ export default function Sidebar({ onNavigate }) {
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ font: '600 13px/1.35 Helvetica,Arial,sans-serif', color: active ? 'var(--pri)' : 'var(--ink-2)' }}>{s.title}</div>
                 <div style={{ font: '11px/1.4 Helvetica,Arial,sans-serif', color: active ? 'var(--pri-soft-ink)' : 'var(--muted-3)', marginTop: 1 }}>
-                  {ck.missing > 0 && done ? ck.missing + ' ölçüt eksik' : s.sub}
+                  {ck.missing > 0 && done ? ck.missing + t(' ölçüt eksik', ' criteria missing') : s.sub}
                 </div>
               </div>
             </button>
@@ -199,22 +200,22 @@ export default function Sidebar({ onNavigate }) {
       {tplOpen ? (
         <div data-noprint="1" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 60, padding: 24 }} onClick={() => setTplOpen(false)}>
           <div style={{ background: 'var(--surface)', borderRadius: 12, width: 480, maxWidth: '94vw', maxHeight: '84vh', overflow: 'auto', padding: '18px 20px', boxShadow: '0 18px 50px rgba(0,0,0,.3)' }} onClick={e => e.stopPropagation()}>
-            <div style={{ font: '700 15px Helvetica,Arial,sans-serif', color: 'var(--ink)', margin: '0 0 4px' }}>Yeni çalışma</div>
-            <div style={{ font: '12px/1.5 Helvetica,Arial,sans-serif', color: 'var(--muted)', margin: '0 0 12px' }}>Şablonlar yalnızca KPI adı, aday driver'lar ve karar kriterlerini ön doldurur — hepsi düzenlenebilir. Problem ifadesini her durumda siz yazarsınız.</div>
+            <div style={{ font: '700 15px Helvetica,Arial,sans-serif', color: 'var(--ink)', margin: '0 0 4px' }}>{t('Yeni çalışma', 'New case')}</div>
+            <div style={{ font: '12px/1.5 Helvetica,Arial,sans-serif', color: 'var(--muted)', margin: '0 0 12px' }}>{t("Şablonlar yalnızca KPI adı, aday driver'lar ve karar kriterlerini ön doldurur — hepsi düzenlenebilir. Problem ifadesini her durumda siz yazarsınız.", 'Templates only pre-fill the KPI name, candidate drivers and decision criteria — all editable. You always write the problem statement yourself.')}</div>
             <input
               className="pcx-field" value={tplName} onChange={e => setTplName(e.target.value)}
-              placeholder="Çalışma adı (boşsa şablon adı kullanılır)"
+              placeholder={t('Çalışma adı (boşsa şablon adı kullanılır)', 'Case name (template name used if blank)')}
               style={{ width: '100%', boxSizing: 'border-box', padding: '9px 11px', border: '1px solid var(--field-border)', borderRadius: 6, font: '13px/1.4 Helvetica,Arial,sans-serif', color: 'var(--ink)', background: 'var(--surface)', outline: 'none', margin: '0 0 12px' }}
             />
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {CASE_TEMPLATES.map(t => (
+              {caseTemplatesFor(lang).map(tpl => (
                 <HButton
-                  key={t.key} onClick={() => createCase(t)}
-                  style={{ textAlign: 'left', padding: '11px 13px', border: '1px solid ' + (t.key === 'bos' ? 'var(--field-border)' : 'var(--pri-border-2)'), borderRadius: 9, background: t.key === 'bos' ? 'var(--surface)' : 'var(--pri-soft-2)', cursor: 'pointer' }}
+                  key={tpl.key} onClick={() => createCase(tpl)}
+                  style={{ textAlign: 'left', padding: '11px 13px', border: '1px solid ' + (tpl.key === 'bos' ? 'var(--field-border)' : 'var(--pri-border-2)'), borderRadius: 9, background: tpl.key === 'bos' ? 'var(--surface)' : 'var(--pri-soft-2)', cursor: 'pointer' }}
                   hover={{ background: 'var(--pri-soft)' }}
                 >
-                  <div style={{ font: '700 13px Helvetica,Arial,sans-serif', color: 'var(--ink)' }}>{t.ad}</div>
-                  <div style={{ font: '11.5px/1.5 Helvetica,Arial,sans-serif', color: 'var(--muted)', marginTop: 2 }}>{t.desc}</div>
+                  <div style={{ font: '700 13px Helvetica,Arial,sans-serif', color: 'var(--ink)' }}>{tpl.ad}</div>
+                  <div style={{ font: '11.5px/1.5 Helvetica,Arial,sans-serif', color: 'var(--muted)', marginTop: 2 }}>{tpl.desc}</div>
                 </HButton>
               ))}
             </div>
@@ -223,7 +224,7 @@ export default function Sidebar({ onNavigate }) {
                 onClick={() => setTplOpen(false)}
                 style={{ padding: '8px 14px', border: '1px solid var(--field-border)', borderRadius: 7, background: 'var(--surface)', color: 'var(--ink-3)', font: '600 12px Helvetica,Arial,sans-serif', cursor: 'pointer' }}
                 hover={{ background: 'var(--surface-4)' }}
-              >Vazgeç</HButton>
+              >{t('Vazgeç', 'Cancel')}</HButton>
             </div>
           </div>
         </div>
@@ -232,24 +233,39 @@ export default function Sidebar({ onNavigate }) {
       <div style={{ padding: '14px 16px', borderTop: '1px solid var(--line-3)', display: 'flex', flexDirection: 'column', gap: 10 }}>
         {eff === 'ornek' ? (
           <HButton
-            onClick={() => { if (confirm('Örnek çalışma ilk haline döndürülecek. Emin misiniz?')) upd(n => { n.cases.ornek = exampleCase(); }); }}
+            onClick={() => { if (confirm(t('Örnek çalışma ilk haline döndürülecek. Emin misiniz?', 'The example case will be reset to its original state. Are you sure?'))) upd(n => { n.cases.ornek = exampleCase(n.lang); }); }}
             style={{ padding: '8px 10px', border: '1px solid var(--field-border)', borderRadius: 6, background: 'var(--surface)', color: 'var(--ink-3)', font: '600 12px Helvetica,Arial,sans-serif', cursor: 'pointer' }}
             hover={{ background: 'var(--surface-4)' }}
-          >Örnek çalışmayı sıfırla</HButton>
+          >{t('Örnek çalışmayı sıfırla', 'Reset example case')}</HButton>
         ) : null}
         <HA
           href={'/rehber.html' + (state.theme === 'dark' ? '?tema=koyu' : '')} target="_blank" rel="noreferrer"
           style={{ display: 'block', boxSizing: 'border-box', padding: '8px 10px', border: '1px solid var(--field-border)', borderRadius: 6, background: 'var(--surface)', color: 'var(--ink-3)', font: '600 12px Helvetica,Arial,sans-serif', textDecoration: 'none', textAlign: 'left' }}
           hover={{ background: 'var(--surface-4)' }}
-        >📖 Kullanım Rehberi</HA>
+        >📖 {t('Kullanım Rehberi', 'User Guide')}</HA>
+        <div role="group" aria-label="Dil / Language" style={{ display: 'flex', gap: 0, border: '1px solid var(--field-border)', borderRadius: 6, overflow: 'hidden' }}>
+          {[['tr', 'Türkçe'], ['en', 'English']].map(([k, lb]) => (
+            <button
+              key={k} type="button"
+              onClick={() => setLang(k)}
+              aria-pressed={lang === k}
+              style={{
+                flex: 1, padding: '7px 10px', border: 'none', cursor: 'pointer',
+                background: lang === k ? 'var(--pri)' : 'var(--surface)',
+                color: lang === k ? 'var(--on-pri)' : 'var(--ink-3)',
+                font: '600 12px Helvetica,Arial,sans-serif'
+              }}
+            >{lb}</button>
+          ))}
+        </div>
         <HButton
           onClick={toggleTheme}
-          title={state.theme === 'dark' ? 'Aydınlık temaya geç' : 'Karanlık temaya geç'}
+          title={state.theme === 'dark' ? t('Aydınlık temaya geç', 'Switch to light theme') : t('Karanlık temaya geç', 'Switch to dark theme')}
           style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', border: '1px solid var(--field-border)', borderRadius: 6, background: 'var(--surface)', color: 'var(--ink-3)', font: '600 12px Helvetica,Arial,sans-serif', cursor: 'pointer', textAlign: 'left' }}
           hover={{ background: 'var(--surface-4)' }}
         >
           <span style={{ flex: 'none', font: '13px/1 Helvetica,Arial,sans-serif' }}>{state.theme === 'dark' ? '☀' : '☾'}</span>
-          <span style={{ flex: 1 }}>{state.theme === 'dark' ? 'Aydınlık tema' : 'Karanlık tema'}</span>
+          <span style={{ flex: 1 }}>{state.theme === 'dark' ? t('Aydınlık tema', 'Light theme') : t('Karanlık tema', 'Dark theme')}</span>
           <span style={{ flex: 'none', display: 'flex', alignItems: 'center', width: 30, height: 16, borderRadius: 20, background: state.theme === 'dark' ? 'var(--pri)' : 'var(--line-strong)', padding: 2, boxSizing: 'border-box', transition: 'background .15s' }}>
             <span style={{ width: 12, height: 12, borderRadius: '50%', background: state.theme === 'dark' ? 'var(--on-pri)' : 'var(--surface)', marginLeft: state.theme === 'dark' ? 14 : 0, transition: 'margin-left .15s' }} />
           </span>
@@ -258,15 +274,15 @@ export default function Sidebar({ onNavigate }) {
           onClick={() => { upd(n => { n.showSettings = true; }); if (onNavigate) onNavigate(); }}
           style={{ padding: '8px 10px', border: '1px solid var(--field-border)', borderRadius: 6, background: 'var(--surface)', color: 'var(--ink-3)', font: '600 12px Helvetica,Arial,sans-serif', cursor: 'pointer', textAlign: 'left' }}
           hover={{ background: 'var(--surface-4)' }}
-        >⚙ Ayarlar · Kurum prensipleri</HButton>
+        >⚙ {t('Ayarlar · Kurum prensipleri', 'Settings · Company principles')}</HButton>
         {state.saveError ? (
           <div role="alert" style={{ font: '11.5px/1.5 Helvetica,Arial,sans-serif', color: 'var(--alert)', background: 'var(--alert-soft)', border: '1px solid var(--alert-border)', borderRadius: 6, padding: '7px 9px' }}>
             ⚠ {state.saveError}
           </div>
         ) : null}
         <div style={{ font: '11px/1.5 Helvetica,Arial,sans-serif', color: 'var(--muted-2)' }}>
-          Girdileriniz <strong>yalnızca bu tarayıcıda</strong> saklanır — sunucuya gönderilmez, otomatik yedeği yoktur.
-          {backupStale ? <span style={{ color: 'var(--warn-ink)' }}> Yedek almadınız; Ayarlar'dan JSON yedeği indirin.</span> : null}
+          {t('Girdileriniz ', 'Your inputs are stored ')}<strong>{t('yalnızca bu tarayıcıda', 'only in this browser')}</strong>{t(' saklanır — sunucuya gönderilmez, otomatik yedeği yoktur.', ' — nothing is sent to a server, and there is no automatic backup.')}
+          {backupStale ? <span style={{ color: 'var(--warn-ink)' }}>{t(" Yedek almadınız; Ayarlar'dan JSON yedeği indirin.", ' No backup yet; download a JSON backup from Settings.')}</span> : null}
         </div>
       </div>
     </aside>

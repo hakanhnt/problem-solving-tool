@@ -2,6 +2,7 @@
 // Değerler prototipteki inline stillerle birebir aynıdır (tasarım token'ları).
 
 import React, { useState, useEffect } from 'react';
+import { useStore } from '../lib/store.jsx';
 
 /** Dar ekran (mobil/tablet) algısı — mobil düzen bu eşiğe göre değişir. */
 export function useNarrow(px = 920) {
@@ -82,11 +83,12 @@ export function Card({ style, children, ...rest }) {
 
 /** Kart başlığı; opsiyonel YZ yardım düğmesiyle. */
 export function CardHead({ title, sub, onHelp, helpTitle, aiReady }) {
+  const { t } = useStore();
   return (
     <>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '0 0 4px' }}>
         <div style={S.cardTitle}>{title}</div>
-        {aiReady && onHelp ? <YZButton onClick={onHelp} title={helpTitle || ("YZ'den \"" + title + "\" için yardım al")} /> : null}
+        {aiReady && onHelp ? <YZButton onClick={onHelp} title={helpTitle || t("YZ'den \"" + title + "\" için yardım al", 'Get AI help for "' + title + '"')} /> : null}
       </div>
       {sub ? <div style={S.cardSub}>{sub}</div> : null}
     </>
@@ -94,15 +96,17 @@ export function CardHead({ title, sub, onHelp, helpTitle, aiReady }) {
 }
 
 export function YZButton({ onClick, title, small }) {
+  const { t } = useStore();
   const size = small ? 20 : 24;
+  const fallback = t("YZ'den bu alan için yardım al", 'Get AI help for this field');
   return (
     <HButton
       onClick={onClick}
-      title={title || "YZ'den bu alan için yardım al"}
-      aria-label={title || "YZ'den bu alan için yardım al"}
+      title={title || fallback}
+      aria-label={title || fallback}
       style={{ flex: 'none', width: size, height: size, borderRadius: '50%', border: '1px solid var(--pri-border-2)', background: 'var(--pri-soft)', color: 'var(--pri)', font: (small ? '700 8px/1' : '700 9px/1') + ' Helvetica,Arial,sans-serif', cursor: 'pointer' }}
       hover={{ background: 'var(--pri)', color: 'var(--on-pri)' }}
-    >YZ</HButton>
+    >{t('YZ', 'AI')}</HButton>
   );
 }
 
@@ -115,6 +119,7 @@ export function YZButton({ onClick, title, small }) {
 const METHOD_PREF_KEY = 'pcx_method_open';
 
 export function MethodBox({ children, margin }) {
+  const { t } = useStore();
   const [open, setOpen] = useState(() => {
     try { return localStorage.getItem(METHOD_PREF_KEY) !== '0'; } catch (e) { return true; }
   });
@@ -130,8 +135,8 @@ export function MethodBox({ children, margin }) {
         style={{ display: 'flex', gap: 8, alignItems: 'center', width: '100%', border: 'none', background: 'transparent', padding: 0, cursor: 'pointer', textAlign: 'left' }}
       >
         <span aria-hidden="true" style={{ flex: 'none', width: 16, height: 16, borderRadius: '50%', background: 'var(--chip-neutral)', color: 'var(--ink-3)', font: '700 10px/16px Georgia,serif', textAlign: 'center' }}>i</span>
-        <span style={{ flex: 1, font: '600 11.5px Helvetica,Arial,sans-serif', color: 'var(--ink-4)' }}>Yöntem açıklaması</span>
-        <span aria-hidden="true" style={{ flex: 'none', font: '10px Helvetica,Arial,sans-serif', color: 'var(--muted)' }}>{open ? '▲ gizle' : '▼ göster'}</span>
+        <span style={{ flex: 1, font: '600 11.5px Helvetica,Arial,sans-serif', color: 'var(--ink-4)' }}>{t('Yöntem açıklaması', 'Method note')}</span>
+        <span aria-hidden="true" style={{ flex: 'none', font: '10px Helvetica,Arial,sans-serif', color: 'var(--muted)' }}>{open ? t('▲ gizle', '▲ hide') : t('▼ göster', '▼ show')}</span>
       </button>
       {open ? (
         <div style={{ font: '12px/1.55 Helvetica,Arial,sans-serif', color: 'var(--ink-4)', padding: '6px 0 2px 24px' }}>{children}</div>
@@ -145,6 +150,7 @@ export function MethodBox({ children, margin }) {
  * derinleşme kartlarını gruplar. Varsayılan kapalıdır; tercih adım bazında saklanır.
  */
 export function AdvancedSection({ id, title, sub, children, defaultOpen }) {
+  const { t } = useStore();
   const key = 'pcx_adv_' + id;
   const [open, setOpen] = useState(() => {
     try { const v = localStorage.getItem(key); return v === null ? !!defaultOpen : v === '1'; } catch (e) { return !!defaultOpen; }
@@ -168,7 +174,7 @@ export function AdvancedSection({ id, title, sub, children, defaultOpen }) {
           <span style={{ display: 'block', font: '700 12.5px Helvetica,Arial,sans-serif', color: 'var(--ink-3)' }}>{title}</span>
           {sub ? <span style={{ display: 'block', font: '11.5px/1.45 Helvetica,Arial,sans-serif', color: 'var(--muted)', marginTop: 2 }}>{sub}</span> : null}
         </span>
-        <span style={{ flex: 'none', font: '600 11px Helvetica,Arial,sans-serif', color: 'var(--pri)' }}>{open ? 'Gizle' : 'Aç'}</span>
+        <span style={{ flex: 'none', font: '600 11px Helvetica,Arial,sans-serif', color: 'var(--pri)' }}>{open ? t('Gizle', 'Hide') : t('Aç', 'Open')}</span>
       </button>
       {open ? <div style={{ marginTop: 14 }}>{children}</div> : null}
     </div>
@@ -177,9 +183,10 @@ export function AdvancedSection({ id, title, sub, children, defaultOpen }) {
 
 /** Mavi "KENDİNİZE / PAYDAŞLARINIZA SORUN" kutusu. */
 export function GuidanceBox({ items, margin }) {
+  const { t } = useStore();
   return (
     <div style={{ background: 'var(--pri-soft)', border: '1px solid var(--pri-border-6)', borderRadius: 10, padding: '16px 18px', margin: margin || '0 0 20px' }}>
-      <div style={{ font: '700 11px Helvetica,Arial,sans-serif', color: 'var(--pri)', letterSpacing: '.8px', margin: '0 0 8px' }}>KENDİNİZE / PAYDAŞLARINIZA SORUN</div>
+      <div style={{ font: '700 11px Helvetica,Arial,sans-serif', color: 'var(--pri)', letterSpacing: '.8px', margin: '0 0 8px' }}>{t('KENDİNİZE / PAYDAŞLARINIZA SORUN', 'ASK YOURSELF / YOUR STAKEHOLDERS')}</div>
       <ul style={{ margin: 0, padding: '0 0 0 18px', display: 'flex', flexDirection: 'column', gap: 5 }}>
         {items.map((t, i) => <li key={i} style={{ font: '13px/1.5 Helvetica,Arial,sans-serif', color: 'var(--pri-ink-2)' }}>{t}</li>)}
       </ul>
@@ -198,13 +205,14 @@ export function AddButton({ onClick, children, style }) {
 }
 
 export function RemoveButton({ onClick, children, style }) {
+  const { t } = useStore();
   return (
     <HButton
       onClick={onClick}
-      aria-label="Kaldır"
+      aria-label={t('Kaldır', 'Remove')}
       style={{ border: 'none', background: 'transparent', color: 'var(--muted-2)', font: '600 12px Helvetica,Arial,sans-serif', cursor: 'pointer', flex: 'none', ...style }}
       hover={{ color: 'var(--danger)' }}
-    >{children || 'Kaldır'}</HButton>
+    >{children || t('Kaldır', 'Remove')}</HButton>
   );
 }
 

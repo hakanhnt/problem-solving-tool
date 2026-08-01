@@ -166,3 +166,175 @@ export const MEETING_MOVES = [
   { ad: '"Bu neden yanlış olabilir?" anını yarat', against: 'Aşırı güven', not: 'Bu karar nerede başarısız olur, en büyük risk ne?' },
   { ad: 'Varsayımını açık et', against: 'Onaylama yanlılığı', not: '"Benim şu anki varsayımım şu, yanlış olabilir" — tartışmayı bu cümle başlatır.' }
 ];
+
+// ---- İngilizce arayüz varyantları -------------------------------------------
+// Veri şeması (key'ler: key/ad/against/not/bias/amac/sorular) iki dilde de aynıdır;
+// yalnız görünen metinler değişir. BIASES yalnız YZ istemine gider, EN varyantı yok.
+
+export const THINKING_METHOD_INFO_EN = {
+  'Critical thinking': {
+    bias: 'Confirmation bias',
+    amac: 'Make assumptions visible and question the thinking',
+    sorular: [
+      'What are we currently accepting as true but have not tested?',
+      'If we tried to prove this idea wrong, what would we find?',
+      'Why do we believe this conclusion?',
+      'What is the most critical assumption behind this decision?',
+      'If that assumption is wrong, how does the whole decision collapse?'
+    ]
+  },
+  'First-principles thinking': {
+    bias: 'Status quo bias & sunk cost fallacy',
+    amac: 'Strip the problem of habits and past decisions and reduce it to its essence',
+    sorular: [
+      'If we built this from scratch today, how would we do it?',
+      'What do we accept as true here but never question?',
+      'Could our past decisions be influencing our thinking?',
+      'What is the most fundamental (real) form of this work?',
+      'If we remove all the assumptions, what remains?'
+    ]
+  },
+  'Design thinking': {
+    bias: 'Representativeness bias',
+    amac: 'Think through real users / the field instead of assumptions',
+    sorular: [
+      'Have we actually observed this, or are we assuming it?',
+      'What would the customer say if they saw this decision?',
+      'Would this decision survive a visit to the field?',
+      'Is actual behavior the same as what we think it is?',
+      'Is this decision data or interpretation?'
+    ]
+  },
+  'Lateral thinking': {
+    bias: 'Overconfidence bias',
+    amac: 'Generate alternatives and increase mental flexibility',
+    sorular: [
+      'What could be a completely different solution to this?',
+      'What would happen if we did the exact opposite?',
+      'How would another industry solve this?',
+      'What is the most radical alternative we are not considering right now?',
+      'What solution do we call "impossible" for this problem?'
+    ]
+  },
+  'Second-order thinking': {
+    bias: 'Short-termism & outcome bias',
+    amac: 'See long-term and indirect effects',
+    sorular: [
+      'This decision is good today — what will it break tomorrow?',
+      'What is the most likely outcome in 3 months?',
+      'What effects will emerge after 1 year?',
+      'What does this decision trigger as a chain reaction?',
+      'What does the short-term win cost us in the long term?'
+    ]
+  },
+  'Systems thinking': {
+    bias: 'Availability bias & oversimplification',
+    amac: 'See the whole system instead of a single cause',
+    sorular: [
+      'What system is operating behind this outcome?',
+      'Are we solving the cause or the symptom?',
+      'Where else does this problem show up?',
+      'How does this system keep producing this outcome?',
+      'What does blaming this problem on one person hide?'
+    ]
+  },
+  'Algorithmic thinking': {
+    bias: 'Anchoring effect & heuristic shortcuts',
+    amac: 'Make the decision logic visible and repeatable',
+    sorular: [
+      'What logic are we using to make this decision?',
+      'Are our criteria explicit, or intuitive?',
+      'Can we define this process step by step?',
+      'Would we make the same decision again in the same situation?',
+      'Could an outsider understand this decision process?'
+    ]
+  },
+  'Best-practice adaptation': {
+    bias: 'Ignoring context (copy-paste)',
+    amac: 'Adopt a proven solution by adapting it to our own context',
+    sorular: [
+      'In what context did this practice work, and how similar is ours?',
+      'Which part of the solution is essential, and which is specific to that organization?',
+      'When adapting, what must we change and what must we keep as is?',
+      'Did anyone try this before us and give up — why did they?',
+      'What is the smallest version we could test with a small pilot?'
+    ]
+  }
+};
+
+// Yöntem adı state'te seçildiği dildeki haliyle durabilir; EN haritasına TR
+// takma adları eklenir ki THINKING_METHOD_INFO_EN['Eleştirel düşünce'] da bulunsun.
+// (TR haritası AYNEN korunur — YZ istemi Object.keys(THINKING_METHOD_INFO) kullanır.)
+const METHOD_NAME_TR_TO_EN = {
+  'Eleştirel düşünce': 'Critical thinking',
+  'İlk ilkeler düşüncesi': 'First-principles thinking',
+  'Tasarım odaklı düşünce': 'Design thinking',
+  'Yanal düşünce': 'Lateral thinking',
+  'İkinci düzey düşünce': 'Second-order thinking',
+  'Sistem düşüncesi': 'Systems thinking',
+  'Algoritmik düşünce': 'Algorithmic thinking',
+  'Best practice adaptasyonu': 'Best-practice adaptation'
+};
+for (const trName of Object.keys(METHOD_NAME_TR_TO_EN)) {
+  THINKING_METHOD_INFO_EN[trName] = THINKING_METHOD_INFO_EN[METHOD_NAME_TR_TO_EN[trName]];
+}
+
+export const META_QUESTIONS_EN = [
+  'Are we thinking fast right now, or truly analyzing?',
+  'Under what conditions are we making this decision? (time pressure, uncertainty…)',
+  'What mental tendency might be influencing us most right now?',
+  'Are we too sure?',
+  'Are we on autopilot, or at a critical point where we need to switch to deliberate thinking?'
+];
+
+export const PRE_DECISION_QUESTIONS_EN = [
+  {
+    key: 'assume',
+    title: 'What am I assuming right now?',
+    against: 'Against confirmation bias',
+    hint: 'Why do I believe this is true? What changes if it is wrong?',
+    ph: 'Assumptions the decision rests on that are not yet proven with data…'
+  },
+  {
+    key: 'alt',
+    title: 'What other explanation is possible?',
+    against: 'Against representativeness bias and overconfidence',
+    hint: 'The first explanation is usually not the most accurate one, just the fastest. How would I read this situation if I were someone else?',
+    ph: 'Competing interpretations that could explain the same findings…'
+  },
+  {
+    key: 'cost',
+    title: 'Who will pay the price of this decision, and when?',
+    against: 'Against short-termism and outcome bias',
+    hint: 'What happens in 3 months? What does it trigger in 1 year?',
+    ph: 'Who bears the cost, when it will surface, and second-order effects…'
+  }
+];
+
+export const LEADER_MOVES_EN = [
+  { ad: 'Being able to say "I don\'t know"', not: 'Not a weakness — a trigger that opens up thinking. When the leader does it, the team starts thinking too.' },
+  { ad: 'Making your own assumption explicit', not: '"My current assumption is this, and it may be wrong" — that sentence starts the discussion.' },
+  { ad: 'Normalizing changing your mind', not: '"With this new information, I am changing my mind." Otherwise everyone keeps defending their position.' }
+];
+
+export const DAILY_HABITS_EN = [
+  { ad: 'No interpretation without observation', against: 'Representativeness bias', not: 'Cut down sentences starting with "I think"; replace them with "the data I saw/heard is this".' },
+  { ad: 'Redefining the problem', against: 'Status quo bias', not: 'For every problem ask: what are we actually trying to solve — is this really the problem?' },
+  { ad: 'Short reflection after decisions', against: 'Outcome bias', not: 'A good outcome does not make the decision right: was the process sound, would I make the same decision today?' }
+];
+
+export const MEETING_MOVES_EN = [
+  { ad: 'Suspend the first idea', against: 'Anchoring effect', not: 'Do not evaluate the first idea right away; do not start deciding before at least 2 alternatives are on the table.' },
+  { ad: 'Get the quiet ones talking', against: 'Groupthink', not: '"I\'m curious what those who haven\'t spoken yet think", "Does anyone disagree?"' },
+  { ad: 'Create a "why might this be wrong?" moment', against: 'Overconfidence', not: 'Where would this decision fail, what is the biggest risk?' },
+  { ad: 'Make your assumption explicit', against: 'Confirmation bias', not: '"My current assumption is this, and it may be wrong" — that sentence starts the discussion.' }
+];
+
+// ---- Dil erişimcileri --------------------------------------------------------
+
+export const thinkingMethodInfoFor = lang => (lang === 'en' ? THINKING_METHOD_INFO_EN : THINKING_METHOD_INFO);
+export const metaQuestionsFor = lang => (lang === 'en' ? META_QUESTIONS_EN : META_QUESTIONS);
+export const preDecisionQuestionsFor = lang => (lang === 'en' ? PRE_DECISION_QUESTIONS_EN : PRE_DECISION_QUESTIONS);
+export const leaderMovesFor = lang => (lang === 'en' ? LEADER_MOVES_EN : LEADER_MOVES);
+export const dailyHabitsFor = lang => (lang === 'en' ? DAILY_HABITS_EN : DAILY_HABITS);
+export const meetingMovesFor = lang => (lang === 'en' ? MEETING_MOVES_EN : MEETING_MOVES);

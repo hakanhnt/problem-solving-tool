@@ -469,7 +469,7 @@ export function buildRefBlock(c) {
 
 
 /** Arayüz dili İngilizce olduğunda tüm YZ akışlarına eklenen dil kuralı. */
-export const EN_REPLY_RULE = '\n\nIMPORTANT LANGUAGE RULE: The user\'s interface language is ENGLISH. Write ALL free-text content of your reply in English (prose, suggestions, questions, drafts). Do NOT translate JSON field names/keys — keep them exactly as specified in the schema (e.g. giris, sorular, belirtim, kokNedenler). Where a schema specifies a fixed value set (e.g. durum: kapaniyor|belirsiz|kapanmiyor), use those fixed values verbatim. When referring to findings use F1, F2…; root causes RC1, RC2…; alternatives and actions A1, A2…';
+export const EN_REPLY_RULE = '\n\nIMPORTANT LANGUAGE RULE: The user\'s interface language is ENGLISH. Write ALL free-text content of your reply in English (prose, suggestions, questions, drafts). Do NOT translate JSON field names/keys — keep them exactly as specified in the schema (e.g. giris, sorular, belirtim, kokNedenler). Where a schema specifies a fixed value set (e.g. durum: kapaniyor|belirsiz|kapanmiyor), use those fixed values verbatim. When referring to findings use F1, F2…; root causes RC1, RC2…; alternatives and actions A1, A2… Where a task tells you to mark unknowns with "[doldurun: …]", write the English marker "[fill in: …]" instead; for "(örnek değer)" write "(example value)".';
 
 /** Adım odaklı sistem talimatı — tüm YZ akışları (rehber, sohbet, karar, rapor) bunu paylaşır. */
 export function buildSystem(step, c, aiSettings, principles, lang) {

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useStore } from './lib/store.jsx';
 import { parseShareHash } from './lib/share.js';
 import SharedView from './components/SharedView.jsx';
-import { STEPS } from './lib/defaults.js';
+import { stepsFor } from './lib/defaults.js';
 import Sidebar from './components/Sidebar.jsx';
 import Dashboard from './components/Dashboard.jsx';
 import CoachPanel from './components/CoachPanel.jsx';
@@ -25,7 +25,8 @@ import { LogoMark, Wordmark } from './ui/Logo.jsx';
 const STEP_VIEWS = [Step1Problem, Step2Drivers, Step3Analysis, Step4Findings, Step5RootCause, Step6Countermeasures, Step7Tracking, Step8Report];
 
 export default function App() {
-  const { state, c, step, mainRef, goStep, undoLast } = useStore();
+  const { state, c, step, mainRef, goStep, undoLast, t, lang } = useStore();
+  const STEPS = stepsFor(lang);
   const [shared, setShared] = useState(() => parseShareHash(location.hash));
   const narrow = useNarrow();
   const [drawer, setDrawer] = useState(false);
@@ -64,12 +65,12 @@ export default function App() {
 
   const onNext = () => {
     if (step === 1 && !aiReady) {
-      alert('Devam etmeden önce problem ifadenizi yazın — rehber sonraki adımlarda sizi bu tanıma göre yönlendirecek.');
+      alert(t('Devam etmeden önce problem ifadenizi yazın — rehber sonraki adımlarda sizi bu tanıma göre yönlendirecek.', 'Write your problem statement before continuing — the coach will guide you by this definition in the next steps.'));
       return;
     }
     const lists = { 2: c.drivers, 3: c.driverAnalysis, 4: c.findings, 5: c.rootCauses };
     const unv = (lists[step] || []).filter(x => x && x.src === 'yz' && !x.verified).length;
-    if (unv > 0 && !confirm(unv + ' YZ önerisi henüz doğrulanmadı (turuncu rozetli kayıtlar). Önerileri işi yapanlarla ve veriyle doğrulamadan ilerlemek metodolojiye aykırıdır.\n\nYine de devam edilsin mi?')) return;
+    if (unv > 0 && !confirm(t(unv + ' YZ önerisi henüz doğrulanmadı (turuncu rozetli kayıtlar). Önerileri işi yapanlarla ve veriyle doğrulamadan ilerlemek metodolojiye aykırıdır.\n\nYine de devam edilsin mi?', unv + ' AI suggestion(s) not yet verified (orange-badged records). Moving on without verifying suggestions with the people doing the work and with data goes against the methodology.\n\nContinue anyway?'))) return;
     goStep(step + 1);
   };
 
@@ -79,7 +80,7 @@ export default function App() {
         <div data-noprint="1" style={{ flex: 'none', display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', background: 'var(--surface)', borderBottom: '1px solid var(--line-strong)' }}>
           <HButton
             onClick={() => setDrawer(true)}
-            aria-label="Menüyü aç"
+            aria-label={t('Menüyü aç', 'Open menu')}
             style={{ flex: 'none', width: 38, height: 38, border: '1px solid var(--field-border)', borderRadius: 8, background: 'var(--surface)', color: 'var(--ink-3)', font: '18px/1 Helvetica,Arial,sans-serif', cursor: 'pointer' }}
             hover={{ background: 'var(--surface-4)' }}
           >☰</HButton>
@@ -89,7 +90,7 @@ export default function App() {
               <Wordmark size={13.5} />
               <span style={{ font: '13px/1.3 Helvetica,Arial,sans-serif', color: 'var(--muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>· {STEPS[step - 1].title}</span>
             </div>
-            <div style={{ font: '10.5px/1.3 Helvetica,Arial,sans-serif', color: 'var(--muted)' }}>Adım {step}/8 · {c.name || 'Çalışma'}</div>
+            <div style={{ font: '10.5px/1.3 Helvetica,Arial,sans-serif', color: 'var(--muted)' }}>{t('Adım ', 'Step ')}{step}/8 · {c.name || t('Çalışma', 'Case')}</div>
           </div>
         </div>
       ) : null}
@@ -117,9 +118,9 @@ export default function App() {
         <div style={{ maxWidth: 880, margin: '0 auto', padding: narrow ? '20px 16px 90px' : '34px 44px 90px' }}>
           {/* Adım değişimi ve kayıt durumu ekran okuyucuya duyurulur */}
           <div className="pcx-sr-only" role="status" aria-live="polite">
-            {'Adım ' + step + ' / 8: ' + STEPS[step - 1].title + '. '}
-            {missing > 0 ? missing + ' tamamlanma ölçütü eksik.' : 'Bu adımın ölçütleri tamam.'}
-            {state.saveError ? ' Uyarı: değişiklikler kaydedilemedi.' : ''}
+            {t('Adım ', 'Step ') + step + ' / 8: ' + STEPS[step - 1].title + '. '}
+            {missing > 0 ? missing + t(' tamamlanma ölçütü eksik.', ' completion criteria missing.') : t('Bu adımın ölçütleri tamam.', "This step's criteria are met.")}
+            {state.saveError ? t(' Uyarı: değişiklikler kaydedilemedi.', ' Warning: changes could not be saved.') : ''}
           </div>
 
           <StepHeader openSignal={showMissing} />
@@ -139,34 +140,34 @@ export default function App() {
         {step > 1 ? (
           <HButton
             onClick={() => goStep(step - 1)}
-            aria-label={'Önceki adım: ' + STEPS[step - 2].title}
+            aria-label={t('Önceki adım: ', 'Previous step: ') + STEPS[step - 2].title}
             style={{ flex: 'none', padding: '9px 14px', border: '1px solid var(--field-border)', borderRadius: 8, background: 'var(--surface)', color: 'var(--ink-3)', font: '600 12.5px Helvetica,Arial,sans-serif', cursor: 'pointer' }}
             hover={{ background: 'var(--surface-4)' }}
-          >← {narrow ? 'Önceki' : STEPS[step - 2].title}</HButton>
+          >← {narrow ? t('Önceki', 'Previous') : STEPS[step - 2].title}</HButton>
         ) : null}
 
         <div style={{ flex: 1, minWidth: 120, display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
           <span style={{ font: '11.5px/1.4 Helvetica,Arial,sans-serif', color: state.saveError ? 'var(--alert)' : 'var(--muted)' }}>
             {state.saveError
-              ? '⚠ Kaydedilemedi'
-              : (missing > 0 ? missing + ' ölçüt eksik · otomatik kaydedildi' : 'Bu adım tamam · otomatik kaydedildi')}
+              ? t('⚠ Kaydedilemedi', '⚠ Not saved')
+              : (missing > 0 ? missing + t(' ölçüt eksik · otomatik kaydedildi', ' criteria missing · autosaved') : t('Bu adım tamam · otomatik kaydedildi', 'This step is complete · autosaved'))}
           </span>
           {missing > 0 ? (
             <HButton
               onClick={() => setShowMissing(n => n + 1)}
               style={{ flex: 'none', padding: '6px 11px', border: '1px solid var(--warn-border)', borderRadius: 7, background: 'var(--warn-soft)', color: 'var(--warn-ink)', font: '600 11.5px Helvetica,Arial,sans-serif', cursor: 'pointer' }}
               hover={{ background: 'var(--warn-soft-2)' }}
-            >Eksikleri göster</HButton>
+            >{t('Eksikleri göster', 'Show missing')}</HButton>
           ) : null}
         </div>
 
         {step < 8 ? (
           <HButton
             onClick={onNext}
-            aria-label={'Sonraki adım: ' + STEPS[step].title}
+            aria-label={t('Sonraki adım: ', 'Next step: ') + STEPS[step].title}
             style={{ flex: 'none', padding: '9px 14px', border: '1px solid var(--pri)', borderRadius: 8, background: 'var(--pri)', color: 'var(--on-pri)', font: '600 12.5px Helvetica,Arial,sans-serif', cursor: 'pointer' }}
             hover={{ background: 'var(--pri-hover)' }}
-          >{narrow ? 'Sonraki' : STEPS[step].title} →</HButton>
+          >{narrow ? t('Sonraki', 'Next') : STEPS[step].title} →</HButton>
         ) : null}
       </div>
       </div>
@@ -174,12 +175,12 @@ export default function App() {
 
       {state.undoToast ? (
         <div data-noprint="1" style={{ position: 'fixed', left: '50%', bottom: 22, transform: 'translateX(-50%)', zIndex: 70, display: 'flex', gap: 10, alignItems: 'center', background: 'var(--ink)', color: 'var(--bg)', borderRadius: 10, padding: '10px 14px', boxShadow: '0 8px 26px rgba(0,0,0,.3)' }}>
-          <span style={{ font: '600 12.5px Helvetica,Arial,sans-serif' }}>Silindi: {state.undoToast.label}</span>
+          <span style={{ font: '600 12.5px Helvetica,Arial,sans-serif' }}>{t('Silindi: ', 'Deleted: ')}{state.undoToast.label}</span>
           <HButton
             onClick={undoLast}
             style={{ flex: 'none', padding: '6px 12px', border: 'none', borderRadius: 7, background: 'var(--pri-bar)', color: 'var(--ink)', font: '700 12px Helvetica,Arial,sans-serif', cursor: 'pointer' }}
             hover={{ background: 'var(--pri-border)' }}
-          >Geri al (Ctrl+Z)</HButton>
+          >{t('Geri al (Ctrl+Z)', 'Undo (Ctrl+Z)')}</HButton>
         </div>
       ) : null}
 
