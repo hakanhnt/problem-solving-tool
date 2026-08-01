@@ -2,12 +2,13 @@
 // Veri şeması prototiple aynıdır: localStorage anahtarı `pcx_workbook_v1`.
 
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
-import { STORAGE_KEY, STEPS, blankCase, exampleCase, defaultPrinciples } from './defaults.js';
+import { STORAGE_KEY, STEPS, stepsFor, blankCase, exampleCase, defaultPrinciples } from './defaults.js';
+import { mkT } from './i18n.js';
 import {
   complete, buildSystem, buildCoachTask, coachItems, parseJsonReply,
   COACH_JSON_RULE, COACH_TEACH_TASK, COACH_FAST_SUFFIX, COACH_DEPTH_SUFFIX, ACTION_COACH_TASK,
   DECISION_COACH_TASK, AUDIT_TASK, BIAS_SCAN_TASK, PREMORTEM_TASK, REPORT_SUMMARY_TASK, REF_SUMMARY_SYSTEM,
-  SPEC_COACH_TASK, CONTAINMENT_COACH_TASK, MATRIX_COACH_TASK, TRACKING_COACH_TASK, TRACKING_PLAN_TASK, RETRO_COACH_TASK, buildHelpSystem, extractObjects, stripThinking
+  SPEC_COACH_TASK, CONTAINMENT_COACH_TASK, MATRIX_COACH_TASK, TRACKING_COACH_TASK, TRACKING_PLAN_TASK, RETRO_COACH_TASK, EN_REPLY_RULE, buildHelpSystem, extractObjects, stripThinking
 } from './ai.js';
 
 const Ctx = createContext(null);
@@ -25,6 +26,7 @@ function normalize(state) {
   s.aiInput = '';
   s.showSettings = false;
   s.dashOpen = false;
+  if (s.lang !== 'en') s.lang = 'tr';
   s.refForm = null;
   s.undoToast = null;
   s.saveError = '';
@@ -51,7 +53,7 @@ function normalize(state) {
     const prefersDark = typeof matchMedia === 'function' && matchMedia('(prefers-color-scheme: dark)').matches;
     s.theme = prefersDark ? 'dark' : 'light';
   }
-  if (!Array.isArray(s.principles) || !s.principles.length) s.principles = defaultPrinciples();
+  if (!Array.isArray(s.principles) || !s.principles.length) s.principles = defaultPrinciples(s.lang);
   Object.keys(s.cases).forEach(k => {
     const cc = s.cases[k];
     if (!cc.name) cc.name = k === 'ornek' ? 'Örnek Çalışma' : (k === 'benim' ? 'Benim Çalışmam' : 'Çalışma');
@@ -102,7 +104,7 @@ function persist(state) {
     // Kota dolduğunda sessizce veri kaybetmeyelim — kullanıcıya söylenir.
     state.saveError = (e && e.name === 'QuotaExceededError')
       ? 'Tarayıcı depolama alanı dolu — değişiklikler kaydedilemiyor. Ayarlar\'dan yedek alıp gereksiz çalışmaları silin.'
-      : 'Değişiklikler bu tarayıcıya kaydedilemedi (' + ((e && e.message) || 'bilinmeyen hata') + ').';
+      : 'Değişiklikler bu tarayıcıya kaydedilemedi (' + ((e && e.message) || mkT(stateRef.current.lang)('bilinmeyen hata', 'unknown error')) + ').';
   }
 }
 
@@ -196,7 +198,7 @@ export function StoreProvider({ children }) {
 
   const canUndo = useCallback(() => undoRef.current.length > 0, []);
 
-  const principlesOf = s => (Array.isArray(s.principles) && s.principles.length) ? s.principles : defaultPrinciples();
+  const principlesOf = s => (Array.isArray(s.principles) && s.principles.length) ? s.principles : defaultPrinciples(s.lang);
 
   // Analiz derinliği token bütçesini ölçekler; üst sınır köprünün kabul ettiği tavandır.
   const callAi = useCallback(opts => {
@@ -208,7 +210,7 @@ export function StoreProvider({ children }) {
 
   const systemFor = useCallback((step, c) => {
     const s = stateRef.current;
-    return buildSystem(step, c, s.aiSettings, principlesOf(s));
+    return buildSystem(step, c, s.aiSettings, principlesOf(s), s.lang);
   }, []);
 
   // ---- Rehber (coach) -------------------------------------------------------
@@ -247,7 +249,7 @@ export function StoreProvider({ children }) {
           }
         });
         const j = parseJsonReply(reply);
-        const items = coachItems(step, j, principlesOf(stateRef.current));
+        const items = coachItems(step, j, principlesOf(stateRef.current), stateRef.current.lang);
         upd(n => {
           const cc = n.cases[eff];
           cc.coach = cc.coach || {};
@@ -257,7 +259,7 @@ export function StoreProvider({ children }) {
         upd(n => {
           const cc = n.cases[eff];
           cc.coach = cc.coach || {};
-          cc.coach[step] = { status: 'error', intro: '', items: [], questions: [], errMsg: (e && e.message) ? String(e.message).slice(0, 200) : 'bilinmeyen hata' };
+          cc.coach[step] = { status: 'error', intro: '', items: [], questions: [], errMsg: (e && e.message) ? String(e.message).slice(0, 200) : mkT(stateRef.current.lang)('bilinmeyen hata', 'unknown error') };
         });
       }
     })();
@@ -296,7 +298,7 @@ export function StoreProvider({ children }) {
       const overwritesStatement = it0.kind === 'statement' && (cur.problem.statement || '').trim();
       const overwritesDecision = it0.kind === 'decision' && ((cur.decision.choice || '').trim() || (cur.decision.rationale || '').trim());
       if (overwritesStatement || overwritesDecision) {
-        undoRef.current.push({ eff: eff0, label: overwritesStatement ? 'önceki problem ifadesi' : 'önceki karar taslağı', snap: structuredClone(cur) });
+        undoRef.current.push({ eff: eff0, label: overwritesStatement ? mkT(s0.lang)('önceki problem ifadesi', 'previous problem statement') : mkT(s0.lang)('önceki karar taslağı', 'previous decision draft'), snap: structuredClone(cur) });
         if (undoRef.current.length > 15) undoRef.current.shift();
       }
     }
@@ -359,7 +361,7 @@ export function StoreProvider({ children }) {
           messages: [{ role: 'user', content: 'Önceki önerilerinden FARKLI, ek adaylar üret (JSON).' }]
         });
         const j = parseJsonReply(reply);
-        const fresh = coachItems(step, j, principlesOf(stateRef.current));
+        const fresh = coachItems(step, j, principlesOf(stateRef.current), stateRef.current.lang);
         const seenKeys = new Set((prev.items || []).map(it => (it.title || '').trim().toLowerCase()));
         const newItems = fresh.filter(it => !seenKeys.has((it.title || '').trim().toLowerCase()));
         const seenQ = new Set((prev.questions || []).map(q => q.trim().toLowerCase()));
@@ -377,7 +379,7 @@ export function StoreProvider({ children }) {
           const ck = n.cases[eff].coach && n.cases[eff].coach[step];
           if (!ck) return;
           ck.moreBusy = false;
-          ck.moreErr = (e && e.message) ? String(e.message).slice(0, 200) : 'bilinmeyen hata';
+          ck.moreErr = (e && e.message) ? String(e.message).slice(0, 200) : mkT(stateRef.current.lang)('bilinmeyen hata', 'unknown error');
         });
       }
     })();
@@ -844,12 +846,12 @@ export function StoreProvider({ children }) {
             writeLive(text, false);
           }
         });
-        writeLive(stripThinking(String(reply)).trim() || '(Model yanıt yerine yalnız akıl yürütme üretti — lütfen yeniden deneyin.)', true);
+        writeLive(stripThinking(String(reply)).trim() || mkT(stateRef.current.lang)('(Model yanıt yerine yalnız akıl yürütme üretti — lütfen yeniden deneyin.)', '(The model produced only reasoning instead of an answer — please try again.)'), true);
       } catch (e) {
         upd(n => {
           const cc = n.cases[eff];
           cc.ai = cc.ai || {}; cc.ai[step] = cc.ai[step] || [];
-          cc.ai[step].push({ role: 'assistant', content: 'Üzgünüm, bir hata oluştu: ' + ((e && e.message) || e) + '\nLütfen tekrar deneyin.' });
+          cc.ai[step].push({ role: 'assistant', content: mkT(n.lang)('Üzgünüm, bir hata oluştu: ', 'Sorry, an error occurred: ') + ((e && e.message) || e) + mkT(n.lang)('\nLütfen tekrar deneyin.', '\nPlease try again.') });
           n.aiBusy = false;
         });
       }
@@ -886,7 +888,7 @@ export function StoreProvider({ children }) {
         };
         const reply = await callAi({
           max_tokens: 1800,
-          system: buildHelpSystem(s.step, STEPS.map(x => x.title)),
+          system: buildHelpSystem(s.step, stepsFor(s.lang).map(x => x.title), s.lang),
           messages,
           onDelta: raw => {
             const txt = stripThinking(raw);
@@ -896,10 +898,10 @@ export function StoreProvider({ children }) {
             writeLive(txt, false);
           }
         });
-        writeLive(stripThinking(String(reply)).trim() || '(Model yanıt yerine yalnız akıl yürütme üretti — lütfen yeniden deneyin.)', true);
+        writeLive(stripThinking(String(reply)).trim() || mkT(stateRef.current.lang)('(Model yanıt yerine yalnız akıl yürütme üretti — lütfen yeniden deneyin.)', '(The model produced only reasoning instead of an answer — please try again.)'), true);
       } catch (e) {
         upd(n => {
-          n.helpChat.push({ role: 'assistant', content: 'Cevap alınamadı: ' + ((e && e.message) || e) });
+          n.helpChat.push({ role: 'assistant', content: mkT(n.lang)('Cevap alınamadı: ', 'No answer received: ') + ((e && e.message) || e) });
           n.helpBusy = false;
         });
       }
@@ -907,8 +909,11 @@ export function StoreProvider({ children }) {
   }, [upd, callAi]);
 
   const fieldHelp = useCallback((label, value) => {
-    const v = value && String(value).trim() ? '"' + value + '"' : '(henüz boş)';
-    askAi('"' + label + '" alanı için yardım istiyorum. Mevcut içeriğim: ' + v + '. Bu alanı metodolojiye uygun doldurmam için: (1) ne yazmalıyım, nelere dikkat etmeliyim, (2) mevcut içerikte eksik ya da hatalı ne var, (3) örnek bir taslak öner.');
+    const en = stateRef.current.lang === 'en';
+    const v = value && String(value).trim() ? '"' + value + '"' : (en ? '(still empty)' : '(henüz boş)');
+    askAi(en
+      ? 'I need help with the "' + label + '" field. My current content: ' + v + '. To fill this field per the methodology: (1) what should I write and watch out for, (2) what is missing or wrong in my current content, (3) suggest an example draft.'
+      : '"' + label + '" alanı için yardım istiyorum. Mevcut içeriğim: ' + v + '. Bu alanı metodolojiye uygun doldurmam için: (1) ne yazmalıyım, nelere dikkat etmeliyim, (2) mevcut içerikte eksik ya da hatalı ne var, (3) örnek bir taslak öner.');
   }, [askAi]);
 
   // ---- Referanslar ----------------------------------------------------------
@@ -925,7 +930,7 @@ export function StoreProvider({ children }) {
       try {
         const s = await callAi({
           max_tokens: 900,
-          system: REF_SUMMARY_SYSTEM,
+          system: REF_SUMMARY_SYSTEM + (stateRef.current.lang === 'en' ? ' Write the summary in ENGLISH regardless of the source language.' : ''),
           messages: [{ role: 'user', content: r.text.slice(0, 30000) }]
         });
         setRefField(eff, id, 'summary', stripThinking(String(s)).trim());
@@ -968,8 +973,47 @@ export function StoreProvider({ children }) {
     document.documentElement.setAttribute('data-theme', state.theme === 'dark' ? 'dark' : 'light');
   }, [state.theme]);
 
+  useEffect(() => {
+    document.documentElement.lang = state.lang === 'en' ? 'en' : 'tr';
+    document.title = state.lang === 'en'
+      ? 'ProblemLab · Guided problem solving and decision making'
+      : 'ProblemLab · Rehberli problem çözme ve karar verme';
+  }, [state.lang]);
+
   const toggleTheme = useCallback(() => {
     upd(n => { n.theme = n.theme === 'dark' ? 'light' : 'dark'; });
+  }, [upd]);
+
+  // Dil değişince kullanıcı verisine dokunulmaz; yalnız hiç değiştirilmemiş
+  // tohum içerikler (örnek vaka, boş vaka kriterleri, varsayılan prensipler)
+  // yeni dilde yeniden tohumlanır. Karşılaştırma normalize edilmiş kopyalarla
+  // yapılır ki yükleme sırasında eklenen varsayılan alanlar fark yaratmasın.
+  const setLang = useCallback(l => {
+    upd(n => {
+      const to = l === 'en' ? 'en' : 'tr';
+      const from = n.lang === 'en' ? 'en' : 'tr';
+      if (to === from) return;
+      const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+      const seed = build => normalize({ activeCase: 'x', step: 1, cases: { x: build() } }).cases.x;
+      if (n.cases.ornek && same(n.cases.ornek, seed(() => exampleCase(from)))) {
+        n.cases.ornek = seed(() => exampleCase(to));
+      }
+      const blankFrom = seed(() => blankCase(undefined, from));
+      Object.keys(n.cases).forEach(k => {
+        if (k === 'ornek') return;
+        const cc = n.cases[k];
+        const cmp = structuredClone(cc);
+        cmp.name = blankFrom.name;
+        if (same(cmp, blankFrom)) {
+          const fresh = seed(() => blankCase(undefined, to));
+          fresh.name = (cc.name === 'Benim Çalışmam' && to === 'en') ? 'My Case'
+            : (cc.name === 'My Case' && to === 'tr') ? 'Benim Çalışmam' : cc.name;
+          n.cases[k] = fresh;
+        }
+      });
+      if (same(n.principles, defaultPrinciples(from))) n.principles = defaultPrinciples(to);
+      n.lang = to;
+    });
   }, [upd]);
 
   useEffect(() => {
@@ -980,15 +1024,18 @@ export function StoreProvider({ children }) {
   }, []);
 
   const eff = effCase(state);
+  const lang = state.lang === 'en' ? 'en' : 'tr';
+  const t = useMemo(() => mkT(lang), [lang]);
   const value = useMemo(() => ({
     state, eff, c: state.cases[eff], step: state.step,
+    lang, t, setLang,
     principles: principlesOf(state),
     mainRef,
     upd, updC, setC, inp, goStep, toggleTheme, removeC, undoLast, canUndo,
     ensureCoach, runCoach, applyCoachItem, coachRefresh, coachMore,
     runDecisionCoach, runActionCoach, runAudit, runBiasScan, runPremortem, runReportSummary, runSpecCoach, applySpecCoach, runContainmentCoach, applyContainment, runMatrixCoach, applyMatrixCoach, runTrackingCoach, applyTrackingPlan, runRetroCoach, applyRetroCoach,
     askAi, askHelp, fieldHelp, addReference
-  }), [state, eff, upd, updC, setC, inp, goStep, toggleTheme, removeC, undoLast, canUndo, ensureCoach, runCoach, applyCoachItem, coachRefresh, coachMore, runDecisionCoach, runActionCoach, runAudit, runBiasScan, runPremortem, runReportSummary, runSpecCoach, applySpecCoach, runContainmentCoach, applyContainment, runMatrixCoach, applyMatrixCoach, runTrackingCoach, applyTrackingPlan, runRetroCoach, applyRetroCoach, askAi, askHelp, fieldHelp, addReference]);
+  }), [state, eff, lang, t, setLang, upd, updC, setC, inp, goStep, toggleTheme, removeC, undoLast, canUndo, ensureCoach, runCoach, applyCoachItem, coachRefresh, coachMore, runDecisionCoach, runActionCoach, runAudit, runBiasScan, runPremortem, runReportSummary, runSpecCoach, applySpecCoach, runContainmentCoach, applyContainment, runMatrixCoach, applyMatrixCoach, runTrackingCoach, applyTrackingPlan, runRetroCoach, applyRetroCoach, askAi, askHelp, fieldHelp, addReference]);
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

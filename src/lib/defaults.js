@@ -3,7 +3,31 @@
 
 export const STORAGE_KEY = 'pcx_workbook_v1';
 
-export function defaultPrinciples() {
+export function defaultPrinciples(lang) {
+  if (lang === 'en') {
+    return [
+      'We set strategic priorities correctly',
+      'Strategic goals and activities are consistent',
+      'Clarity in the definition of success / operational clarity / owning outcomes',
+      'We volunteer for the hard problems and set the bar high',
+      'Flat / agile organization, little hierarchy',
+      'Olympic-level competence in critical positions',
+      'Innovative ideas; act fast, fail fast',
+      'We research and adapt best practices',
+      'We are customer-obsessed',
+      'We work cross-functionally with stakeholders',
+      'We master technical detail with curiosity and passion',
+      'We use the right thinking / analysis tools effectively',
+      'We pair the domain expert with the developer',
+      'We go to the Gemba — where the work happens',
+      'We create meaning, energize and mobilize people',
+      'We look for the root cause in ourselves first',
+      'We keep meetings productive',
+      'We empathize and listen closely',
+      'Support departments understand the business too',
+      'We build trust through virtuous behavior and expertise'
+    ];
+  }
   return [
     'Stratejik öncelikleri doğru belirleriz',
     'Stratejik amaçlar ile faaliyetler tutarlıdır',
@@ -28,7 +52,17 @@ export function defaultPrinciples() {
   ];
 }
 
-export function blankCase(name) {
+export function blankCase(name, lang) {
+  if (lang === 'en') {
+    const c = blankCase(name || 'My Case');
+    c.criteria = [
+      { name: 'Impact (potential to close the gap)', weight: '40', yon: 'yuksek', d1: 'Reduces the gap by less than 10%', d3: 'Closes about half of the gap', d5: 'Closes most of the gap (80%+)', source: '' },
+      { name: 'Speed of implementation', weight: '25', yon: 'yuksek', d1: 'Takes longer than 6 months', d3: 'Live in 1-3 months', d5: 'Live within 2 weeks', source: '' },
+      { name: 'Cost / resource need', weight: '20', yon: 'dusuk', d1: 'Requires major budget / new headcount', d3: 'Moderate budget or partial resources', d5: 'Done with current resources, no extra budget', source: '' },
+      { name: 'Risk / feasibility', weight: '15', yon: 'dusuk', d1: 'High risk, many external dependencies', d3: 'Manageable risks', d5: 'Low risk, fully under our control', source: '' }
+    ];
+    return c;
+  }
   return {
     name: name || 'Benim Çalışmam',
     problem: { statement: '', geo: '', time: '', brand: '', kpiName: '', target: '', actual: '', direction: '', unit: '', targetHigh: '' },
@@ -50,7 +84,8 @@ export function blankCase(name) {
   };
 }
 
-export function exampleCase() {
+export function exampleCase(lang) {
+  if (lang === 'en') return exampleCaseEn();
   return {
     name: 'Örnek Çalışma',
     problem: {
@@ -191,6 +226,148 @@ export function exampleCase() {
   };
 }
 
+/** Örnek vakanın İngilizce sürümü — içerik TR örnekle birebir aynı senaryodur. */
+function exampleCaseEn() {
+  return {
+    name: 'Example Case',
+    problem: {
+      statement: "The end-to-end import lead time target (from the manufacturer in the Far East to bonded-warehouse delivery in Türkiye) is 45 days, but the realized average is 65 days. The 20-day gap is hurting stock turnover and store availability.",
+      geo: "Far East origin (China, Bangladesh) → Türkiye; the largest gap is on shipments departing Bangladesh",
+      time: "2026 Q1–Q2 vessel loadings",
+      brand: "All brands; the gap is most pronounced in basic apparel",
+      kpiName: "End-to-end lead time (days)", target: "45", actual: "65",
+      direction: "dusuk", unit: "days", targetHigh: ""
+    },
+    drivers: [
+      { name: "Manufacturer exit time (production finish → vessel loading)", note: "Covers booking, document preparation and consolidation; runs jointly with the manufacturer and the forwarder." },
+      { name: "Ocean transit time", note: "Depends on lane/route choice and number of transshipments; forwarder's responsibility." },
+      { name: "Arrival port and customs process", note: "Delivery order, declaration opening, inspection; runs with the customs broker." },
+      { name: "Bonded-warehouse delivery process", note: "Port exit → warehouse goods receipt; carrier and warehouse operations." }
+    ],
+    driverAnalysis: [
+      { driver: "Manufacturer exit time", component: "Document preparation and approval (invoice, packing list, B/L instructions)", issue: "Documents arrive from the manufacturer incomplete or incorrect; back-and-forth correction rounds cause the loading window to be missed." },
+      { driver: "Arrival port and customs", component: "Pre-declaration document completion", issue: "The declaration opens late because the original document set is awaited." },
+      { driver: "Ocean transit", component: "Route / transshipment", issue: "Transit time matches plan; no meaningful deviation found." }
+    ],
+    sipoc: [
+      { s: "Manufacturer", i: "Commercial invoice, packing list, B/L instructions", p: "Preparation and approval of shipping documents", o: "Approved, complete document set", c: "Forwarder / Customs broker" },
+      { s: "Forwarder", i: "Booking, container plan, approved documents", p: "Consolidation and vessel loading", o: "Loaded container + bill of lading", c: "Import operations team" },
+      { s: "Customs broker", i: "Document set, delivery order", p: "Declaration opening and customs clearance", o: "Closed declaration", c: "Bonded warehouse / depot operations" }
+    ],
+    findings: [
+      { text: "Booking → vessel loading averages 12 days (target 5 days); +7 days deviation.", evidence: "Forwarder milestone report, last 30 shipments", share: "7" },
+      { text: "Only 38% of document sets arrive complete on the first pass; correction rounds add +4 days on average.", evidence: "Customs broker document records, Q1–Q2", share: "4" },
+      { text: "Arrival → declaration opening averages 6 days (target 2 days); +4 days deviation.", evidence: "Customs system timestamps", share: "4" },
+      { text: "Ocean transit is 28 days (plan 30 days); no deviation.", evidence: "Line schedule vs. actual comparison", share: "0" }
+    ],
+    whys: [
+      "Because the document set does not arrive complete on the first pass, loading and declaration steps are delayed by correction rounds.",
+      "The manufacturer was never given a clear document checklist or sample template; the expectation is undefined.",
+      "The document process has no end-to-end owner; each stakeholder only looks at their own step.",
+      "Lead time is measured only end-to-end; intermediate steps (booking→loading, arrival→declaration) have no targets or measurements.",
+      "We never applied our Gemba-observation and metric-driven management capability to this process; we looked for the problem in external parties."
+    ],
+    whyChains: [
+      {
+        label: "Alternative branch: forwarder performance",
+        whys: [
+          "The booking → loading delay might be concentrated at a single forwarder.",
+          "Data was examined by forwarder: the delay is similar at both forwarders (11-13 days).",
+          "This branch was not supported by data — the delay is tied to document preparation, not the forwarder; branch eliminated.",
+          "", ""
+        ]
+      }
+    ],
+    fishbone: {
+      insan: "The manufacturer's documentation team has weak command of formats/language; no process owner assigned on the import team.",
+      metot: "No document checklist, template or read-back routine; standard workflow undefined.",
+      sistem: "Document tracking runs over e-mail; no milestone tracking system or intermediate-metric dashboard.",
+      girdi: "Document sets from the manufacturer are incomplete/incorrect (38% first-pass accuracy).",
+      olcum: "Only the end-to-end time is measured; intermediate step targets are undefined.",
+      cevre: "Port congestion occurred in Q1; impact limited (≈2 days)."
+    },
+    rootCauses: [
+      {
+        text: "End-to-end process ownership was never established; intermediate milestone targets and metrics are undefined (lack of operational clarity).",
+        principles: [2, 11], competency: "Process management and 'measure what matters'; cascading targets to intermediate steps",
+        status: "dogrulandi", findings: [0, 2],
+        evidence: "Process documents were scanned: no document defines intermediate targets or a process owner; milestone data is only measured end-to-end.",
+        explainsSpec: "Yes — the ownership gap exists for every origin; the spike in Bangladesh is explained when combined with the new-manufacturer variable (RC3).",
+        testPlan: "If intermediate targets are defined and tracked weekly, booking→loading and arrival→declaration times are expected to shorten.",
+        testResult: "In the first month with the control tower, booking→loading dropped from 12 to 8 days; the relationship was confirmed.",
+        kpiExpected: "Booking→loading 12→5 days, arrival→declaration 6→2 days; end-to-end −11 days"
+      },
+      {
+        text: "The problem was blamed on external parties (manufacturer/customs); the document process was never observed on site, and the root cause was not sought in ourselves first.",
+        principles: [13, 15], competency: "Gemba culture; owning failure and self-assessment",
+        status: "destekleniyor", findings: [1],
+        evidence: "Q1-Q2 correspondence: the issue was always escalated to the manufacturer, document expectations were never communicated in writing; no on-site observation records.",
+        explainsSpec: "Partly — the behavior is the same everywhere; it does not explain the IS / IS-NOT contrast on its own, only together with RC3.",
+        testPlan: "Manufacturer visit + on-site observation of the document process; first-pass accuracy is expected to rise once expectations are communicated in writing.",
+        testResult: "",
+        kpiExpected: "First-pass complete document rate 38% → 80%+"
+      },
+      {
+        text: "Simple best practices (checklist, template, read-back) were never researched and adapted into the process.",
+        principles: [7, 10], competency: "The discipline of researching best practices and adapting them to the work",
+        status: "test-edildi", findings: [1],
+        evidence: "No document checklist or template ever sent to a manufacturer could be found; new-manufacturer onboarding has no documentation training.",
+        explainsSpec: "Yes — the two new Bangladesh manufacturers who never received a checklist are on the IS side; established Chinese manufacturers are on the IS-NOT side.",
+        testPlan: "Checklist + template piloted on the first 10 shipments; first-pass accuracy tracked.",
+        testResult: "In the pilot, first-pass accuracy rose from 38% to 79%; average correction rounds fell from 4 to 1 day.",
+        kpiExpected: "Document-driven delay −4 days (F2)"
+      }
+    ],
+    alternatives: [
+      { name: "Standardize the manufacturer document process with a checklist + template set + read-back", method: "Best-practice adaptation", note: "Checklist Manifesto approach; documentation training added to manufacturer onboarding. Low cost, can start immediately." },
+      { name: "Intermediate milestone KPIs + weekly control tower (booking→loading, arrival→declaration targets)", method: "Systems thinking", note: "A process owner is assigned; deviations become visible weekly, an escalation rule is defined." },
+      { name: "Digital document flow / pre-declaration automation before the declaration (e-B/L)", method: "Algorithmic thinking", note: "Preparation starts with the digital set without waiting for originals; needs a pilot with IT and the customs broker, medium term." }
+    ],
+    criteria: [
+      { name: "Impact (potential to close the gap)", weight: "40", yon: "yuksek", d1: "Reduces the gap by less than 2 days", d3: "Reduces the gap by 5-10 days", d5: "Reduces the gap by 10+ days", source: "Pareto contribution estimates (F1-F3) and pilot results" },
+      { name: "Speed of implementation", weight: "25", yon: "yuksek", d1: "6+ months (requires an IT project)", d3: "Live in 1-3 months", d5: "Live within 2 weeks", source: "Team capacity plan and IT roadmap" },
+      { name: "Cost / resource need", weight: "20", yon: "dusuk", d1: "New system/headcount investment", d3: "Partial consulting/IT effort", d5: "Current team, no extra budget", source: "Rough effort estimate (business analyst)" },
+      { name: "Risk / feasibility", weight: "15", yon: "dusuk", d1: "Fully dependent on external approval", d3: "Needs stakeholder alignment, manageable", d5: "Fully under our control", source: "Stakeholder analysis (SIPOC)" }
+    ],
+    scores: { '0_0': '4', '0_1': '5', '0_2': '5', '0_3': '5', '1_0': '5', '1_1': '4', '1_2': '4', '1_3': '4', '2_0': '4', '2_1': '2', '2_2': '2', '2_3': '3' },
+    actions: [
+      { text: "Prepare the manufacturer document checklist and template set; pilot on the first 10 shipments", owner: "Import operations specialist", startDate: "2026-06-15", dueDate: "2026-06-30", due: "", etki: "5", efor: "2", status: "tamam", rcIdx: "2", findingIdx: "1", successCriteria: "First-pass complete document rate ≥ 75% (10-shipment pilot)", evidence: "Pilot report: 79% — target exceeded", delayReason: "", priority: "yuksek" },
+      { text: "Define the intermediate milestone KPIs (booking→loading, arrival→declaration); assign the process owner and start the weekly control tower meeting", owner: "Logistics manager", startDate: "2026-07-01", dueDate: "2026-08-10", due: "", etki: "5", efor: "3", status: "devam", rcIdx: "0", findingIdx: "0", successCriteria: "Booking→loading ≤ 5 days, arrival→declaration ≤ 2 days (4-week average)", evidence: "", delayReason: "", priority: "yuksek" },
+      { text: "Run a feasibility study with IT and the customs broker for digital document flow / e-B/L", owner: "IT business analyst", startDate: "2026-08-01", dueDate: "2026-10-30", due: "", etki: "4", efor: "4", status: "bekliyor", rcIdx: "2", findingIdx: "2", successCriteria: "Feasibility report and pilot decision", evidence: "", delayReason: "", priority: "orta" },
+      { text: "Observe the document preparation process on site at the two new Bangladesh manufacturers (Gemba); share findings with the team", owner: "Import operations manager", startDate: "2026-07-20", dueDate: "2026-09-15", due: "", etki: "3", efor: "2", status: "bekliyor", rcIdx: "1", findingIdx: "1", successCriteria: "Observation completed at both manufacturers; at least 3 concrete process findings reported", evidence: "", delayReason: "", priority: "orta" }
+    ],
+    tracking: [
+      { label: "Q2 (baseline)", value: "65" },
+      { label: "July", value: "58" },
+      { label: "August", value: "52" }
+    ],
+    retro: { valid: "", worked: "", lessons: "" },
+    spec: {
+      nerede: { v: "Shipments departing Bangladesh (deviation +26 days)", y: "Shipments departing China (deviation +9 days)" },
+      zaman: { v: "Since 2026 Q1", y: "2025 Q4 and earlier (average 47 days)" },
+      kirilim: { v: "Basic apparel (high-volume, document-heavy orders)", y: "Accessories and footwear (few-line orders)" },
+      buyukluk: { v: "Average +20 days; worst shipment +38 days", y: "No shipment ever arrives early" }
+    ,
+      degisiklik: "In Q1 we started working with two new manufacturers in Bangladesh and order line counts increased; document expectations were never communicated to the new manufacturers."
+    },
+    containment: {
+      action: "Partial air freight for basic-apparel orders at stock risk + manual pre-check of the document set 5 days before vessel departure on critical shipments",
+      owner: "Import operations specialist",
+      until: "Until the checklist + control tower are live",
+      removed: false
+    },
+    thinking: {
+      assume: "We assume document quality is about the manufacturer's capability, yet we never defined the expectation in writing. Second assumption: transit time is stable — we measured this one; confirmed.",
+      alt: "The source of the delay could be our own booking and approval loop rather than the manufacturer; or a single forwarder's performance could be skewing the average. Both should be tested by segment.",
+      cost: "The import operations team pays the checklist's cost in the first month (extra checking); if the control tower is not built, the customer pays it two quarters later as store availability."
+    },
+    decision: {
+      choice: "A1 and A2 are implemented together: the document checklist + read-back go live immediately; intermediate milestone KPIs and the weekly control tower are set up within a month. A3 (digital document flow) is planned as a medium-term pilot.",
+      rationale: "The first two alternatives score highest on the weighted matrix, are low cost and complement each other: the checklist directly fixes the input-quality problem in finding F2, and the control tower closes the measurement/ownership gap in root cause RC1. Goal: bring lead time under 50 days within two quarters, then down to 45."
+    }
+  };
+}
+
 /** "+ Yeni" ekranındaki vaka şablonları — blankCase üzerine uygulanan kısmi ön dolgular. */
 export const CASE_TEMPLATES = [
   {
@@ -298,3 +475,121 @@ export const THINKING_METHODS = [
 export const WHY_PLACEHOLDERS = [
   'Bulgu neden oluşuyor?', 'Bu cevap neden oluşuyor?', 'Neden?', 'Neden?', 'Neden? (kök nedene en yakın cevap)'
 ];
+
+// ---- İngilizce arayüz varyantları -------------------------------------------
+// Veri şeması (key'ler) iki dilde de aynıdır; yalnız görünen metinler değişir.
+
+export const STEPS_EN = [
+  { title: 'Problem Definition', sub: 'Problem statement + scope + KPI gap', desc: 'Clarify the answer to "What happened?", which segment the deviation occurs in, and the measured KPI gap. Solutions and causes do not belong in this step.' },
+  { title: 'Business Driver Mapping', sub: 'Key drivers and processes', desc: 'Map the main business drivers behind the outcome and the related processes. Ask the people doing the work; observe on site if possible.' },
+  { title: 'Business Driver Analysis', sub: 'Subcomponents + SIPOC', desc: 'Determine which subcomponent of the highest-impact drivers is failing, checking input quality with a SIPOC (supplier-input-process-output-customer) analysis.' },
+  { title: 'Problem Findings', sub: 'Data-based deviations', desc: 'Drop the assumptions and lay out specific, measured and verified deviations (sub-problems) based on data.' },
+  { title: 'Root Cause Analysis', sub: '5 Whys + fishbone + principles', desc: 'Analyze why the deviations occur with 5 Whys and a fishbone; look for the root cause first in your own competencies and principles, not outside.' },
+  { title: 'Countermeasures and Decision', sub: 'Alternatives + decision matrix', desc: 'Generate alternative solutions with sound thinking methods, score them against decision criteria, and reason your way to the best solution.' },
+  { title: 'Tracking and Retrospective', sub: 'Action status + KPI trend', desc: "Close the loop: track action progress and the KPI's convergence to target; were the root cause and countermeasure right — evaluate with a retrospective." },
+  { title: 'Case Report', sub: 'Summary + print / PDF', desc: 'Your entire case is compiled into a single report. Optionally add an AI executive summary, then print or save as PDF and share with stakeholders.' }
+];
+
+export const AGENT_TITLES_EN = [
+  'Problem Definition Coach', 'Business Driver Mapping Expert', 'Process Analysis Expert (SIPOC)', 'Finding Verification Expert',
+  'Root Cause Analysis Coach', 'Decision Analysis Expert', 'Tracking and Retrospective Coach', 'Report Editor'
+];
+
+export const AGENT_INTROS_EN = [
+  'Whatever your problem domain (logistics, marketing, technology, operations, HR, finance…), let\'s sharpen your statement together: does it contain a solution or a cause, is it measurable, is the scope right — ask for my assessment or ask a question.',
+  'I evaluate your driver map for completeness (MECE — mutually exclusive, collectively exhaustive), and suggest drivers you may have missed and who to ask what.',
+  'I review your subcomponent and SIPOC analysis and suggest which metrics and input-quality checks to look at.',
+  'I audit whether your findings are measured and evidenced, and flag what is still an assumption.',
+  'I check the consistency of your 5 Whys chain and help you match the root cause to company principles and competency gaps.',
+  'I evaluate your alternatives, criteria and scoring, and challenge whether your decision rationale actually eliminates the root cause.',
+  'I evaluate your action progress and KPI trend; I warn early if the countermeasure is not working and ask the questions that deepen your retrospective.',
+  'I evaluate the overall consistency of your report, flag missing or weak sections, and give suggestions for presenting/sharing.'
+];
+
+export const FISHBONE_CATS_EN = [
+  { key: 'insan', title: 'People / Skills', ph: 'Competence, training, ownership...' },
+  { key: 'metot', title: 'Method / Process', ph: 'Standards, checklists, workflow...' },
+  { key: 'sistem', title: 'Machine / System', ph: 'Tools, software, tracking systems...' },
+  { key: 'girdi', title: 'Material / Input', ph: 'Input quality, documents, data...' },
+  { key: 'olcum', title: 'Measurement', ph: 'Metrics, targets, visibility...' },
+  { key: 'cevre', title: 'Environment / External', ph: 'Market, seasonality, external conditions...' }
+];
+
+export const THINKING_METHODS_EN = [
+  'First-principles thinking', 'Critical thinking', 'Lateral thinking', 'Design thinking',
+  'Systems thinking', 'Algorithmic thinking', 'Second-order thinking', 'Best-practice adaptation'
+];
+
+export const WHY_PLACEHOLDERS_EN = [
+  'Why does the finding occur?', 'Why does that answer occur?', 'Why?', 'Why?', 'Why? (the answer closest to the root cause)'
+];
+
+export const CASE_TEMPLATES_EN = [
+  {
+    key: 'bos', ad: 'Blank case', desc: 'No pre-fill; you write every field yourself.',
+    fill: null
+  },
+  {
+    key: 'operasyon', ad: 'Operational deviation', desc: 'A gap from target in a time, productivity or cost KPI (manufacturing, logistics, service operations).',
+    fill: {
+      problem: { kpiName: 'Process time / productivity KPI' },
+      drivers: [
+        { name: 'Process steps and handovers', note: 'Which step has waiting/rework? Verify with the people doing the work and with process metrics.' },
+        { name: 'Input quality', note: 'Do materials/data/documents enter the process right the first time? Examine with SIPOC.' },
+        { name: 'Capacity and resource planning', note: 'Which resource is the bottleneck; does it match demand fluctuation?' },
+        { name: 'External stakeholder performance', note: 'Supplier/subcontractor/service-provider steps — but look for the root cause in your own process first.' }
+      ]
+    }
+  },
+  {
+    key: 'musteri', ad: 'Customer complaints / satisfaction drop', desc: 'Deterioration in complaint count, NPS or satisfaction score.',
+    fill: {
+      problem: { kpiName: 'Complaint count / NPS' },
+      drivers: [
+        { name: 'Product / service quality', note: 'Break complaints into categories; what do the top two categories point to?' },
+        { name: 'Service and resolution process', note: 'First-contact resolution rate, resolution time, repeat-call rate.' },
+        { name: 'Communication and expectation management', note: 'The gap between what is promised and what is experienced; notification moments.' },
+        { name: 'Price / value perception', note: 'Competitor comparison and perception by segment — data, not assumption.' }
+      ],
+      criteria: [
+        { name: 'Impact (potential to reduce complaints)', weight: '35' },
+        { name: 'Speed of implementation', weight: '25' },
+        { name: 'Cost / resource need', weight: '20' },
+        { name: 'Customer experience risk', weight: '20' }
+      ]
+    }
+  },
+  {
+    key: 'proje', ad: 'Project delay', desc: 'Deviation from plan on a milestone or delivery date.',
+    fill: {
+      problem: { kpiName: 'Deviation from plan (days)' },
+      drivers: [
+        { name: 'Scope clarity and changes', note: 'How much has scope changed; how are change requests managed?' },
+        { name: 'Resource planning and allocation', note: 'Any resource conflicts on critical-path work?' },
+        { name: 'Dependencies and stakeholders', note: 'Are external dependencies (approvals, procurement, other teams) visible in the plan?' },
+        { name: 'Decision and approval processes', note: 'How many days do decisions take; how many decisions are pending?' }
+      ]
+    }
+  },
+  {
+    key: 'kalite', ad: 'Quality problem / defect rate', desc: 'An increase in defects, returns, rework or scrap.',
+    fill: {
+      problem: { kpiName: 'Defect rate (%)' },
+      drivers: [
+        { name: 'Input / material quality', note: 'Correlation of defect rate with input batches; examine with SIPOC.' },
+        { name: 'Method and standard work', note: 'Is the standard defined, current, and actually followed (Gemba)?' },
+        { name: 'Equipment / system', note: 'Maintenance records, calibration, system-driven defects.' },
+        { name: 'People / skills', note: 'Defect distribution by training and experience — question the system, not the person.' },
+        { name: 'Measurement system', note: 'Is the defect definition clear; is the measurement itself reliable?' }
+      ]
+    }
+  }
+];
+
+export const stepsFor = lang => (lang === 'en' ? STEPS_EN : STEPS);
+export const agentTitlesFor = lang => (lang === 'en' ? AGENT_TITLES_EN : AGENT_TITLES);
+export const agentIntrosFor = lang => (lang === 'en' ? AGENT_INTROS_EN : AGENT_INTROS);
+export const fishboneCatsFor = lang => (lang === 'en' ? FISHBONE_CATS_EN : FISHBONE_CATS);
+export const thinkingMethodsFor = lang => (lang === 'en' ? THINKING_METHODS_EN : THINKING_METHODS);
+export const whyPlaceholdersFor = lang => (lang === 'en' ? WHY_PLACEHOLDERS_EN : WHY_PLACEHOLDERS);
+export const caseTemplatesFor = lang => (lang === 'en' ? CASE_TEMPLATES_EN : CASE_TEMPLATES);

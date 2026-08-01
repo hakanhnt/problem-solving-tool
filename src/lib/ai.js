@@ -1,7 +1,7 @@
 // YZ katmanı: tek giriş noktası complete({system, messages, max_tokens}) -> metin
 // ve tüm sistem talimatı / görev şeması üreticileri.
 
-import { AGENT_TITLES } from './defaults.js';
+import { AGENT_TITLES, agentTitlesFor } from './defaults.js';
 import { BIASES, THINKING_METHOD_INFO } from './thinking.js';
 
 /** Sistem talimatına eklenen yöntem ↔ yanılgı eşleşmesi (kurum dokümanı). */
@@ -467,8 +467,12 @@ export function buildRefBlock(c) {
   return '\n\nKULLANICI REFERANSLARI — öneri ve değerlendirmelerinde ilgili referanslara R1, R2 biçiminde atıf yap; referanslardaki verilerle çelişen kullanıcı girdilerini açıkça belirt:\n' + lines.join('\n---\n');
 }
 
+
+/** Arayüz dili İngilizce olduğunda tüm YZ akışlarına eklenen dil kuralı. */
+export const EN_REPLY_RULE = '\n\nIMPORTANT LANGUAGE RULE: The user\'s interface language is ENGLISH. Write ALL free-text content of your reply in English (prose, suggestions, questions, drafts). Do NOT translate JSON field names/keys — keep them exactly as specified in the schema (e.g. giris, sorular, belirtim, kokNedenler). Where a schema specifies a fixed value set (e.g. durum: kapaniyor|belirsiz|kapanmiyor), use those fixed values verbatim. When referring to findings use F1, F2…; root causes RC1, RC2…; alternatives and actions A1, A2…';
+
 /** Adım odaklı sistem talimatı — tüm YZ akışları (rehber, sohbet, karar, rapor) bunu paylaşır. */
-export function buildSystem(step, c, aiSettings, principles) {
+export function buildSystem(step, c, aiSettings, principles, lang) {
   const PR = principles || [];
   const FOCUS = [
     "Problem ifadesinin çözüm ya da neden içermemesi, ölçülebilir olması; kapsam boyutlarının (coğrafya/cluster, dönem, marka/kategori) ve KPI farkının netliği.",
@@ -509,7 +513,8 @@ export function buildSystem(step, c, aiSettings, principles) {
   if (S.depth === 'derin') extra += '\nAnaliz derinliği: DERİN — mümkün olan en kapsamlı analizi yap: her madde için gerekçe, hangi veriyle doğrulanacağı ve sınama sorusu ver; birbiriyle yarışan alternatif yorumları belirt; zayıf halkaları ve riskleri açıkça işaretle. Uzunluktan çekinme, ama dolgu cümlesi yazma — her cümle bilgi taşısın.';
   extra += NUMBER_RULE;
   extra += BIAS_RULE;
-  return 'Sen "' + AGENT_TITLES[step - 1] + '" rolünde, kabul görmüş problem çözme ve karar verme metodolojisinde uzman bir koçsun. Metodoloji alan bağımsızdır: kullanıcının problemi lojistik, tedarik, pazarlama, satış, e-ticaret, teknoloji/BT, operasyon, mağazacılık, İK, finans veya başka herhangi bir alanda olabilir — örneklerini ve sorularını kullanıcının kendi alanına uyarla, ürün/ithalat varsayımı yapma. Kullanıcı 6 adımlı akışta (1 Problem Tanımı, 2 Business Driver Haritalama, 3 Driver Analizi, 4 Problem Bulguları, 5 Kök Neden Analizi, 6 Karşı Önlemler ve Karar) kendi iş problemini çalışıyor; şu anda Adım ' + step + ' üzerinde.\n\nKurallar:\n- Türkçe, kısa, net ve madde işaretli yaz; başlık ve numaralı maddeler kullanabilirsin ama markdown yıldızı yerine sade metin tercih et.\n- Problem, problem bulgusu ve kök neden farklı şeylerdir; karışıklık görürsen açıkça düzelt.\n- 1-4. adımlarda çözüm önerme; doğru soruları sordurarak koçluk et.\n- Kök neden adımında nedeni dışarıda (paydaşta, üreticide) değil, önce kullanıcının kendi yetkinliklerinde ve kurum prensiplerindeki gelişim alanlarında aramasına yardım et.\n- Somut ol: kullanıcının verisindeki ifadelere atıf yap; eksik, zayıf veya çelişkili yerleri açıkça belirt.\n- Cevabının sonunda kullanıcının kendine veya paydaşlarına sorması gereken 2-3 doğru soruyu öner.\n\nBu adımın odağı: ' + FOCUS[step - 1] + '\n\nKullanıcının mevcut çalışma verisi (JSON):\n' + JSON.stringify(data) + extra + buildRefBlock(c);
+  if (lang === 'en') extra += EN_REPLY_RULE;
+  return 'Sen "' + agentTitlesFor(lang)[step - 1] + '" rolünde, kabul görmüş problem çözme ve karar verme metodolojisinde uzman bir koçsun. Metodoloji alan bağımsızdır: kullanıcının problemi lojistik, tedarik, pazarlama, satış, e-ticaret, teknoloji/BT, operasyon, mağazacılık, İK, finans veya başka herhangi bir alanda olabilir — örneklerini ve sorularını kullanıcının kendi alanına uyarla, ürün/ithalat varsayımı yapma. Kullanıcı 6 adımlı akışta (1 Problem Tanımı, 2 Business Driver Haritalama, 3 Driver Analizi, 4 Problem Bulguları, 5 Kök Neden Analizi, 6 Karşı Önlemler ve Karar) kendi iş problemini çalışıyor; şu anda Adım ' + step + ' üzerinde.\n\nKurallar:\n- Türkçe, kısa, net ve madde işaretli yaz; başlık ve numaralı maddeler kullanabilirsin ama markdown yıldızı yerine sade metin tercih et.\n- Problem, problem bulgusu ve kök neden farklı şeylerdir; karışıklık görürsen açıkça düzelt.\n- 1-4. adımlarda çözüm önerme; doğru soruları sordurarak koçluk et.\n- Kök neden adımında nedeni dışarıda (paydaşta, üreticide) değil, önce kullanıcının kendi yetkinliklerinde ve kurum prensiplerindeki gelişim alanlarında aramasına yardım et.\n- Somut ol: kullanıcının verisindeki ifadelere atıf yap; eksik, zayıf veya çelişkili yerleri açıkça belirt.\n- Cevabının sonunda kullanıcının kendine veya paydaşlarına sorması gereken 2-3 doğru soruyu öner.\n\nBu adımın odağı: ' + FOCUS[step - 1] + '\n\nKullanıcının mevcut çalışma verisi (JSON):\n' + JSON.stringify(data) + extra + buildRefBlock(c);
 }
 
 /** Adım başına rehberin isteyeceği katı JSON şeması. */
@@ -527,33 +532,34 @@ export function buildCoachTask(step, principles) {
 }
 
 /** Rehber JSON yanıtını "Forma ekle" kartlarına çevirir. */
-export function coachItems(step, j, principles) {
+export function coachItems(step, j, principles, lang) {
+  const T = (tr, en) => (lang === 'en' ? en : tr);
   const items = [];
   const arr = x => (Array.isArray(x) ? x : []);
   const PR = principles || [];
   if (step === 1) {
-    if (j.ifade) items.push({ kind: 'statement', tag: 'PROBLEM İFADESİ', title: 'Netleştirilmiş ifade önerisi', sub: String(j.ifade), payload: String(j.ifade), btn: 'İfadeyi kullan', added: false });
+    if (j.ifade) items.push({ kind: 'statement', tag: T('PROBLEM İFADESİ', 'PROBLEM STATEMENT'), title: T('Netleştirilmiş ifade önerisi', 'Clarified statement suggestion'), sub: String(j.ifade), payload: String(j.ifade), btn: T('İfadeyi kullan', 'Use this statement'), added: false });
     const B = j.boyutlar || {};
-    if (B.yer) items.push({ kind: 'dim', tag: 'BOYUT', title: 'Yer / Birim', sub: String(B.yer), payload: { key: 'geo', value: String(B.yer) }, added: false });
-    if (B.zaman) items.push({ kind: 'dim', tag: 'BOYUT', title: 'Zaman aralığı / Dönem', sub: String(B.zaman), payload: { key: 'time', value: String(B.zaman) }, added: false });
-    if (B.kirilim) items.push({ kind: 'dim', tag: 'BOYUT', title: 'Segment / Kırılım', sub: String(B.kirilim), payload: { key: 'brand', value: String(B.kirilim) }, added: false });
-    if (j.kpi && (j.kpi.ad || j.kpi.hedef || j.kpi.gerceklesen)) items.push({ kind: 'kpi', tag: 'KPI', title: String(j.kpi.ad || 'KPI önerisi'), sub: 'Hedef: ' + (j.kpi.hedef || '—') + ' · Gerçekleşen: ' + (j.kpi.gerceklesen || '—'), payload: { kpiName: String(j.kpi.ad || ''), target: String(j.kpi.hedef || ''), actual: String(j.kpi.gerceklesen || '') }, added: false });
+    if (B.yer) items.push({ kind: 'dim', tag: T('BOYUT', 'DIMENSION'), title: T('Yer / Birim', 'Location / Unit'), sub: String(B.yer), payload: { key: 'geo', value: String(B.yer) }, added: false });
+    if (B.zaman) items.push({ kind: 'dim', tag: T('BOYUT', 'DIMENSION'), title: T('Zaman aralığı / Dönem', 'Time range / Period'), sub: String(B.zaman), payload: { key: 'time', value: String(B.zaman) }, added: false });
+    if (B.kirilim) items.push({ kind: 'dim', tag: T('BOYUT', 'DIMENSION'), title: T('Segment / Kırılım', 'Segment / Breakdown'), sub: String(B.kirilim), payload: { key: 'brand', value: String(B.kirilim) }, added: false });
+    if (j.kpi && (j.kpi.ad || j.kpi.hedef || j.kpi.gerceklesen)) items.push({ kind: 'kpi', tag: 'KPI', title: String(j.kpi.ad || T('KPI önerisi', 'KPI suggestion')), sub: T('Hedef: ', 'Target: ') + (j.kpi.hedef || '—') + T(' · Gerçekleşen: ', ' · Actual: ') + (j.kpi.gerceklesen || '—'), payload: { kpiName: String(j.kpi.ad || ''), target: String(j.kpi.hedef || ''), actual: String(j.kpi.gerceklesen || '') }, added: false });
   }
   if (step === 2) arr(j.driverlar).forEach(d => items.push({ kind: 'driver', tag: 'DRIVER', title: d.ad || '', sub: d.not || '', payload: { name: d.ad || '', note: d.not || '' }, added: false }));
   if (step === 3) {
-    arr(j.altBilesenler).forEach(d => items.push({ kind: 'da', tag: 'ALT BİLEŞEN', title: (d.driver ? d.driver + ' → ' : '') + (d.altBilesen || ''), sub: d.tespit || '', payload: { driver: d.driver || '', component: d.altBilesen || '', issue: d.tespit || '' }, added: false }));
-    arr(j.sipoc).forEach(r => items.push({ kind: 'sipoc', tag: 'SIPOC', title: r.p || 'Süreç adımı', sub: [r.s, r.i, r.o, r.c].filter(Boolean).join(' · '), payload: { s: r.s || '', i: r.i || '', p: r.p || '', o: r.o || '', c: r.c || '' }, added: false }));
+    arr(j.altBilesenler).forEach(d => items.push({ kind: 'da', tag: T('ALT BİLEŞEN', 'SUBCOMPONENT'), title: (d.driver ? d.driver + ' → ' : '') + (d.altBilesen || ''), sub: d.tespit || '', payload: { driver: d.driver || '', component: d.altBilesen || '', issue: d.tespit || '' }, added: false }));
+    arr(j.sipoc).forEach(r => items.push({ kind: 'sipoc', tag: 'SIPOC', title: r.p || T('Süreç adımı', 'Process step'), sub: [r.s, r.i, r.o, r.c].filter(Boolean).join(' · '), payload: { s: r.s || '', i: r.i || '', p: r.p || '', o: r.o || '', c: r.c || '' }, added: false }));
   }
-  if (step === 4) arr(j.bulgular).forEach(d => items.push({ kind: 'finding', tag: 'BULGU HİPOTEZİ', title: d.bulgu || '', sub: 'Doğrulama kaynağı: ' + (d.kanitKaynagi || '—'), payload: { text: d.bulgu || '', evidence: d.kanitKaynagi || '' }, added: false }));
+  if (step === 4) arr(j.bulgular).forEach(d => items.push({ kind: 'finding', tag: T('BULGU HİPOTEZİ', 'FINDING HYPOTHESIS'), title: d.bulgu || '', sub: T('Doğrulama kaynağı: ', 'Verification source: ') + (d.kanitKaynagi || '—'), payload: { text: d.bulgu || '', evidence: d.kanitKaynagi || '' }, added: false }));
   if (step === 5) {
-    if (Array.isArray(j.besNeden) && j.besNeden.length) items.push({ kind: 'whys', tag: '5 NEDEN', title: '5 Neden zinciri taslağı (boş alanları doldurur)', sub: j.besNeden.map((w, i) => (i + 1) + ') ' + w).join('  '), payload: j.besNeden.slice(0, 5).map(String), added: false });
-    if (j.balikKilcigi && typeof j.balikKilcigi === 'object') items.push({ kind: 'fishbone', tag: 'KILÇIK', title: 'Balık kılçığı taslağı (boş kategorileri doldurur)', sub: Object.values(j.balikKilcigi).filter(Boolean).slice(0, 3).join(' · '), payload: j.balikKilcigi, added: false });
-    arr(j.kokNedenler).forEach(d => items.push({ kind: 'rootcause', tag: 'KÖK NEDEN ADAYI', title: d.kokNeden || '', sub: d.yetkinlik ? 'Yetkinlik gelişim alanı: ' + d.yetkinlik : '', payload: { text: d.kokNeden || '', principles: arr(d.prensipler).map(x => (parseInt(x, 10) || 0) - 1).filter(x => x >= 0 && x < PR.length), competency: d.yetkinlik || '' }, added: false }));
+    if (Array.isArray(j.besNeden) && j.besNeden.length) items.push({ kind: 'whys', tag: T('5 NEDEN', '5 WHYS'), title: T('5 Neden zinciri taslağı (boş alanları doldurur)', '5 Whys chain draft (fills empty fields)'), sub: j.besNeden.map((w, i) => (i + 1) + ') ' + w).join('  '), payload: j.besNeden.slice(0, 5).map(String), added: false });
+    if (j.balikKilcigi && typeof j.balikKilcigi === 'object') items.push({ kind: 'fishbone', tag: T('KILÇIK', 'FISHBONE'), title: T('Balık kılçığı taslağı (boş kategorileri doldurur)', 'Fishbone draft (fills empty categories)'), sub: Object.values(j.balikKilcigi).filter(Boolean).slice(0, 3).join(' · '), payload: j.balikKilcigi, added: false });
+    arr(j.kokNedenler).forEach(d => items.push({ kind: 'rootcause', tag: T('KÖK NEDEN ADAYI', 'ROOT CAUSE CANDIDATE'), title: d.kokNeden || '', sub: d.yetkinlik ? T('Yetkinlik gelişim alanı: ', 'Competency gap: ') + d.yetkinlik : '', payload: { text: d.kokNeden || '', principles: arr(d.prensipler).map(x => (parseInt(x, 10) || 0) - 1).filter(x => x >= 0 && x < PR.length), competency: d.yetkinlik || '' }, added: false }));
   }
   if (step === 6) {
-    arr(j.alternatifler).forEach(d => items.push({ kind: 'alt', tag: 'ALTERNATİF', title: d.ad || '', sub: (d.yontem ? d.yontem + ' · ' : '') + (d.not || ''), payload: { name: d.ad || '', method: d.yontem || '', note: d.not || '' }, added: false }));
-    arr(j.kriterler).forEach(d => items.push({ kind: 'criterion', tag: 'KRİTER', title: (d.ad || '') + ' (%' + (d.agirlik || '?') + ')', sub: '', payload: { name: d.ad || '', weight: String(d.agirlik || '') }, added: false }));
-    if (j.karar && (j.karar.oneri || j.karar.gerekce)) items.push({ kind: 'decision', tag: 'KARAR TASLAĞI', title: j.karar.oneri || '', sub: j.karar.gerekce ? 'Gerekçe: ' + j.karar.gerekce : '', payload: { choice: j.karar.oneri || '', rationale: j.karar.gerekce || '' }, added: false });
+    arr(j.alternatifler).forEach(d => items.push({ kind: 'alt', tag: T('ALTERNATİF', 'ALTERNATIVE'), title: d.ad || '', sub: (d.yontem ? d.yontem + ' · ' : '') + (d.not || ''), payload: { name: d.ad || '', method: d.yontem || '', note: d.not || '' }, added: false }));
+    arr(j.kriterler).forEach(d => items.push({ kind: 'criterion', tag: T('KRİTER', 'CRITERION'), title: (d.ad || '') + (lang === 'en' ? ' (' + (d.agirlik || '?') + '%)' : ' (%' + (d.agirlik || '?') + ')'), sub: '', payload: { name: d.ad || '', weight: String(d.agirlik || '') }, added: false }));
+    if (j.karar && (j.karar.oneri || j.karar.gerekce)) items.push({ kind: 'decision', tag: T('KARAR TASLAĞI', 'DECISION DRAFT'), title: j.karar.oneri || '', sub: j.karar.gerekce ? T('Gerekçe: ', 'Rationale: ') + j.karar.gerekce : '', payload: { choice: j.karar.oneri || '', rationale: j.karar.gerekce || '' }, added: false });
   }
   return items;
 }
@@ -589,7 +595,7 @@ export const REPORT_SUMMARY_TASK = '\n\nŞimdi koçluk sohbeti DEĞİL, rapor i�
  * Adım asistanından farkı: kullanıcının girdilerini değerlendirmez; metodolojiyi,
  * yöntemleri ve uygulamanın nasıl kullanılacağını ÖĞRETİR.
  */
-export function buildHelpSystem(step, stepTitles) {
+export function buildHelpSystem(step, stepTitles, lang) {
   const titles = (stepTitles || []).map((t, i) => (i + 1) + '. ' + t).join(' · ');
   return 'Sen ProblemLab uygulamasının Yöntem Danışmanısın. ProblemLab, bir iş problemini 8 adımlı bir metodolojiyle uçtan uca çözdüren bir çalışma aracıdır. Adımlar: ' + titles + '.\n\n'
     + 'Görevin: kullanıcının problem çözme metodolojisi, yöntemler ve uygulamanın kullanımı hakkındaki serbest sorularını cevaplamak. Tipik sorular: "İş sürücüsü haritalama nedir, nasıl yapılır?", "Bulgu ile kök neden farkı nedir?", "Karar matrisini nasıl puanlarım?", "VAR/YOK belirtimi ne işe yarar?".\n\n'
@@ -603,7 +609,8 @@ export function buildHelpSystem(step, stepTitles) {
     + '- Rapor (Adım 8): yönetici özeti, izlenebilirlik tablosu (bulgu→kök neden→aksiyon→KPI), analiz güven seviyesi.\n\n'
     + 'Uygulama bilgisi: veriler yalnızca kullanıcının tarayıcısında saklanır; Ayarlar\'dan JSON yedeği alınır; rehber (YZ) önerileri "doğrulanmadı" rozetiyle gelir ve kullanıcı doğrulamalıdır; paylaşım linki veriyi linkin içinde taşır.\n\n'
     + 'Kullanıcı şu anda Adım ' + step + ' üzerinde — cevabını gerekiyorsa bu adıma bağla ama her soruya cevap ver.\n\n'
-    + 'Kurallar: Türkçe, net ve öğretici yaz; kavramı önce 1-2 cümleyle tanımla, sonra nasıl yapılacağını adım adım anlat, kısa bir örnekle bitir. Kullanıcının kendi çalışma verisini GÖRMÜYORSUN — "girdilerinizi şuradan değerlendirebilirim" deme; girdi değerlendirmesi için adım sayfasındaki YZ Asistan\'a yönlendir. Sayı uydurma; örnek verirsen "(örnek)" diye işaretle.';
+    + 'Kurallar: Türkçe, net ve öğretici yaz; kavramı önce 1-2 cümleyle tanımla, sonra nasıl yapılacağını adım adım anlat, kısa bir örnekle bitir. Kullanıcının kendi çalışma verisini GÖRMÜYORSUN — "girdilerinizi şuradan değerlendirebilirim" deme; girdi değerlendirmesi için adım sayfasındaki YZ Asistan\'a yönlendir. Sayı uydurma; örnek verirsen "(örnek)" diye işaretle.'
+    + (lang === 'en' ? EN_REPLY_RULE : '');
 }
 
 /** KPI izleme değerlendirmesi görevi — Adım 7'deki izleme kartı için. */
