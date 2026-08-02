@@ -8,7 +8,7 @@ import {
   complete, buildSystem, buildCoachTask, coachItems, parseJsonReply,
   COACH_JSON_RULE, COACH_TEACH_TASK, COACH_FAST_SUFFIX, COACH_DEPTH_SUFFIX, ACTION_COACH_TASK,
   DECISION_COACH_TASK, AUDIT_TASK, BIAS_SCAN_TASK, PREMORTEM_TASK, REPORT_SUMMARY_TASK, REF_SUMMARY_SYSTEM,
-  SPEC_COACH_TASK, CONTAINMENT_COACH_TASK, MATRIX_COACH_TASK, TRACKING_COACH_TASK, TRACKING_PLAN_TASK, RETRO_COACH_TASK, EN_REPLY_RULE, buildHelpSystem, extractObjects, stripThinking
+  SPEC_COACH_TASK, CONTAINMENT_COACH_TASK, SIMILAR_CASES_TASK, MATRIX_COACH_TASK, TRACKING_COACH_TASK, TRACKING_PLAN_TASK, RETRO_COACH_TASK, EN_REPLY_RULE, buildHelpSystem, extractObjects, stripThinking
 } from './ai.js';
 
 const Ctx = createContext(null);
@@ -41,7 +41,7 @@ function normalize(state) {
   s.helpBusy = false;
   s.reportCfg = Object.assign({ company: '', sections: {}, view: 'full' }, s.reportCfg || {});
   if (s.reportCfg.view !== 'a3') s.reportCfg.view = 'full';
-  s.reportCfg.sections = Object.assign({ tanim: true, driver: true, analiz: true, bulgu: true, kok: true, karar: true, izleme: true, dusunme: true, referans: true }, s.reportCfg.sections);
+  s.reportCfg.sections = Object.assign({ tanim: true, driver: true, analiz: true, bulgu: true, kok: true, karar: true, izleme: true, dusunme: true, referans: true, benzer: false }, s.reportCfg.sections);
   s.aiSettings = Object.assign({
     provider: 'auto', apiKey: '', model: '', baseUrl: '',
     level: 'dengeli', auto: true, context: '',
@@ -762,6 +762,41 @@ export function StoreProvider({ children }) {
     })();
   }, [upd, effCase, callAi, systemFor]);
 
+  // Benzer vaka sentezi (Adım 6) — kaynak gösterilmez; her kart 'YZ sentezi' etiketiyle gelir.
+  const runSimilarCases = useCallback(() => {
+    const s0 = stateRef.current;
+    const eff = effCase(s0);
+    if (s0.cases[eff].similarCases && s0.cases[eff].similarCases.status === 'busy') return;
+    upd(n => { n.cases[eff].similarCases = { status: 'busy', giris: '', items: [] }; });
+    (async () => {
+      const mapItems = arr => (Array.isArray(arr) ? arr : []).map(x => ({
+        baslik: String(x.baslik || ''), baglam: String(x.baglam || ''), cozum: String(x.cozum || ''),
+        durum: ['basarili', 'basarisiz', 'karisik'].includes(x.sonucDurum) ? x.sonucDurum : 'karisik',
+        sonuc: String(x.sonuc || ''), ders: String(x.ders || ''), bag: String(x.bag || ''),
+        dogrulama: Array.isArray(x.dogrulama) ? x.dogrulama.map(String) : []
+      })).filter(x => x.baslik || x.baglam);
+      let reply = '';
+      try {
+        const c = stateRef.current.cases[eff];
+        reply = await callAi({
+          max_tokens: 3600,
+          system: systemFor(6, c) + SIMILAR_CASES_TASK,
+          messages: [{ role: 'user', content: 'Problemime benzer problemi yaşamış kuruluşların yaygın bilinen deneyimlerinden analog vakaları JSON olarak üret.' }]
+        });
+        const j = parseJsonReply(reply);
+        upd(n => { n.cases[eff].similarCases = { status: 'done', giris: String(j.giris || ''), items: mapItems(j.vakalar) }; });
+      } catch (e) {
+        // Kesik yanıttan bütün hâldeki vakaları kurtar
+        const salvaged = mapItems(extractObjects(reply, 'baslik'));
+        if (salvaged.length) {
+          upd(n => { n.cases[eff].similarCases = { status: 'done', giris: '', items: salvaged, truncated: true }; });
+        } else {
+          upd(n => { n.cases[eff].similarCases = { status: 'error', giris: '', items: [], errMsg: String((e && e.message) || e) }; });
+        }
+      }
+    })();
+  }, [upd, effCase, callAi, systemFor]);
+
   const runAudit = useCallback(() => {
     const s0 = stateRef.current;
     const eff = effCase(s0);
@@ -1038,9 +1073,9 @@ export function StoreProvider({ children }) {
     mainRef,
     upd, updC, setC, inp, goStep, toggleTheme, removeC, undoLast, canUndo,
     ensureCoach, runCoach, applyCoachItem, coachRefresh, coachMore,
-    runDecisionCoach, runActionCoach, runAudit, runBiasScan, runPremortem, runReportSummary, runSpecCoach, applySpecCoach, runContainmentCoach, applyContainment, runMatrixCoach, applyMatrixCoach, runTrackingCoach, applyTrackingPlan, runRetroCoach, applyRetroCoach,
+    runDecisionCoach, runActionCoach, runAudit, runBiasScan, runPremortem, runSimilarCases, runReportSummary, runSpecCoach, applySpecCoach, runContainmentCoach, applyContainment, runMatrixCoach, applyMatrixCoach, runTrackingCoach, applyTrackingPlan, runRetroCoach, applyRetroCoach,
     askAi, askHelp, fieldHelp, addReference
-  }), [state, eff, lang, t, setLang, upd, updC, setC, inp, goStep, toggleTheme, removeC, undoLast, canUndo, ensureCoach, runCoach, applyCoachItem, coachRefresh, coachMore, runDecisionCoach, runActionCoach, runAudit, runBiasScan, runPremortem, runReportSummary, runSpecCoach, applySpecCoach, runContainmentCoach, applyContainment, runMatrixCoach, applyMatrixCoach, runTrackingCoach, applyTrackingPlan, runRetroCoach, applyRetroCoach, askAi, askHelp, fieldHelp, addReference]);
+  }), [state, eff, lang, t, setLang, upd, updC, setC, inp, goStep, toggleTheme, removeC, undoLast, canUndo, ensureCoach, runCoach, applyCoachItem, coachRefresh, coachMore, runDecisionCoach, runActionCoach, runAudit, runBiasScan, runPremortem, runSimilarCases, runReportSummary, runSpecCoach, applySpecCoach, runContainmentCoach, applyContainment, runMatrixCoach, applyMatrixCoach, runTrackingCoach, applyTrackingPlan, runRetroCoach, applyRetroCoach, askAi, askHelp, fieldHelp, addReference]);
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

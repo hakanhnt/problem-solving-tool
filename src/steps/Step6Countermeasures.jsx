@@ -60,7 +60,7 @@ const PRIO_LABELS_EN = {
 };
 
 export default function Step6Countermeasures() {
-  const { c, updC, inp, fieldHelp, runDecisionCoach, runActionCoach, runPremortem, runContainmentCoach, applyContainment, runMatrixCoach, applyMatrixCoach, removeC, t, lang } = useStore();
+  const { c, updC, inp, fieldHelp, runDecisionCoach, runActionCoach, runPremortem, runSimilarCases, runContainmentCoach, applyContainment, runMatrixCoach, applyMatrixCoach, removeC, t, lang } = useStore();
   const aiReady = (c.problem.statement || '').trim().length > 0;
   const M = decisionMatrix(c, lang);
   const prioLabel = l => t(l, PRIO_LABELS_EN[l] || l);
@@ -72,6 +72,8 @@ export default function Step6Countermeasures() {
   const ac = c.actionCoach;
   const acIdle = !ac || ac.status === 'idle' || ac.status === 'error';
   const pm = c.premortem;
+  const simc = c.similarCases;
+  const simIdle = !simc || simc.status === 'idle' || simc.status === 'error';
   const pmIdle = !pm || pm.status === 'idle' || pm.status === 'error';
   const coc = c.containmentCoach;
   const mc = c.matrixCoach;
@@ -213,6 +215,84 @@ export default function Step6Countermeasures() {
             </div>
           ))}
           <AddButton onClick={() => updC(cc => cc.alternatives.push({ name: '', method: '', note: '' }))}>{t('+ Alternatif ekle', '+ Add alternative')}</AddButton>
+        </div>
+      </Card>
+
+      {/* Benzer vakalar — YZ sentezi; kaynak gösterilmez, her kart etiketlidir */}
+      <Card>
+        <div style={{ ...S.cardTitle, margin: '0 0 4px' }}>{t('📚 Benzer Vakalar — YZ Sentezi', '📚 Similar Cases — AI Synthesis')}</div>
+        <div style={S.cardSub}>{t('Benzer problemi yaşamış kuruluşların yaygın bilinen deneyimlerinden analog vakalar — çözüm uzayını genişletmek ve pre-mortem\'i beslemek için.', 'Analog cases from widely known experiences of organizations that faced a similar problem — to widen the solution space and feed the pre-mortem.')}</div>
+        <div style={{ font: '12px/1.6 Helvetica,Arial,sans-serif', color: 'var(--warn-ink)', background: 'var(--warn-soft)', border: '1px solid var(--warn-border)', borderRadius: 8, padding: '8px 11px', margin: '0 0 12px' }}>
+          {t('Bu vakalar YZ\'nin genel bilgisinden sentezlenir; kaynak doğrulaması YAPILMAZ ve kaynak gösterilmez. Emsal değil ilham olarak kullanın; kritik bir karara dayanak yapmadan önce her vakayı kendiniz doğrulayın.', 'These cases are synthesized from the AI\'s general knowledge; sources are NOT verified and none are cited. Use them as inspiration, not precedent; verify each case yourself before basing any critical decision on it.')}
+        </div>
+
+        <div style={{ background: 'var(--pri-soft-2)', border: '1px solid var(--pri-border)', borderRadius: 8, padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {simIdle ? (
+            <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
+              <div style={{ font: '12.5px/1.5 Helvetica,Arial,sans-serif', color: 'var(--pri-ink-2)', flex: 1, minWidth: 220 }}>
+                {t('Rehber; probleminize, kök nedenlerinize ve bulgularınıza bakarak 3-4 analog vaka anlatır — en az biri başarısızlıkla sonuçlanmış olur.', 'The coach tells 3-4 analog cases based on your problem, root causes and findings — at least one of them ended in failure.')}
+                {simc && simc.status === 'error' ? <span style={{ color: 'var(--alert)' }}> {t('Vakalar üretilemedi', 'Could not generate the cases')}{simc.errMsg ? ' (' + simc.errMsg + ')' : ''}{t(' — tekrar deneyin.', ' — try again.')}</span> : null}
+              </div>
+              <HButton
+                onClick={runSimilarCases}
+                style={{ flex: 'none', padding: '8px 14px', border: '1px solid var(--pri)', borderRadius: 8, background: 'var(--pri)', color: 'var(--on-pri)', font: '600 12px Helvetica,Arial,sans-serif', cursor: 'pointer' }}
+                hover={S.primaryHover}
+              >{t('Benzer vakaları getir', 'Fetch similar cases')}</HButton>
+            </div>
+          ) : null}
+
+          {simc && simc.status === 'busy' ? (
+            <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+              <Spinner />
+              <div style={{ font: '600 12.5px Helvetica,Arial,sans-serif', color: 'var(--pri-ink)' }}>{t('Benzer problemi yaşamış vakalar derleniyor…', 'Compiling cases that faced a similar problem…')}</div>
+            </div>
+          ) : null}
+
+          {simc && simc.status === 'done' ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {simc.truncated ? (
+                <div style={{ font: '12px/1.5 Helvetica,Arial,sans-serif', color: 'var(--warn-ink)', background: 'var(--warn-soft)', border: '1px solid var(--warn-border)', borderRadius: 6, padding: '7px 10px' }}>
+                  {t('Yanıt uzunluk sınırına takıldı; tamamlanabilen vakalar gösteriliyor.', 'The reply hit the length limit; showing the cases that completed.')}
+                </div>
+              ) : null}
+              {simc.giris ? <div style={{ font: '12.5px/1.6 Helvetica,Arial,sans-serif', color: 'var(--pri-ink-2)' }}>{simc.giris}</div> : null}
+              {(simc.items || []).map((v, i) => {
+                const st = v.durum === 'basarili'
+                  ? { lb: t('✓ Başarılı', '✓ Succeeded'), ink: 'var(--ok-ink)', bg: 'var(--ok-soft)', bd: 'var(--ok-border)' }
+                  : v.durum === 'basarisiz'
+                    ? { lb: t('✗ Başarısız', '✗ Failed'), ink: 'var(--alert)', bg: 'var(--alert-soft)', bd: 'var(--alert-border)' }
+                    : { lb: t('~ Karışık sonuç', '~ Mixed outcome'), ink: 'var(--warn-ink)', bg: 'var(--warn-soft)', bd: 'var(--warn-border)' };
+                return (
+                  <div key={i} style={{ background: 'var(--surface)', border: '1px solid var(--pri-border-4)', borderRadius: 8, padding: '11px 13px' }}>
+                    <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', margin: '0 0 5px' }}>
+                      <span style={{ flex: 'none', font: '700 10px Helvetica,Arial,sans-serif', color: st.ink, background: st.bg, border: '1px solid ' + st.bd, borderRadius: 20, padding: '3px 8px' }}>{st.lb}</span>
+                      <span style={{ font: '700 13px/1.4 Helvetica,Arial,sans-serif', color: 'var(--ink)' }}>{v.baslik}</span>
+                    </div>
+                    {v.baglam ? <div style={{ font: '12px/1.55 Helvetica,Arial,sans-serif', color: 'var(--muted)', margin: '0 0 4px' }}>{v.baglam}</div> : null}
+                    {v.cozum ? <div style={{ font: '12.5px/1.55 Helvetica,Arial,sans-serif', color: 'var(--ink-3)', margin: '0 0 3px' }}><strong>{t('Ne yaptılar:', 'What they did:')}</strong> {v.cozum}</div> : null}
+                    {v.sonuc ? <div style={{ font: '12.5px/1.55 Helvetica,Arial,sans-serif', color: 'var(--ink-3)', margin: '0 0 3px' }}><strong>{t('Ne oldu:', 'What happened:')}</strong> {v.sonuc}</div> : null}
+                    {v.ders ? <div style={{ font: '12.5px/1.55 Helvetica,Arial,sans-serif', color: 'var(--ok-ink)', margin: '0 0 3px' }}><strong>{t('Taşınabilir ders:', 'Transferable lesson:')}</strong> {v.ders}</div> : null}
+                    {v.bag ? <div style={{ font: '12px/1.5 Helvetica,Arial,sans-serif', color: 'var(--pri-ink-2)', margin: '0 0 3px' }}><strong>{t('Vakanızla bağ:', 'Link to your case:')}</strong> {v.bag}</div> : null}
+                    {(v.dogrulama || []).length ? (
+                      <div style={{ font: '12px/1.5 Helvetica,Arial,sans-serif', color: 'var(--ink-4)', margin: '0 0 3px' }}>
+                        <strong>{t('Doğrulamak için:', 'To verify:')}</strong> {v.dogrulama.join(' · ')}
+                      </div>
+                    ) : null}
+                    <div style={{ font: '600 10.5px/1.5 Helvetica,Arial,sans-serif', color: 'var(--warn-ink)', background: 'var(--warn-soft)', border: '1px solid var(--warn-border)', borderRadius: 6, padding: '5px 8px', marginTop: 7 }}>
+                      {t('⚠ YZ sentezi — kaynak doğrulanmadı; emsal değil ilham. Doğrulamadan karara dayanak yapmayın.', '⚠ AI synthesis — sources not verified; inspiration, not precedent. Do not base a decision on it without verifying.')}
+                    </div>
+                  </div>
+                );
+              })}
+              <div style={{ display: 'flex', gap: 8 }}>
+                <HButton onClick={runSimilarCases} style={{ padding: '7px 12px', border: '1px solid var(--pri-border)', borderRadius: 7, background: 'var(--surface)', color: 'var(--pri)', font: '600 11.5px Helvetica,Arial,sans-serif', cursor: 'pointer' }} hover={S.ghostHover}>{t('Yeniden üret', 'Regenerate')}</HButton>
+                <HButton onClick={() => updC(cc => { delete cc.similarCases; })} style={{ padding: '7px 12px', border: 'none', background: 'transparent', color: 'var(--muted)', font: '600 11.5px Helvetica,Arial,sans-serif', cursor: 'pointer' }} hover={{ color: 'var(--ink-3)' }}>{t('Kapat', 'Close')}</HButton>
+              </div>
+              <div style={{ font: '11px/1.5 Helvetica,Arial,sans-serif', color: 'var(--muted)' }}>
+                {t('Doğruladığınız bir vakanın kaynağını Adım 1\'deki Referanslar bölümüne ekleyebilirsiniz; rapora dahil etmek için Adım 8\'de "Benzer vakalar" bölümünü açın.', 'You can add the source of a case you verified to the References section in Step 1; to include these in the report, enable the "Similar cases" section in Step 8.')}
+              </div>
+            </div>
+          ) : null}
         </div>
       </Card>
 

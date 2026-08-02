@@ -63,6 +63,7 @@ export default function ReportBody({ c, principles, sections, companyName, summa
   const fbRows = FB_LABELS.filter(([k]) => (fb[k] || '').trim());
   const chains = (c.whyChains || []).filter(ch => (ch.whys || []).some(w => (w || '').trim()));
   const pmItems = (c.premortem && c.premortem.status === 'done' && (c.premortem.items || [])) || [];
+  const simItems = (c.similarCases && c.similarCases.status === 'done' && (c.similarCases.items || [])) || [];
   const da = (c.driverAnalysis || []).filter(d => (d.driver || '').trim() || (d.component || '').trim());
   const findings = (c.findings || []).filter(f => (f.text || '').trim());
   const whys = (c.whys || []).map((w, i) => ({ n: (i + 1) + '.', text: w || '' })).filter(w => w.text.trim());
@@ -433,6 +434,28 @@ export default function ReportBody({ c, principles, sections, companyName, summa
                 </div>
               </div>
             ) : null}
+          </div>
+        ) : null}
+
+        {simItems.length && on('benzer') ? (
+          <div>
+            <div style={secTitle}>{t('BENZER VAKALAR — YZ SENTEZİ', 'SIMILAR CASES — AI SYNTHESIS')}</div>
+            <div style={{ font: '11.5px/1.55 Helvetica,Arial,sans-serif', color: 'var(--warn-ink)', background: 'var(--warn-soft)', border: '1px solid var(--warn-border)', borderRadius: 6, padding: '6px 9px', margin: '0 0 8px' }}>
+              {t('Bu bölümdeki vakalar YZ\'nin genel bilgisinden sentezlenmiştir; kaynak doğrulaması yapılmamıştır. Emsal değil ilham olarak okuyun.', 'The cases in this section are synthesized from the AI\'s general knowledge; sources are not verified. Read them as inspiration, not precedent.')}
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              {simItems.map((v, i) => (
+                <div key={i} style={body}>
+                  <strong>{v.durum === 'basarili' ? t('✓ Başarılı — ', '✓ Succeeded — ') : v.durum === 'basarisiz' ? t('✗ Başarısız — ', '✗ Failed — ') : t('~ Karışık — ', '~ Mixed — ')}{v.baslik}</strong>
+                  {(v.baglam || '').trim() ? <span style={{ color: 'var(--ink-4)' }}> — {v.baglam}</span> : null}
+                  {(v.cozum || '').trim() ? <div style={{ font: '11.5px/1.5 Helvetica,Arial,sans-serif', color: 'var(--ink-3)' }}>{t('Ne yaptılar: ', 'What they did: ')}{v.cozum}</div> : null}
+                  {(v.sonuc || '').trim() ? <div style={{ font: '11.5px/1.5 Helvetica,Arial,sans-serif', color: 'var(--ink-3)' }}>{t('Ne oldu: ', 'What happened: ')}{v.sonuc}</div> : null}
+                  {(v.ders || '').trim() ? <div style={{ font: '11.5px/1.5 Helvetica,Arial,sans-serif', color: 'var(--ok-ink)' }}>{t('Taşınabilir ders: ', 'Transferable lesson: ')}{v.ders}</div> : null}
+                  {(v.bag || '').trim() ? <div style={{ font: '11.5px/1.5 Helvetica,Arial,sans-serif', color: 'var(--ink-4)' }}>{t('Vakayla bağ: ', 'Link to this case: ')}{v.bag}</div> : null}
+                  <div style={{ font: '600 10.5px/1.4 Helvetica,Arial,sans-serif', color: 'var(--warn-ink)', marginTop: 3 }}>{t('⚠ YZ sentezi — kaynak doğrulanmadı; emsal değil ilham.', '⚠ AI synthesis — sources not verified; inspiration, not precedent.')}</div>
+                </div>
+              ))}
+            </div>
           </div>
         ) : null}
 

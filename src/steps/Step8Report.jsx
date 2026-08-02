@@ -12,6 +12,7 @@ const SECTION_CHIPS = t => [
   { key: 'bulgu', label: t('Bulgular', 'Findings') },
   { key: 'kok', label: t('Kök neden', 'Root cause') },
   { key: 'karar', label: t('Alternatifler + karar', 'Alternatives + decision') },
+  { key: 'benzer', label: t('Benzer vakalar (YZ)', 'Similar cases (AI)') },
   { key: 'dusunme', label: t('Düşünme kontrolü', 'Thinking check') },
   { key: 'izleme', label: t('İzleme + retrospektif', 'Tracking + retrospective') },
   { key: 'referans', label: t('Referanslar', 'References') }
