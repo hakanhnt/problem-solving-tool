@@ -64,6 +64,10 @@ export default function ReportBody({ c, principles, sections, companyName, summa
   const chains = (c.whyChains || []).filter(ch => (ch.whys || []).some(w => (w || '').trim()));
   const pmItems = (c.premortem && c.premortem.status === 'done' && (c.premortem.items || [])) || [];
   const simItems = (c.similarCases && c.similarCases.status === 'done' && (c.similarCases.items || [])) || [];
+  const fmeaRows = (c.fmea || []).filter(r => (r.mode || '').trim());
+  const rpnOf = r => { const v = (parseInt(r.s, 10) || 0) * (parseInt(r.o, 10) || 0) * (parseInt(r.d, 10) || 0); return v > 0 ? v : null; };
+  const ffD = ((c.forcefield || {}).driving || []).filter(x => (x.text || '').trim());
+  const ffR = ((c.forcefield || {}).restraining || []).filter(x => (x.text || '').trim());
   const da = (c.driverAnalysis || []).filter(d => (d.driver || '').trim() || (d.component || '').trim());
   const findings = (c.findings || []).filter(f => (f.text || '').trim());
   const whys = (c.whys || []).map((w, i) => ({ n: (i + 1) + '.', text: w || '' })).filter(w => w.text.trim());
@@ -431,6 +435,37 @@ export default function ReportBody({ c, principles, sections, companyName, summa
                       {(it.onlem || '').trim() ? <div style={{ font: '11.5px/1.5 Helvetica,Arial,sans-serif', color: 'var(--ok-ink)' }}>{t('Önleyici tedbir: ', 'Preventive measure: ')}{it.onlem}{it.added ? t(' (aksiyon planına eklendi)', ' (added to the action plan)') : ''}</div> : null}
                     </div>
                   ))}
+                </div>
+              </div>
+            ) : null}
+
+            {fmeaRows.length ? (
+              <div style={{ marginTop: 12 }}>
+                <div style={{ font: '600 11px Helvetica,Arial,sans-serif', color: 'var(--ink-3)', letterSpacing: '.4px', margin: '0 0 6px' }}>{t('FMEA — EN YÜKSEK RİSKLİ HATA TÜRLERİ (RPN = Ş×O×T)', 'FMEA — HIGHEST-RISK FAILURE MODES (RPN = S×O×D)')}</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                  {fmeaRows.slice().sort((x, y) => (rpnOf(y) || 0) - (rpnOf(x) || 0)).slice(0, 5).map((r, i) => (
+                    <div key={i} style={body}>
+                      <strong style={{ color: (rpnOf(r) || 0) >= 200 ? 'var(--alert)' : (rpnOf(r) || 0) >= 100 ? 'var(--warn-ink)' : 'var(--ink)' }}>{rpnOf(r) !== null ? 'RPN ' + rpnOf(r) + ' · ' : ''}{r.mode}</strong>
+                      {(r.effect || '').trim() ? <span style={{ color: 'var(--ink-4)' }}> — {r.effect}</span> : null}
+                      {(r.onlem || '').trim() ? <div style={{ font: '11.5px/1.5 Helvetica,Arial,sans-serif', color: 'var(--ok-ink)' }}>{t('Önlem: ', 'Measure: ')}{r.onlem}</div> : null}
+                    </div>
+                  ))}
+                </div>
+                {fmeaRows.length > 5 ? <div style={{ font: '11px/1.5 Helvetica,Arial,sans-serif', color: 'var(--muted)', marginTop: 3 }}>{t('+' + (fmeaRows.length - 5) + ' satır daha (uygulamada)', '+' + (fmeaRows.length - 5) + ' more rows (in the app)')}</div> : null}
+              </div>
+            ) : null}
+
+            {(ffD.length || ffR.length) ? (
+              <div style={{ marginTop: 12 }}>
+                <div style={{ font: '600 11px Helvetica,Arial,sans-serif', color: 'var(--ink-3)', letterSpacing: '.4px', margin: '0 0 6px' }}>{t('KUVVET ALANI ANALİZİ (LEWIN)', 'FORCE FIELD ANALYSIS (LEWIN)')}</div>
+                <div style={body}>
+                  {ffD.length ? <div style={{ color: 'var(--ok-ink)' }}>{t('İtici: ', 'Driving: ')}{ffD.map(x => x.text + ' (' + (x.strength || '?') + '/5)').join(' · ')}</div> : null}
+                  {ffR.length ? <div style={{ color: 'var(--warn-ink)', marginTop: 3 }}>{t('Kısıtlayıcı: ', 'Restraining: ')}{ffR.map(x => x.text + ' (' + (x.strength || '?') + '/5)' + ((x.azaltma || '').trim() ? t(' → zayıflatma: ', ' → mitigation: ') + x.azaltma : '')).join(' · ')}</div> : null}
+                  {(() => {
+                    const d = ffD.reduce((acc, x) => acc + (parseInt(x.strength, 10) || 0), 0);
+                    const r = ffR.reduce((acc, x) => acc + (parseInt(x.strength, 10) || 0), 0);
+                    return <div style={{ marginTop: 3, color: 'var(--ink-4)' }}>{t('Toplam: itici ' + d + ' / kısıtlayıcı ' + r, 'Totals: driving ' + d + ' vs restraining ' + r)}</div>;
+                  })()}
                 </div>
               </div>
             ) : null}

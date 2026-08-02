@@ -60,7 +60,7 @@ const PRIO_LABELS_EN = {
 };
 
 export default function Step6Countermeasures() {
-  const { c, updC, inp, fieldHelp, runDecisionCoach, runActionCoach, runPremortem, runSimilarCases, runContainmentCoach, applyContainment, runMatrixCoach, applyMatrixCoach, removeC, t, lang } = useStore();
+  const { c, updC, inp, fieldHelp, runDecisionCoach, runActionCoach, runPremortem, runSimilarCases, runFmeaCoach, applyFmeaCoach, runForceCoach, applyForceCoach, runContainmentCoach, applyContainment, runMatrixCoach, applyMatrixCoach, removeC, t, lang } = useStore();
   const aiReady = (c.problem.statement || '').trim().length > 0;
   const M = decisionMatrix(c, lang);
   const prioLabel = l => t(l, PRIO_LABELS_EN[l] || l);
@@ -73,6 +73,9 @@ export default function Step6Countermeasures() {
   const acIdle = !ac || ac.status === 'idle' || ac.status === 'error';
   const pm = c.premortem;
   const simc = c.similarCases;
+  const fmc = c.fmeaCoach;
+  const foc = c.forceCoach;
+  const rpnOf = r => { const v = (parseInt(r.s, 10) || 0) * (parseInt(r.o, 10) || 0) * (parseInt(r.d, 10) || 0); return v > 0 ? v : null; };
   const simIdle = !simc || simc.status === 'idle' || simc.status === 'error';
   const pmIdle = !pm || pm.status === 'idle' || pm.status === 'error';
   const coc = c.containmentCoach;
@@ -702,6 +705,198 @@ export default function Step6Countermeasures() {
           </div>
         </Card>
       ) : null}
+
+      {/* FMEA — hafif: hata türleri, S/O/T, RPN */}
+      <AdvancedSection
+        id="s6-fmea"
+        title={t('İleri analiz — FMEA (Hata Türleri ve Etkileri)', 'Advanced — FMEA (Failure Modes and Effects)')}
+        sub={t('Seçilen çözümün uygulamada nerede bozulabileceğini Şiddet × Olasılık × Tespit (RPN) puanıyla sıralayın; pre-mortem hikâyelerini sayısal disipline bağlar.', 'Rank where the chosen solution can break in practice with Severity × Occurrence × Detection (RPN); it puts numeric discipline behind the pre-mortem stories.')}
+      >
+        <MethodBox margin="0 0 12px">{t('FMEA — her hata türüne 1-10 arası Şiddet (etkisi ne kadar ağır), Olasılık (ne sıklıkla olur) ve Tespit (fark etmesi ne kadar zor; 10 = en zor) verin. RPN = Ş×O×T; 100 üzeri satırlar önlem ister. Puanları ekibinizle kalibre edin — tek kişinin puanı yanlıdır.', 'FMEA — rate each failure mode 1-10 for Severity (how bad), Occurrence (how often) and Detection (how hard to notice; 10 = hardest). RPN = S×O×D; rows above 100 demand a countermeasure. Calibrate scores with your team — a single person\'s scores are biased.')}</MethodBox>
+
+        <div style={{ background: 'var(--pri-soft-2)', border: '1px solid var(--pri-border)', borderRadius: 8, padding: '11px 13px', margin: '0 0 12px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {!fmc || fmc.status === 'error' ? (
+            <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
+              <div style={{ font: '12.5px/1.5 Helvetica,Arial,sans-serif', color: 'var(--pri-ink-2)', flex: 1, minWidth: 220 }}>
+                {t('Rehber; kararınız, aksiyonlarınız ve pre-mortem senaryolarınızdan 4-6 hata türü ve taslak puanlar önerebilir.', 'The coach can suggest 4-6 failure modes with draft scores from your decision, actions and pre-mortem scenarios.')}
+                {fmc && fmc.status === 'error' ? <span style={{ color: 'var(--alert)' }}> {t('Taslak hazırlanamadı', 'Could not prepare the draft')}{fmc.errMsg ? ' (' + fmc.errMsg + ')' : ''}{t(' — tekrar deneyin.', ' — try again.')}</span> : null}
+              </div>
+              <HButton onClick={runFmeaCoach} style={{ flex: 'none', padding: '8px 14px', border: '1px solid var(--pri)', borderRadius: 8, background: 'var(--pri)', color: 'var(--on-pri)', font: '600 12px Helvetica,Arial,sans-serif', cursor: 'pointer' }} hover={S.primaryHover}>{t('Rehberden FMEA taslağı al', 'Get an FMEA draft from the coach')}</HButton>
+            </div>
+          ) : null}
+          {fmc && fmc.status === 'busy' ? (
+            <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}><Spinner /><div style={{ font: '600 12.5px Helvetica,Arial,sans-serif', color: 'var(--pri-ink)' }}>{t('Hata türleri ve taslak puanlar hazırlanıyor…', 'Preparing failure modes and draft scores…')}</div></div>
+          ) : null}
+          {fmc && fmc.status === 'done' ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <div style={{ font: '700 10.5px Helvetica,Arial,sans-serif', color: 'var(--pri-soft-ink)', letterSpacing: '.8px' }}>{t('REHBERİN FMEA TASLAĞI — puanlar öznel taslaktır, ekiple kalibre edin', "COACH'S FMEA DRAFT — scores are a subjective draft; calibrate with the team")}</div>
+              {fmc.truncated ? <div style={{ font: '12px/1.5 Helvetica,Arial,sans-serif', color: 'var(--warn-ink)' }}>{t('Yanıt kesildi; tamamlanabilen satırlar gösteriliyor.', 'The reply was cut; showing the rows that completed.')}</div> : null}
+              {fmc.giris ? <div style={{ font: '12.5px/1.6 Helvetica,Arial,sans-serif', color: 'var(--pri-ink-2)' }}>{fmc.giris}</div> : null}
+              <ul style={{ margin: 0, padding: '0 0 0 18px', display: 'flex', flexDirection: 'column', gap: 3 }}>
+                {(fmc.rows || []).map((r, i) => (
+                  <li key={i} style={{ font: '12px/1.5 Helvetica,Arial,sans-serif', color: 'var(--ink-3)' }}>
+                    <strong>{r.mode}</strong> — {r.effect} · Ş{r.s}/O{r.o}/T{r.d}{rpnOf(r) ? ' · RPN ' + rpnOf(r) : ''}{r.onlem ? ' · ' + t('Önlem: ', 'Measure: ') + r.onlem : ''}
+                  </li>
+                ))}
+              </ul>
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                <HButton onClick={applyFmeaCoach} style={{ padding: '8px 14px', border: '1px solid var(--pri)', borderRadius: 8, background: 'var(--pri)', color: 'var(--on-pri)', font: '600 12px Helvetica,Arial,sans-serif', cursor: 'pointer' }} hover={S.primaryHover}>{t('Satırları tabloya ekle', 'Add rows to the table')}</HButton>
+                <HButton onClick={runFmeaCoach} style={S.ghostBtn} hover={S.ghostHover}>{t('Yeniden öner', 'Suggest again')}</HButton>
+                <HButton onClick={() => updC(cc => { delete cc.fmeaCoach; })} style={{ padding: '8px 14px', border: 'none', background: 'transparent', color: 'var(--muted)', font: '600 12px Helvetica,Arial,sans-serif', cursor: 'pointer' }} hover={{ color: 'var(--ink-3)' }}>{t('Kapat', 'Close')}</HButton>
+              </div>
+              {fmc.applied ? <div style={{ font: '600 12px Helvetica,Arial,sans-serif', color: 'var(--ok-ink)' }}>{t('✓ Eklendi — aşağıdaki tablodan düzenleyebilirsiniz (aynı adlı satırlar atlandı).', '✓ Added — edit in the table below (rows with duplicate names were skipped).')}</div> : null}
+              {(fmc.sorular || []).length ? <ul style={{ margin: 0, padding: '0 0 0 18px' }}>{fmc.sorular.map((q, i) => <li key={i} style={{ font: '12px/1.5 Helvetica,Arial,sans-serif', color: 'var(--pri-ink-2)' }}>{q}</li>)}</ul> : null}
+            </div>
+          ) : null}
+        </div>
+
+        {(c.fmea || []).length ? (
+          <div style={{ overflowX: 'auto', margin: '0 0 10px' }}>
+            <table style={{ borderCollapse: 'collapse', width: '100%', minWidth: 760 }}>
+              <thead>
+                <tr>
+                  {[t('HATA TÜRÜ', 'FAILURE MODE'), t('ETKİSİ', 'EFFECT'), t('NEDENİ', 'CAUSE'), t('Ş', 'S'), 'O', t('T', 'D'), 'RPN', t('ÖNLEM', 'MEASURE'), ''].map((h, i) => (
+                    <th key={i} style={{ padding: '5px 7px', border: '1px solid var(--line)', font: '700 10px Helvetica,Arial,sans-serif', color: 'var(--ink-3)', background: 'var(--surface-2)', textAlign: 'left', letterSpacing: '.4px' }}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {c.fmea.map((r, i) => {
+                  const rpn = rpnOf(r);
+                  const rpnStyle = rpn === null ? { color: 'var(--muted)' } : rpn >= 200 ? { color: 'var(--alert)', fontWeight: 700 } : rpn >= 100 ? { color: 'var(--warn-ink)', fontWeight: 700 } : { color: 'var(--ok-ink)', fontWeight: 700 };
+                  const sel = k => (
+                    <select value={r[k] || ''} onChange={inp('fmea', i, k)} aria-label={t((i + 1) + '. satır ' + k.toUpperCase(), 'Row ' + (i + 1) + ' ' + k.toUpperCase())} style={{ ...S.select, width: 54, padding: '6px 4px' }}>
+                      <option value="">—</option>{[1,2,3,4,5,6,7,8,9,10].map(v => <option key={v} value={String(v)}>{v}</option>)}
+                    </select>
+                  );
+                  const inpCell = (k, ph) => (
+                    <textarea className="pcx-field-sm" value={r[k] || ''} onChange={inp('fmea', i, k)} placeholder={ph} style={{ ...S.textarea, font: '12px/1.4 Helvetica,Arial,sans-serif', minHeight: 36, width: '100%', boxSizing: 'border-box' }} />
+                  );
+                  return (
+                    <tr key={i}>
+                      <td style={{ padding: 4, border: '1px solid var(--line)', minWidth: 150 }}>{inpCell('mode', t('Ne bozulur?', 'What breaks?'))}</td>
+                      <td style={{ padding: 4, border: '1px solid var(--line)', minWidth: 140 }}>{inpCell('effect', t('Kime/neye, ne olur?', 'To whom/what, and how?'))}</td>
+                      <td style={{ padding: 4, border: '1px solid var(--line)', minWidth: 140 }}>{inpCell('cause', t('Olası neden', 'Likely cause'))}</td>
+                      <td style={{ padding: 4, border: '1px solid var(--line)' }}>{sel('s')}</td>
+                      <td style={{ padding: 4, border: '1px solid var(--line)' }}>{sel('o')}</td>
+                      <td style={{ padding: 4, border: '1px solid var(--line)' }}>{sel('d')}</td>
+                      <td style={{ padding: '4px 8px', border: '1px solid var(--line)', font: '13px Helvetica,Arial,sans-serif', textAlign: 'center', ...rpnStyle }}>{rpn ?? '—'}</td>
+                      <td style={{ padding: 4, border: '1px solid var(--line)', minWidth: 160 }}>
+                        {inpCell('onlem', t('Önleyici / tespit edici önlem', 'Preventive / detective measure'))}
+                        {(r.onlem || '').trim() ? (
+                          <button type="button"
+                            onClick={() => updC(cc => { cc.actions = cc.actions || []; cc.actions.push({ text: r.onlem, owner: '', due: '', startDate: '', dueDate: '', rcIdx: '', findingIdx: '', successCriteria: '', evidence: '', delayReason: '', etki: '', efor: '', priority: rpn && rpn >= 200 ? 'yuksek' : '', note: 'FMEA: ' + (r.mode || '') }); })}
+                            style={{ marginTop: 4, padding: '4px 8px', border: '1px solid var(--pri-border)', borderRadius: 6, background: 'var(--surface)', color: 'var(--pri)', font: '600 10.5px Helvetica,Arial,sans-serif', cursor: 'pointer' }}
+                          >{t('Önlemi plana ekle', 'Add measure to plan')}</button>
+                        ) : null}
+                      </td>
+                      <td style={{ padding: 4, border: '1px solid var(--line)' }}><RemoveButton onClick={() => removeC(t('FMEA satırı', 'FMEA row'), cc => cc.fmea.splice(i, 1))} /></td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        ) : null}
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          <AddButton onClick={() => updC(cc => { cc.fmea = cc.fmea || []; cc.fmea.push({ mode: '', effect: '', cause: '', s: '', o: '', d: '', onlem: '' }); })} style={{ flex: 1, minWidth: 160, width: 'auto' }}>{t('+ Satır ekle', '+ Add row')}</AddButton>
+          {(c.fmea || []).length > 1 ? (
+            <HButton onClick={() => updC(cc => cc.fmea.sort((x, y) => (rpnOf(y) || 0) - (rpnOf(x) || 0)))} style={{ flex: 'none', padding: '10px 14px', border: '1px solid var(--field-border)', borderRadius: 8, background: 'var(--surface)', color: 'var(--ink-3)', font: '600 13px Helvetica,Arial,sans-serif', cursor: 'pointer' }} hover={{ background: 'var(--surface-4)' }}>{t("RPN'e göre sırala", 'Sort by RPN')}</HButton>
+          ) : null}
+        </div>
+      </AdvancedSection>
+
+      {/* Kuvvet alanı analizi (Lewin) */}
+      <AdvancedSection
+        id="s6-forcefield"
+        title={t('İleri analiz — Kuvvet Alanı Analizi (Lewin)', 'Advanced — Force Field Analysis (Lewin)')}
+        sub={t('Kararı destekleyen itici kuvvetler ile direnç gösterecek kısıtlayıcı kuvvetleri tartın; uygulama planına geçmeden değişimin örgütte neye çarpacağını görün.', 'Weigh the driving forces behind the decision against the restraining ones; see what the change will hit in the organization before moving to the action plan.')}
+      >
+        <MethodBox margin="0 0 12px">{t("Lewin'in ilkesi: direnci azaltmak, itmeyi artırmaktan genellikle daha etkilidir — kısıtlayıcı kuvvetlere zayıflatma önlemi yazın. Güç: 1 (zayıf) – 5 (çok güçlü).", "Lewin's principle: reducing resistance usually beats pushing harder — write a mitigation for each restraining force. Strength: 1 (weak) – 5 (very strong).")}</MethodBox>
+
+        <div style={{ background: 'var(--pri-soft-2)', border: '1px solid var(--pri-border)', borderRadius: 8, padding: '11px 13px', margin: '0 0 12px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {!foc || foc.status === 'error' ? (
+            <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
+              <div style={{ font: '12.5px/1.5 Helvetica,Arial,sans-serif', color: 'var(--pri-ink-2)', flex: 1, minWidth: 220 }}>
+                {t('Rehber; kararınıza göre itici ve kısıtlayıcı kuvvet adayları ve zayıflatma önerileri hazırlayabilir.', 'The coach can draft driving and restraining force candidates with mitigation suggestions for your decision.')}
+                {foc && foc.status === 'error' ? <span style={{ color: 'var(--alert)' }}> {t('Taslak hazırlanamadı', 'Could not prepare the draft')}{foc.errMsg ? ' (' + foc.errMsg + ')' : ''}{t(' — tekrar deneyin.', ' — try again.')}</span> : null}
+              </div>
+              <HButton onClick={runForceCoach} style={{ flex: 'none', padding: '8px 14px', border: '1px solid var(--pri)', borderRadius: 8, background: 'var(--pri)', color: 'var(--on-pri)', font: '600 12px Helvetica,Arial,sans-serif', cursor: 'pointer' }} hover={S.primaryHover}>{t('Rehberden kuvvet taslağı al', 'Get a force draft from the coach')}</HButton>
+            </div>
+          ) : null}
+          {foc && foc.status === 'busy' ? (
+            <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}><Spinner /><div style={{ font: '600 12.5px Helvetica,Arial,sans-serif', color: 'var(--pri-ink)' }}>{t('İtici ve kısıtlayıcı kuvvetler çıkarılıyor…', 'Extracting driving and restraining forces…')}</div></div>
+          ) : null}
+          {foc && foc.status === 'done' ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <div style={{ font: '700 10.5px Helvetica,Arial,sans-serif', color: 'var(--pri-soft-ink)', letterSpacing: '.8px' }}>{t('REHBERİN KUVVET TASLAĞI — hipotezdir, ekiple doğrulayın', "COACH'S FORCE DRAFT — a hypothesis; validate with the team")}</div>
+              {foc.giris ? <div style={{ font: '12.5px/1.6 Helvetica,Arial,sans-serif', color: 'var(--pri-ink-2)' }}>{foc.giris}</div> : null}
+              <ul style={{ margin: 0, padding: '0 0 0 18px', display: 'flex', flexDirection: 'column', gap: 3 }}>
+                {(foc.itici || []).map((x, i) => <li key={'i' + i} style={{ font: '12px/1.5 Helvetica,Arial,sans-serif', color: 'var(--ok-ink)' }}>{t('İtici: ', 'Driving: ')}{x.text} ({x.strength}/5)</li>)}
+                {(foc.kisitlayici || []).map((x, i) => <li key={'k' + i} style={{ font: '12px/1.5 Helvetica,Arial,sans-serif', color: 'var(--warn-ink)' }}>{t('Kısıtlayıcı: ', 'Restraining: ')}{x.text} ({x.strength}/5){x.azaltma ? ' · ' + t('Zayıflatma: ', 'Mitigation: ') + x.azaltma : ''}</li>)}
+              </ul>
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                <HButton onClick={applyForceCoach} style={{ padding: '8px 14px', border: '1px solid var(--pri)', borderRadius: 8, background: 'var(--pri)', color: 'var(--on-pri)', font: '600 12px Helvetica,Arial,sans-serif', cursor: 'pointer' }} hover={S.primaryHover}>{t('Kuvvetleri listeye ekle', 'Add forces to the lists')}</HButton>
+                <HButton onClick={runForceCoach} style={S.ghostBtn} hover={S.ghostHover}>{t('Yeniden öner', 'Suggest again')}</HButton>
+                <HButton onClick={() => updC(cc => { delete cc.forceCoach; })} style={{ padding: '8px 14px', border: 'none', background: 'transparent', color: 'var(--muted)', font: '600 12px Helvetica,Arial,sans-serif', cursor: 'pointer' }} hover={{ color: 'var(--ink-3)' }}>{t('Kapat', 'Close')}</HButton>
+              </div>
+              {foc.applied ? <div style={{ font: '600 12px Helvetica,Arial,sans-serif', color: 'var(--ok-ink)' }}>{t('✓ Eklendi — aşağıdaki listelerden düzenleyebilirsiniz.', '✓ Added — edit in the lists below.')}</div> : null}
+            </div>
+          ) : null}
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: narrow ? '1fr' : '1fr 1fr', gap: 12 }}>
+          {[
+            { key: 'driving', title: t('İTİCİ KUVVETLER → değişimi destekler', 'DRIVING FORCES → support the change'), ink: 'var(--ok-ink)', border: 'var(--ok-border)', bar: 'var(--ok)' },
+            { key: 'restraining', title: t('← KISITLAYICI KUVVETLER direnç gösterir', '← RESTRAINING FORCES resist the change'), ink: 'var(--warn-ink)', border: 'var(--warn-border)', bar: 'var(--warn-ink)' }
+          ].map(colDef => {
+            const list = (c.forcefield || {})[colDef.key] || [];
+            const total = list.reduce((a, x) => a + (parseInt(x.strength, 10) || 0), 0);
+            return (
+              <div key={colDef.key} style={{ border: '1px solid ' + colDef.border, borderRadius: 8, padding: '10px 12px' }}>
+                <div style={{ display: 'flex', gap: 8, alignItems: 'baseline', margin: '0 0 8px' }}>
+                  <div style={{ flex: 1, font: '700 10.5px Helvetica,Arial,sans-serif', color: colDef.ink, letterSpacing: '.5px' }}>{colDef.title}</div>
+                  <div style={{ font: '700 12px Helvetica,Arial,sans-serif', color: colDef.ink }}>{t('Toplam: ', 'Total: ')}{total}</div>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {list.map((x, i) => (
+                    <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                      <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                        <input className="pcx-field-sm" value={x.text || ''} onChange={inp('forcefield', colDef.key, i, 'text')} placeholder={t('Kuvvet', 'Force')} style={{ ...S.inputSm, flex: 1 }} />
+                        <select value={x.strength || ''} onChange={inp('forcefield', colDef.key, i, 'strength')} aria-label={t('Güç (1-5)', 'Strength (1-5)')} style={{ ...S.select, width: 58, flex: 'none' }}>
+                          <option value="">—</option>{[1,2,3,4,5].map(v => <option key={v} value={String(v)}>{v}</option>)}
+                        </select>
+                        <RemoveButton onClick={() => removeC(t('kuvvet', 'force'), cc => cc.forcefield[colDef.key].splice(i, 1))} />
+                      </div>
+                      <div aria-hidden="true" style={{ height: 5, borderRadius: 3, background: 'var(--line-2)', overflow: 'hidden' }}>
+                        <div style={{ width: ((parseInt(x.strength, 10) || 0) * 20) + '%', height: '100%', background: colDef.bar, marginLeft: colDef.key === 'restraining' ? 'auto' : 0 }} />
+                      </div>
+                      {colDef.key === 'restraining' ? (
+                        <input className="pcx-field-sm" value={x.azaltma || ''} onChange={inp('forcefield', colDef.key, i, 'azaltma')} placeholder={t('Bu direnci nasıl zayıflatırsınız?', 'How would you weaken this resistance?')} style={{ ...S.inputSm, font: '11.5px/1.4 Helvetica,Arial,sans-serif' }} />
+                      ) : null}
+                    </div>
+                  ))}
+                </div>
+                <AddButton onClick={() => updC(cc => { cc.forcefield = cc.forcefield || { driving: [], restraining: [] }; cc.forcefield[colDef.key].push(colDef.key === 'restraining' ? { text: '', strength: '', azaltma: '' } : { text: '', strength: '' }); })} style={{ marginTop: 8 }}>{t('+ Kuvvet ekle', '+ Add force')}</AddButton>
+              </div>
+            );
+          })}
+        </div>
+        {(() => {
+          const d = ((c.forcefield || {}).driving || []).reduce((a, x) => a + (parseInt(x.strength, 10) || 0), 0);
+          const r = ((c.forcefield || {}).restraining || []).reduce((a, x) => a + (parseInt(x.strength, 10) || 0), 0);
+          if (!d && !r) return null;
+          return (
+            <div style={{ marginTop: 10, font: '12.5px/1.6 Helvetica,Arial,sans-serif', color: d > r ? 'var(--ok-ink)' : d < r ? 'var(--warn-ink)' : 'var(--ink-3)' }}>
+              {d > r
+                ? t('İtici kuvvetler önde (' + d + ' / ' + r + ') — yine de en güçlü direnci zayıflatmadan başlamayın.', 'Driving forces lead (' + d + ' vs ' + r + ') — still, do not start before weakening the strongest resistance.')
+                : d < r
+                  ? t('Kısıtlayıcı kuvvetler önde (' + r + ' / ' + d + ') — bu plan bu haliyle dirence çarpar; önce zayıflatma önlemlerini plana ekleyin.', 'Restraining forces lead (' + r + ' vs ' + d + ') — as is, this plan will hit resistance; add the mitigations to the plan first.')
+                  : t('Kuvvetler dengede (' + d + ' / ' + r + ') — küçük bir direnç artışı planı durdurabilir.', 'Forces are balanced (' + d + ' vs ' + r + ') — a small rise in resistance could stall the plan.')}
+            </div>
+          );
+        })()}
+      </AdvancedSection>
 
       {/* Aksiyon planı */}
       <Card>

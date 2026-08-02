@@ -8,7 +8,7 @@ import {
   complete, buildSystem, buildCoachTask, coachItems, parseJsonReply,
   COACH_JSON_RULE, COACH_TEACH_TASK, COACH_FAST_SUFFIX, COACH_DEPTH_SUFFIX, ACTION_COACH_TASK,
   DECISION_COACH_TASK, AUDIT_TASK, BIAS_SCAN_TASK, PREMORTEM_TASK, REPORT_SUMMARY_TASK, REF_SUMMARY_SYSTEM,
-  SPEC_COACH_TASK, CONTAINMENT_COACH_TASK, SIMILAR_CASES_TASK, MATRIX_COACH_TASK, TRACKING_COACH_TASK, TRACKING_PLAN_TASK, RETRO_COACH_TASK, EN_REPLY_RULE, buildHelpSystem, extractObjects, stripThinking
+  SPEC_COACH_TASK, CONTAINMENT_COACH_TASK, SIMILAR_CASES_TASK, FMEA_TASK, FORCE_FIELD_TASK, MATRIX_COACH_TASK, TRACKING_COACH_TASK, TRACKING_PLAN_TASK, RETRO_COACH_TASK, EN_REPLY_RULE, buildHelpSystem, extractObjects, stripThinking
 } from './ai.js';
 
 const Ctx = createContext(null);
@@ -40,7 +40,7 @@ function normalize(state) {
   s.helpOpen = false;
   s.helpBusy = false;
   s.reportCfg = Object.assign({ company: '', sections: {}, view: 'full' }, s.reportCfg || {});
-  if (s.reportCfg.view !== 'a3') s.reportCfg.view = 'full';
+  if (!['a3', 'map'].includes(s.reportCfg.view)) s.reportCfg.view = 'full';
   s.reportCfg.sections = Object.assign({ tanim: true, driver: true, analiz: true, bulgu: true, kok: true, karar: true, izleme: true, dusunme: true, referans: true, benzer: false }, s.reportCfg.sections);
   s.aiSettings = Object.assign({
     provider: 'auto', apiKey: '', model: '', baseUrl: '',
@@ -68,6 +68,9 @@ function normalize(state) {
     if (!cc.containment) cc.containment = { action: '', owner: '', until: '', removed: false };
     // Karar öncesi zihin kontrolü işaretleri — eski kayıtlar kayıpsız açılır.
     if (!cc.precheck) cc.precheck = { p1: false, p2: false, p3: false };
+    // FMEA ve kuvvet alanı — eski kayıtlar kayıpsız açılır.
+    if (!Array.isArray(cc.fmea)) cc.fmea = [];
+    if (!cc.forcefield) cc.forcefield = { driving: [], restraining: [] };
     // Yeni veri modeli (KPI yönü, kök neden doğrulama, izlenebilirlik) — eski kayıtlar kayıpsız taşınır.
     if (!cc.problem) cc.problem = { statement: '', geo: '', time: '', brand: '', kpiName: '', target: '', actual: '' };
     if (cc.problem.direction === undefined) cc.problem.direction = '';
@@ -797,6 +800,95 @@ export function StoreProvider({ children }) {
     })();
   }, [upd, effCase, callAi, systemFor]);
 
+  // FMEA taslağı (Adım 6) — önizlenir; satırlar tabloya eklenir (mevcutlar korunur).
+  const runFmeaCoach = useCallback(() => {
+    const s0 = stateRef.current;
+    const eff = effCase(s0);
+    if (s0.cases[eff].fmeaCoach && s0.cases[eff].fmeaCoach.status === 'busy') return;
+    upd(n => { n.cases[eff].fmeaCoach = { status: 'busy' }; });
+    (async () => {
+      const clamp10 = v => Math.max(1, Math.min(10, Math.round(parseFloat(v)))) || '';
+      const mapRows = arr => (Array.isArray(arr) ? arr : []).map(x => ({
+        mode: String(x.hataTuru || ''), effect: String(x.etki || ''), cause: String(x.neden || ''),
+        s: String(clamp10(x.siddet) || ''), o: String(clamp10(x.olasilik) || ''), d: String(clamp10(x.tespit) || ''),
+        onlem: String(x.onlem || '')
+      })).filter(x => x.mode);
+      let reply = '';
+      try {
+        const c = stateRef.current.cases[eff];
+        reply = await callAi({
+          max_tokens: 2400,
+          system: systemFor(6, c) + FMEA_TASK,
+          messages: [{ role: 'user', content: 'Kararım ve aksiyon planım için FMEA taslağını JSON olarak üret.' }]
+        });
+        const j = parseJsonReply(reply);
+        upd(n => { n.cases[eff].fmeaCoach = { status: 'done', giris: String(j.giris || ''), rows: mapRows(j.satirlar), sorular: Array.isArray(j.sorular) ? j.sorular.map(String) : [], applied: false }; });
+      } catch (e) {
+        const salvaged = mapRows(extractObjects(reply, 'hataTuru'));
+        if (salvaged.length) {
+          upd(n => { n.cases[eff].fmeaCoach = { status: 'done', giris: '', rows: salvaged, sorular: [], applied: false, truncated: true }; });
+        } else {
+          upd(n => { n.cases[eff].fmeaCoach = { status: 'error', errMsg: String((e && e.message) || e) }; });
+        }
+      }
+    })();
+  }, [upd, effCase, callAi, systemFor]);
+
+  // Taslak satırları tabloya ekler; aynı hata türü (küçük harf) varsa atlanır.
+  const applyFmeaCoach = useCallback(() => {
+    updC(cc => {
+      const fc = cc.fmeaCoach;
+      if (!fc || fc.status !== 'done') return;
+      cc.fmea = cc.fmea || [];
+      const seen = new Set(cc.fmea.map(r => (r.mode || '').trim().toLowerCase()));
+      (fc.rows || []).forEach(r => { if (!seen.has((r.mode || '').trim().toLowerCase())) cc.fmea.push({ ...r }); });
+      fc.applied = true;
+    });
+  }, [updC]);
+
+  // Kuvvet alanı taslağı (Adım 6) — önizlenir; kuvvetler listelere eklenir.
+  const runForceCoach = useCallback(() => {
+    const s0 = stateRef.current;
+    const eff = effCase(s0);
+    if (s0.cases[eff].forceCoach && s0.cases[eff].forceCoach.status === 'busy') return;
+    upd(n => { n.cases[eff].forceCoach = { status: 'busy' }; });
+    (async () => {
+      const clamp5 = v => Math.max(1, Math.min(5, Math.round(parseFloat(v)))) || 3;
+      try {
+        const c = stateRef.current.cases[eff];
+        const reply = await callAi({
+          max_tokens: 1600,
+          system: systemFor(6, c) + FORCE_FIELD_TASK,
+          messages: [{ role: 'user', content: 'Kararım için kuvvet alanı analizini JSON olarak üret.' }]
+        });
+        const j = parseJsonReply(reply);
+        upd(n => {
+          n.cases[eff].forceCoach = {
+            status: 'done', giris: String(j.giris || ''),
+            itici: (Array.isArray(j.itici) ? j.itici : []).map(x => ({ text: String(x.kuvvet || ''), strength: String(clamp5(x.guc)) })).filter(x => x.text),
+            kisitlayici: (Array.isArray(j.kisitlayici) ? j.kisitlayici : []).map(x => ({ text: String(x.kuvvet || ''), strength: String(clamp5(x.guc)), azaltma: String(x.azaltma || '') })).filter(x => x.text),
+            sorular: Array.isArray(j.sorular) ? j.sorular.map(String) : [], applied: false
+          };
+        });
+      } catch (e) {
+        upd(n => { n.cases[eff].forceCoach = { status: 'error', errMsg: String((e && e.message) || e) }; });
+      }
+    })();
+  }, [upd, effCase, callAi, systemFor]);
+
+  const applyForceCoach = useCallback(() => {
+    updC(cc => {
+      const fc = cc.forceCoach;
+      if (!fc || fc.status !== 'done') return;
+      cc.forcefield = cc.forcefield || { driving: [], restraining: [] };
+      const seenD = new Set(cc.forcefield.driving.map(x => (x.text || '').trim().toLowerCase()));
+      const seenR = new Set(cc.forcefield.restraining.map(x => (x.text || '').trim().toLowerCase()));
+      (fc.itici || []).forEach(x => { if (!seenD.has(x.text.trim().toLowerCase())) cc.forcefield.driving.push({ text: x.text, strength: x.strength }); });
+      (fc.kisitlayici || []).forEach(x => { if (!seenR.has(x.text.trim().toLowerCase())) cc.forcefield.restraining.push({ text: x.text, strength: x.strength, azaltma: x.azaltma || '' }); });
+      fc.applied = true;
+    });
+  }, [updC]);
+
   const runAudit = useCallback(() => {
     const s0 = stateRef.current;
     const eff = effCase(s0);
@@ -1073,9 +1165,9 @@ export function StoreProvider({ children }) {
     mainRef,
     upd, updC, setC, inp, goStep, toggleTheme, removeC, undoLast, canUndo,
     ensureCoach, runCoach, applyCoachItem, coachRefresh, coachMore,
-    runDecisionCoach, runActionCoach, runAudit, runBiasScan, runPremortem, runSimilarCases, runReportSummary, runSpecCoach, applySpecCoach, runContainmentCoach, applyContainment, runMatrixCoach, applyMatrixCoach, runTrackingCoach, applyTrackingPlan, runRetroCoach, applyRetroCoach,
+    runDecisionCoach, runActionCoach, runAudit, runBiasScan, runPremortem, runSimilarCases, runFmeaCoach, applyFmeaCoach, runForceCoach, applyForceCoach, runReportSummary, runSpecCoach, applySpecCoach, runContainmentCoach, applyContainment, runMatrixCoach, applyMatrixCoach, runTrackingCoach, applyTrackingPlan, runRetroCoach, applyRetroCoach,
     askAi, askHelp, fieldHelp, addReference
-  }), [state, eff, lang, t, setLang, upd, updC, setC, inp, goStep, toggleTheme, removeC, undoLast, canUndo, ensureCoach, runCoach, applyCoachItem, coachRefresh, coachMore, runDecisionCoach, runActionCoach, runAudit, runBiasScan, runPremortem, runSimilarCases, runReportSummary, runSpecCoach, applySpecCoach, runContainmentCoach, applyContainment, runMatrixCoach, applyMatrixCoach, runTrackingCoach, applyTrackingPlan, runRetroCoach, applyRetroCoach, askAi, askHelp, fieldHelp, addReference]);
+  }), [state, eff, lang, t, setLang, upd, updC, setC, inp, goStep, toggleTheme, removeC, undoLast, canUndo, ensureCoach, runCoach, applyCoachItem, coachRefresh, coachMore, runDecisionCoach, runActionCoach, runAudit, runBiasScan, runPremortem, runSimilarCases, runFmeaCoach, applyFmeaCoach, runForceCoach, applyForceCoach, runReportSummary, runSpecCoach, applySpecCoach, runContainmentCoach, applyContainment, runMatrixCoach, applyMatrixCoach, runTrackingCoach, applyTrackingPlan, runRetroCoach, applyRetroCoach, askAi, askHelp, fieldHelp, addReference]);
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

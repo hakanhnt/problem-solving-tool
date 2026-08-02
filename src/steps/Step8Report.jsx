@@ -3,6 +3,7 @@ import { useStore } from '../lib/store.jsx';
 import { buildShareHash } from '../lib/share.js';
 import ReportBody from '../components/ReportBody.jsx';
 import A3Body from '../components/A3Body.jsx';
+import CaseMap from '../components/CaseMap.jsx';
 import { HButton, Spinner, S } from '../ui/primitives.jsx';
 
 const SECTION_CHIPS = t => [
@@ -19,7 +20,7 @@ const SECTION_CHIPS = t => [
 ];
 
 export default function Step8Report() {
-  const { state, c, principles, upd, runReportSummary, runAudit, updC, t, lang } = useStore();
+  const { state, c, principles, upd, runReportSummary, runAudit, updC, t, lang, goStep } = useStore();
   const cfg = state.reportCfg;
   const [shareMsg, setShareMsg] = useState('');
 
@@ -126,12 +127,12 @@ export default function Step8Report() {
       <div data-noprint="1" style={{ display: 'flex', gap: 14, alignItems: 'center', flexWrap: 'wrap', background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 10, padding: '12px 16px', margin: '0 0 18px' }}>
         <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
           <div style={{ font: '700 10.5px Helvetica,Arial,sans-serif', color: 'var(--muted)', letterSpacing: '.6px', marginRight: 2 }}>{t('GÖRÜNÜM:', 'VIEW:')}</div>
-          {[['full', t('Tam rapor', 'Full report')], ['a3', t('A3 özeti', 'A3 summary')]].map(([k, lb]) => (
+          {[['full', t('Tam rapor', 'Full report')], ['a3', t('A3 özeti', 'A3 summary')], ['map', t('Vaka haritası', 'Case map')]].map(([k, lb]) => (
             <button
               key={k}
               onClick={() => upd(n => { n.reportCfg.view = k; })}
               aria-pressed={cfg.view === k}
-              title={k === 'a3' ? t('Tek sayfalık Toyota A3 düzeni — A3 yatay yazdırılır', 'One-page Toyota A3 layout — prints on A3 landscape') : t('Tüm bölümleriyle ayrıntılı rapor', 'Detailed report with all sections')}
+              title={k === 'a3' ? t('Tek sayfalık Toyota A3 düzeni — A3 yatay yazdırılır', 'One-page Toyota A3 layout — prints on A3 landscape') : k === 'map' ? t('Verilerinizden türetilen bağlantı grafiği — kopuk düğümleri gösterir', 'Connection graph derived from your data — shows disconnected nodes') : t('Tüm bölümleriyle ayrıntılı rapor', 'Detailed report with all sections')}
               style={{
                 padding: '6px 12px', borderRadius: 20,
                 border: '1px solid ' + (cfg.view === k ? 'var(--pri)' : 'var(--field-border)'),
@@ -158,7 +159,7 @@ export default function Step8Report() {
                 }}
               >{s.label}</button>
             );
-          }) : <span style={{ font: '11.5px/1.5 Helvetica,Arial,sans-serif', color: 'var(--muted)' }}>{t('A3 özeti sabit tek sayfa düzenidir; A3 yatay kâğıda yazdırın.', 'The A3 summary is a fixed one-page layout; print on A3 landscape paper.')}</span>}
+          }) : <span style={{ font: '11.5px/1.5 Helvetica,Arial,sans-serif', color: 'var(--muted)' }}>{cfg.view === 'a3' ? t('A3 özeti sabit tek sayfa düzenidir; A3 yatay kâğıda yazdırın.', 'The A3 summary is a fixed one-page layout; print on A3 landscape paper.') : t('Vaka haritası verilerinizden otomatik türetilir; düğüme tıklayınca ilgili adım açılır.', 'The case map is derived automatically from your data; click a node to open the related step.')}</span>}
         </div>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center', flex: 1, minWidth: 240 }}>
           <label style={{ flex: 'none', font: '600 11.5px Helvetica,Arial,sans-serif', color: 'var(--ink-3)' }}>{t('Şirket / birim:', 'Company / unit:')}</label>
@@ -176,6 +177,11 @@ export default function Step8Report() {
           {/* A3 yatay sayfa — yalnız A3 görünümü aktifken */}
           <style>{'@media print { @page { size: A3 landscape; margin: 10mm } }'}</style>
           <A3Body c={c} companyName={cfg.company} lang={lang} />
+        </>
+      ) : cfg.view === 'map' ? (
+        <>
+          <style>{'@media print { @page { size: A4 landscape; margin: 10mm } }'}</style>
+          <CaseMap c={c} lang={lang} onNavigate={goStep} />
         </>
       ) : (
         <ReportBody c={c} principles={principles} sections={cfg.sections} companyName={cfg.company} lang={lang} />
