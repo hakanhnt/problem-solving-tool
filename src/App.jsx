@@ -5,6 +5,7 @@ import SharedView from './components/SharedView.jsx';
 import { stepsFor } from './lib/defaults.js';
 import Sidebar from './components/Sidebar.jsx';
 import Dashboard from './components/Dashboard.jsx';
+import Landing from './components/Landing.jsx';
 import CoachPanel from './components/CoachPanel.jsx';
 import StepHeader from './components/StepHeader.jsx';
 import MindCheck from './components/MindCheck.jsx';
@@ -29,6 +30,9 @@ export default function App() {
   const { state, c, step, mainRef, goStep, undoLast, t, lang } = useStore();
   const STEPS = stepsFor(lang);
   const [shared, setShared] = useState(() => parseShareHash(location.hash));
+  const [introSeen, setIntroSeen] = useState(() => {
+    try { return localStorage.getItem('pcx_intro_v1') === '1'; } catch (e) { return true; }
+  });
   const narrow = useNarrow();
   const [drawer, setDrawer] = useState(false);
 
@@ -61,6 +65,15 @@ export default function App() {
         payload={shared}
         onExit={() => { history.replaceState(null, '', location.pathname); setShared(null); }}
       />
+    );
+  }
+
+  if (!introSeen) {
+    return (
+      <Landing onEnter={() => {
+        try { localStorage.setItem('pcx_intro_v1', '1'); } catch (e) { /* gizli mod */ }
+        setIntroSeen(true);
+      }} />
     );
   }
 

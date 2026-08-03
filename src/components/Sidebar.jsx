@@ -243,6 +243,11 @@ export default function Sidebar({ onNavigate }) {
           style={{ display: 'block', boxSizing: 'border-box', padding: '8px 10px', border: '1px solid var(--field-border)', borderRadius: 6, background: 'var(--surface)', color: 'var(--ink-3)', font: '600 12px Helvetica,Arial,sans-serif', textDecoration: 'none', textAlign: 'left' }}
           hover={{ background: 'var(--surface-4)' }}
         >📖 {t('Kullanım Rehberi', 'User Guide')}</HA>
+        <HButton
+          onClick={() => { try { localStorage.removeItem('pcx_intro_v1'); } catch (e) { /* gizli mod */ } location.reload(); }}
+          style={{ padding: '8px 10px', border: '1px solid var(--field-border)', borderRadius: 6, background: 'var(--surface)', color: 'var(--ink-3)', font: '600 12px Helvetica,Arial,sans-serif', cursor: 'pointer', textAlign: 'left' }}
+          hover={{ background: 'var(--surface-4)' }}
+        >{t('🏠 Tanıtım ekranı', '🏠 Intro screen')}</HButton>
         <div role="group" aria-label="Dil / Language" style={{ display: 'flex', gap: 0, border: '1px solid var(--field-border)', borderRadius: 6, overflow: 'hidden' }}>
           {[['tr', 'Türkçe'], ['en', 'English']].map(([k, lb]) => (
             <button
