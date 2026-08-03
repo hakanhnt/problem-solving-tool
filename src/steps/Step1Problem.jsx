@@ -50,12 +50,12 @@ export default function Step1Problem() {
 
   const addRefFile = () => {
     const el = document.createElement('input');
-    el.type = 'file'; el.accept = '.txt,.md,.pdf,.docx';
+    el.type = 'file'; el.accept = '.txt,.md,.csv,.pdf,.docx,.xlsx,.xls';
     el.onchange = async () => {
       const f = el.files && el.files[0];
       if (!f) return;
-      if (!/\.(txt|md|pdf|docx)$/i.test(f.name)) {
-        alert(t('.txt, .md, .pdf ve .docx destekleniyor — diğer türlerde metni kopyalayıp "Not ekle" ile yapıştırın.', '.txt, .md, .pdf and .docx are supported — for other types, copy the text and paste it via "Add note".'));
+      if (!/\.(txt|md|csv|pdf|docx|xlsx|xls)$/i.test(f.name)) {
+        alert(t('.txt, .md, .csv, .pdf, .docx ve .xlsx destekleniyor — diğer türlerde metni kopyalayıp "Not ekle" ile yapıştırın.', '.txt, .md, .csv, .pdf, .docx and .xlsx are supported — for other types, copy the text and paste it via "Add note".'));
         return;
       }
       setExtracting(f.name);
@@ -396,7 +396,7 @@ export default function Step1Problem() {
           {[
             { label: t('+ Not / alıntı', '+ Note / excerpt'), onClick: () => upd(n => { n.refForm = { type: 'not', title: '', url: '', text: '' }; }) },
             { label: t('+ Link', '+ Link'), onClick: () => upd(n => { n.refForm = { type: 'link', title: '', url: '', text: '' }; }) },
-            { label: t('+ Dosya (.txt / .md / .pdf / .docx)', '+ File (.txt / .md / .pdf / .docx)'), onClick: addRefFile }
+            { label: t('+ Dosya (.pdf / .docx / .xlsx / .csv / .txt)', '+ File (.pdf / .docx / .xlsx / .csv / .txt)'), onClick: addRefFile }
           ].map(b => (
             <HButton
               key={b.label} onClick={b.onClick}
