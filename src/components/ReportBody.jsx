@@ -525,6 +525,21 @@ export default function ReportBody({ c, principles, sections, companyName, summa
               </div>
             ) : null}
 
+            {(c.decision.redTeam || '').trim() ? (
+              <div style={{ marginTop: 10, background: 'var(--warn-soft)', border: '1px solid var(--warn-border)', borderRadius: 8, padding: '10px 13px' }}>
+                <div style={{ font: '600 11px Helvetica,Arial,sans-serif', color: 'var(--warn-ink)', letterSpacing: '.4px', margin: '0 0 4px' }}>{t('ŞEYTANIN AVUKATI — KARARA KARŞI EN GÜÇLÜ İTİRAZLAR', "DEVIL'S ADVOCATE — STRONGEST OBJECTIONS TO THE DECISION")}</div>
+                <div style={{ ...body, whiteSpace: 'pre-wrap' }}>{c.decision.redTeam}</div>
+                {(c.decision.redTeamReply || '').trim() ? (
+                  <div style={{ marginTop: 8, borderTop: '1px solid var(--warn-border)', paddingTop: 8 }}>
+                    <div style={{ font: '600 11px Helvetica,Arial,sans-serif', color: 'var(--ok-ink)', letterSpacing: '.4px', margin: '0 0 4px' }}>{t('İTİRAZLARA YANITIMIZ', 'OUR ANSWER TO THE OBJECTIONS')}</div>
+                    <div style={{ ...body, whiteSpace: 'pre-wrap' }}>{c.decision.redTeamReply}</div>
+                  </div>
+                ) : (
+                  <div style={{ marginTop: 6, font: '11.5px/1.5 Helvetica,Arial,sans-serif', color: 'var(--warn-ink)', fontStyle: 'italic' }}>{t('⚠ İtirazlar henüz yanıtlanmadı.', '⚠ The objections have not been answered yet.')}</div>
+                )}
+              </div>
+            ) : null}
+
             {pmItems.length ? (
               <div style={{ marginTop: 12 }}>
                 <div style={{ font: '600 11px Helvetica,Arial,sans-serif', color: 'var(--ink-3)', letterSpacing: '.4px', margin: '0 0 6px' }}>{t('PRE-MORTEM — ÖNGÖRÜLEN BAŞARISIZLIK SENARYOLARI', 'PRE-MORTEM — ANTICIPATED FAILURE SCENARIOS')}</div>

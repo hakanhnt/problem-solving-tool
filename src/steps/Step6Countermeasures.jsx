@@ -60,7 +60,7 @@ const PRIO_LABELS_EN = {
 };
 
 export default function Step6Countermeasures() {
-  const { c, updC, inp, fieldHelp, runDecisionCoach, runActionCoach, runPremortem, runSimilarCases, runFmeaCoach, applyFmeaCoach, runForceCoach, applyForceCoach, runContainmentCoach, applyContainment, runMatrixCoach, applyMatrixCoach, removeC, t, lang } = useStore();
+  const { c, updC, inp, fieldHelp, runDecisionCoach, runActionCoach, runPremortem, runRedTeam, applyRedTeam, runSimilarCases, runFmeaCoach, applyFmeaCoach, runForceCoach, applyForceCoach, runContainmentCoach, applyContainment, runMatrixCoach, applyMatrixCoach, removeC, t, lang } = useStore();
   const aiReady = (c.problem.statement || '').trim().length > 0;
   const M = decisionMatrix(c, lang);
   const prioLabel = l => t(l, PRIO_LABELS_EN[l] || l);
@@ -72,6 +72,7 @@ export default function Step6Countermeasures() {
   const ac = c.actionCoach;
   const acIdle = !ac || ac.status === 'idle' || ac.status === 'error';
   const pm = c.premortem;
+  const rt = c.redTeam;
   const simc = c.similarCases;
   const fmc = c.fmeaCoach;
   const foc = c.forceCoach;
@@ -703,6 +704,77 @@ export default function Step6Countermeasures() {
           style={{ ...S.textarea, minHeight: 60, height: 96 }}
         />
       </Card>
+
+      {/* Şeytanın avukatı — kararı en güçlü itirazlarla sına */}
+      {hasDecision ? (
+        <Card>
+          <div style={{ ...S.cardTitle, margin: '0 0 4px' }}>{t('Şeytanın Avukatı — Kararımı Çürüt', "Devil's Advocate — Refute My Decision")}</div>
+          <div style={S.cardSub}>{t('Kararı savunmak kolay; asıl test, en sert itiraza dayanıp dayanmadığı. İtirazları yanıtlamadan kararı kesinleştirmeyin.', 'Defending a decision is easy; the real test is whether it survives the harshest objection. Do not finalize the decision before answering the objections.')}</div>
+          <MethodBox margin="0 0 14px">{t('Tersine düşünme (inversion): rehber kasıtlı olarak karşı tarafa geçer ve kararınızı vaka verinizdeki boşluklara dayanarak çürütmeye çalışır. Ayakta kalan karar güçlenmiş karardır; ayakta kalamayan kararı uygulamadan öğrenmiş olursunuz.', 'Inversion: the coach deliberately switches sides and tries to refute your decision using the gaps in your case data. A decision that survives comes out stronger; one that does not, you learn about before implementing it.')}</MethodBox>
+
+          <div style={{ background: 'var(--pri-soft-2)', border: '1px solid var(--pri-border)', borderRadius: 8, padding: '12px 14px', margin: '0 0 12px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {!rt || rt.status === 'idle' || rt.status === 'error' ? (
+              <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
+                <div style={{ font: '12.5px/1.5 Helvetica,Arial,sans-serif', color: 'var(--pri-ink-2)', flex: 1, minWidth: 220 }}>
+                  {t('Rehber; zayıf kanıtlı kök nedenlere, matris duyarlılığına ve es geçilen noktalara dayanarak kararınıza karşı en güçlü 3-4 itirazı kurar.', 'The coach builds the 3-4 strongest objections to your decision from weakly-evidenced root causes, matrix sensitivity and overlooked points.')}
+                  {rt && rt.status === 'error' ? <span style={{ color: 'var(--alert)' }}> {t('İtirazlar üretilemedi', 'Could not generate the objections')}{rt.errMsg ? ' (' + rt.errMsg + ')' : ''}{t(' — tekrar deneyin.', ' — try again.')}</span> : null}
+                </div>
+                <HButton onClick={runRedTeam} style={{ flex: 'none', padding: '8px 14px', border: '1px solid var(--pri)', borderRadius: 8, background: 'var(--pri)', color: 'var(--on-pri)', font: '600 12px Helvetica,Arial,sans-serif', cursor: 'pointer' }} hover={{ background: 'var(--pri-hover)' }}>{t('⚔ Kararımı çürüt', '⚔ Refute my decision')}</HButton>
+              </div>
+            ) : null}
+            {rt && rt.status === 'busy' ? (
+              <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                <Spinner />
+                <div style={{ font: '600 12.5px Helvetica,Arial,sans-serif', color: 'var(--pri-ink)' }}>{t('Karşı taraf hazırlanıyor — kararınızdaki boşluklar aranıyor…', 'The opposition is preparing — searching for gaps in your decision…')}</div>
+              </div>
+            ) : null}
+            {rt && rt.status === 'done' ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                <div style={{ font: '700 10.5px Helvetica,Arial,sans-serif', color: 'var(--pri-soft-ink)', letterSpacing: '.8px' }}>
+                  {t('İTİRAZLAR — YZ kasıtlı olarak karşı taraftadır; haklı olup olmadığına siz karar verin', 'OBJECTIONS — the AI is deliberately on the opposing side; you judge whether it is right')}
+                  {rt.truncated ? t(' (yanıt kesildi — kurtarılan itirazlar)', ' (reply truncated — salvaged objections)') : ''}
+                </div>
+                {rt.items.map((it, i) => (
+                  <div key={i} style={{ background: 'var(--surface)', border: '1px solid ' + (i === rt.enKritik ? 'var(--alert-border)' : 'var(--pri-border-4)'), borderRadius: 8, padding: '10px 12px' }}>
+                    <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', margin: '0 0 3px' }}>
+                      {i === rt.enKritik ? <span style={{ flex: 'none', font: '700 9.5px Helvetica,Arial,sans-serif', letterSpacing: '.5px', color: 'var(--alert)', background: 'var(--alert-soft-2)', border: '1px solid var(--alert-border)', borderRadius: 4, padding: '2px 6px' }}>{t('⚑ EN KRİTİK', '⚑ MOST CRITICAL')}</span> : null}
+                      <span style={{ font: '700 12.5px/1.4 Helvetica,Arial,sans-serif', color: 'var(--ink)' }}>{it.baslik}</span>
+                    </div>
+                    <div style={{ font: '12px/1.55 Helvetica,Arial,sans-serif', color: 'var(--ink-3)' }}>{it.dayanak}</div>
+                    {(it.kanit || '').trim() ? <div style={{ font: '11.5px/1.5 Helvetica,Arial,sans-serif', color: 'var(--warn-ink)', marginTop: 3 }}>{t('Çürütmek için gereken kanıt: ', 'Evidence needed to refute: ')}{it.kanit}</div> : null}
+                  </div>
+                ))}
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                  <HButton
+                    onClick={applyRedTeam}
+                    disabled={rt.applied}
+                    style={{ padding: '8px 14px', border: '1px solid ' + (rt.applied ? 'var(--ok-border)' : 'var(--pri)'), borderRadius: 8, background: rt.applied ? 'var(--ok-soft)' : 'var(--pri)', color: rt.applied ? 'var(--ok)' : 'var(--on-pri)', font: '600 12px Helvetica,Arial,sans-serif', cursor: rt.applied ? 'default' : 'pointer' }}
+                    hover={rt.applied ? {} : { background: 'var(--pri-hover)' }}
+                  >{rt.applied ? t('Karara bağlandı ✓', 'Attached to the decision ✓') : t('İtirazları karara bağla', 'Attach objections to the decision')}</HButton>
+                  <HButton onClick={runRedTeam} style={S.ghostBtn} hover={S.ghostHover}>{t('Yeniden çürüt', 'Refute again')}</HButton>
+                  <HButton onClick={() => updC(cc => { delete cc.redTeam; })} style={{ padding: '8px 14px', border: 'none', background: 'transparent', color: 'var(--muted)', font: '600 12px Helvetica,Arial,sans-serif', cursor: 'pointer' }} hover={{ color: 'var(--ink-3)' }}>{t('Kapat', 'Close')}</HButton>
+                </div>
+              </div>
+            ) : null}
+          </div>
+
+          {(c.decision.redTeam || '').trim() ? (
+            <div>
+              <div style={{ background: 'var(--surface-2)', border: '1px solid var(--line-2)', borderRadius: 8, padding: '10px 13px', margin: '0 0 12px' }}>
+                <div style={{ font: '700 10.5px Helvetica,Arial,sans-serif', color: 'var(--muted)', letterSpacing: '.5px', margin: '0 0 4px' }}>{t('KARARA BAĞLANAN İTİRAZLAR', 'OBJECTIONS ATTACHED TO THE DECISION')}</div>
+                <div style={{ font: '12px/1.55 Helvetica,Arial,sans-serif', color: 'var(--ink-3)', whiteSpace: 'pre-wrap' }}>{c.decision.redTeam}</div>
+              </div>
+              <label style={S.label}>{t('İtirazlara yanıtımız', 'Our answer to the objections')}</label>
+              <div style={{ font: '11.5px/1.5 Helvetica,Arial,sans-serif', color: 'var(--muted)', margin: '0 0 6px' }}>{t('Her itiraza tek tek yanıt verin: haklıysa kararı/planı güncelleyin ve ne değiştirdiğinizi yazın; haksızsa hangi kanıtla çürüttüğünüzü yazın. Yanıt ve itirazlar rapora birlikte girer.', 'Answer each objection one by one: if it is right, update the decision/plan and note what you changed; if not, note the evidence that refutes it. The objections and your answer go into the report together.')}</div>
+              <textarea
+                className="pcx-field" value={c.decision.redTeamReply || ''} onChange={inp('decision', 'redTeamReply')}
+                placeholder={t('İlk itiraz haklı — plana X eklendi. İkinci itiraz Y verisiyle çürütüldü…', 'The first objection is right — X was added to the plan. The second was refuted with data Y…')}
+                style={{ ...S.textarea, minHeight: 70, height: 120 }}
+              />
+            </div>
+          ) : null}
+        </Card>
+      ) : null}
 
       {/* Pre-mortem (Klein) */}
       {hasDecision ? (

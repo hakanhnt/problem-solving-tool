@@ -7,7 +7,7 @@ import { mkT } from './i18n.js';
 import {
   complete, buildSystem, buildCoachTask, coachItems, parseJsonReply,
   COACH_JSON_RULE, COACH_TEACH_TASK, COACH_FAST_SUFFIX, COACH_DEPTH_SUFFIX, ACTION_COACH_TASK,
-  DECISION_COACH_TASK, AUDIT_TASK, BIAS_SCAN_TASK, PREMORTEM_TASK, REPORT_SUMMARY_TASK, REF_SUMMARY_SYSTEM,
+  DECISION_COACH_TASK, AUDIT_TASK, BIAS_SCAN_TASK, PREMORTEM_TASK, RED_TEAM_TASK, REPORT_SUMMARY_TASK, REF_SUMMARY_SYSTEM,
   SPEC_COACH_TASK, CONTAINMENT_COACH_TASK, SIMILAR_CASES_TASK, FMEA_TASK, FORCE_FIELD_TASK, MATRIX_COACH_TASK, TRACKING_COACH_TASK, TRACKING_PLAN_TASK, RETRO_COACH_TASK, EN_REPLY_RULE, buildHelpSystem, extractObjects, stripThinking
 } from './ai.js';
 
@@ -77,6 +77,8 @@ function normalize(state) {
     // İkinci basamak düşünme, dış görünüm ve tetik çizgileri — eski kayıtlar kayıpsız açılır.
     if (cc.decision && cc.decision.secondOrder === undefined) cc.decision.secondOrder = '';
     if (cc.decision && cc.decision.outsideView === undefined) cc.decision.outsideView = '';
+    if (cc.decision && cc.decision.redTeam === undefined) cc.decision.redTeam = '';
+    if (cc.decision && cc.decision.redTeamReply === undefined) cc.decision.redTeamReply = '';
     if (!Array.isArray(cc.tripwires)) cc.tripwires = [];
     // FMEA ve kuvvet alanı — eski kayıtlar kayıpsız açılır.
     if (!Array.isArray(cc.fmea)) cc.fmea = [];
@@ -775,6 +777,49 @@ export function StoreProvider({ children }) {
     })();
   }, [upd, effCase, callAi, systemFor]);
 
+  // Şeytanın avukatı (Adım 6): kararı en güçlü itirazlarla sınar; itirazlar karara bağlanıp yanıtlanır.
+  const runRedTeam = useCallback(() => {
+    const s0 = stateRef.current;
+    const eff = effCase(s0);
+    if (s0.cases[eff].redTeam && s0.cases[eff].redTeam.status === 'busy') return;
+    upd(n => { n.cases[eff].redTeam = { status: 'busy', items: [], enKritik: 0 }; });
+    (async () => {
+      const mapItems = arr => (Array.isArray(arr) ? arr : []).map(x => ({
+        baslik: String(x.baslik || ''), dayanak: String(x.dayanak || ''), kanit: String(x.gerekenKanit || '')
+      })).filter(x => x.baslik || x.dayanak);
+      let reply = '';
+      try {
+        const c = stateRef.current.cases[eff];
+        reply = await callAi({
+          max_tokens: 2600,
+          system: systemFor(6, c) + RED_TEAM_TASK,
+          messages: [{ role: 'user', content: 'Kararımı olabildiğince güçlü biçimde çürüt; itirazlarını JSON olarak üret.' }]
+        });
+        const j = parseJsonReply(reply);
+        upd(n => { n.cases[eff].redTeam = { status: 'done', items: mapItems(j.itirazlar), enKritik: parseInt(j.enKritik, 10) || 0, applied: false }; });
+      } catch (e) {
+        const salvaged = mapItems(extractObjects(reply, 'baslik'));
+        if (salvaged.length) {
+          upd(n => { n.cases[eff].redTeam = { status: 'done', items: salvaged, enKritik: 0, truncated: true, applied: false }; });
+        } else {
+          upd(n => { n.cases[eff].redTeam = { status: 'error', items: [], enKritik: 0, errMsg: String((e && e.message) || e) }; });
+        }
+      }
+    })();
+  }, [upd, effCase, callAi, systemFor]);
+
+  const applyRedTeam = useCallback(() => {
+    upd(n => {
+      const cc = n.cases[effCase(n)];
+      const rt = cc.redTeam;
+      if (!rt || rt.status !== 'done' || !rt.items.length) return;
+      cc.decision.redTeam = rt.items.map((it, i) =>
+        (i === rt.enKritik ? '⚑ ' : '') + it.baslik + ': ' + it.dayanak + (it.kanit ? (n.lang === 'en' ? ' Evidence needed: ' : ' Gereken kanıt: ') + it.kanit : '')
+      ).join('\n\n');
+      rt.applied = true;
+    });
+  }, [upd, effCase]);
+
   // Benzer vaka sentezi (Adım 6) — kaynak gösterilmez; her kart 'YZ sentezi' etiketiyle gelir.
   const runSimilarCases = useCallback(() => {
     const s0 = stateRef.current;
@@ -1180,9 +1225,9 @@ export function StoreProvider({ children }) {
     mainRef,
     upd, updC, setC, inp, goStep, toggleTheme, removeC, undoLast, canUndo,
     ensureCoach, runCoach, applyCoachItem, coachRefresh, coachMore,
-    runDecisionCoach, runActionCoach, runAudit, runBiasScan, runPremortem, runSimilarCases, runFmeaCoach, applyFmeaCoach, runForceCoach, applyForceCoach, runReportSummary, runSpecCoach, applySpecCoach, runContainmentCoach, applyContainment, runMatrixCoach, applyMatrixCoach, runTrackingCoach, applyTrackingPlan, runRetroCoach, applyRetroCoach,
+    runDecisionCoach, runActionCoach, runAudit, runBiasScan, runPremortem, runRedTeam, applyRedTeam, runSimilarCases, runFmeaCoach, applyFmeaCoach, runForceCoach, applyForceCoach, runReportSummary, runSpecCoach, applySpecCoach, runContainmentCoach, applyContainment, runMatrixCoach, applyMatrixCoach, runTrackingCoach, applyTrackingPlan, runRetroCoach, applyRetroCoach,
     askAi, askHelp, fieldHelp, addReference, refreshRefSummary
-  }), [state, eff, lang, t, setLang, upd, updC, setC, inp, goStep, toggleTheme, removeC, undoLast, canUndo, ensureCoach, runCoach, applyCoachItem, coachRefresh, coachMore, runDecisionCoach, runActionCoach, runAudit, runBiasScan, runPremortem, runSimilarCases, runFmeaCoach, applyFmeaCoach, runForceCoach, applyForceCoach, runReportSummary, runSpecCoach, applySpecCoach, runContainmentCoach, applyContainment, runMatrixCoach, applyMatrixCoach, runTrackingCoach, applyTrackingPlan, runRetroCoach, applyRetroCoach, askAi, askHelp, fieldHelp, addReference, refreshRefSummary]);
+  }), [state, eff, lang, t, setLang, upd, updC, setC, inp, goStep, toggleTheme, removeC, undoLast, canUndo, ensureCoach, runCoach, applyCoachItem, coachRefresh, coachMore, runDecisionCoach, runActionCoach, runAudit, runBiasScan, runPremortem, runRedTeam, applyRedTeam, runSimilarCases, runFmeaCoach, applyFmeaCoach, runForceCoach, applyForceCoach, runReportSummary, runSpecCoach, applySpecCoach, runContainmentCoach, applyContainment, runMatrixCoach, applyMatrixCoach, runTrackingCoach, applyTrackingPlan, runRetroCoach, applyRetroCoach, askAi, askHelp, fieldHelp, addReference, refreshRefSummary]);
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

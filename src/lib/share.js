@@ -28,6 +28,7 @@ function sanitizeCase(c) {
   delete out.actionCoach;
   delete out.audit;
   delete out.premortem;
+  delete out.redTeam;
   if (out.report && out.report.status !== 'done') delete out.report;
   if (out.biasScan && out.biasScan.status !== 'done') delete out.biasScan;
   // Referansların ham metni/özeti linki şişirir; raporda yalnız başlık/URL görünür.
