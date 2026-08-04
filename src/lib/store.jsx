@@ -1077,6 +1077,11 @@ export function StoreProvider({ children }) {
     })();
   }, [callAi, setRefField]);
 
+  // Düzenleme sonrası özet yenileme: metin değişip özet silindiyse yeniden üretir.
+  const refreshRefSummary = useCallback(id => {
+    maybeSummarizeRef(effCase(stateRef.current), id);
+  }, [maybeSummarizeRef, effCase]);
+
   const addReference = useCallback(ref => {
     const eff = effCase(stateRef.current);
     const r = { ...ref, id: 'r' + Date.now(), addedAt: new Date().toISOString() };
@@ -1172,8 +1177,8 @@ export function StoreProvider({ children }) {
     upd, updC, setC, inp, goStep, toggleTheme, removeC, undoLast, canUndo,
     ensureCoach, runCoach, applyCoachItem, coachRefresh, coachMore,
     runDecisionCoach, runActionCoach, runAudit, runBiasScan, runPremortem, runSimilarCases, runFmeaCoach, applyFmeaCoach, runForceCoach, applyForceCoach, runReportSummary, runSpecCoach, applySpecCoach, runContainmentCoach, applyContainment, runMatrixCoach, applyMatrixCoach, runTrackingCoach, applyTrackingPlan, runRetroCoach, applyRetroCoach,
-    askAi, askHelp, fieldHelp, addReference
-  }), [state, eff, lang, t, setLang, upd, updC, setC, inp, goStep, toggleTheme, removeC, undoLast, canUndo, ensureCoach, runCoach, applyCoachItem, coachRefresh, coachMore, runDecisionCoach, runActionCoach, runAudit, runBiasScan, runPremortem, runSimilarCases, runFmeaCoach, applyFmeaCoach, runForceCoach, applyForceCoach, runReportSummary, runSpecCoach, applySpecCoach, runContainmentCoach, applyContainment, runMatrixCoach, applyMatrixCoach, runTrackingCoach, applyTrackingPlan, runRetroCoach, applyRetroCoach, askAi, askHelp, fieldHelp, addReference]);
+    askAi, askHelp, fieldHelp, addReference, refreshRefSummary
+  }), [state, eff, lang, t, setLang, upd, updC, setC, inp, goStep, toggleTheme, removeC, undoLast, canUndo, ensureCoach, runCoach, applyCoachItem, coachRefresh, coachMore, runDecisionCoach, runActionCoach, runAudit, runBiasScan, runPremortem, runSimilarCases, runFmeaCoach, applyFmeaCoach, runForceCoach, applyForceCoach, runReportSummary, runSpecCoach, applySpecCoach, runContainmentCoach, applyContainment, runMatrixCoach, applyMatrixCoach, runTrackingCoach, applyTrackingPlan, runRetroCoach, applyRetroCoach, askAi, askHelp, fieldHelp, addReference, refreshRefSummary]);
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

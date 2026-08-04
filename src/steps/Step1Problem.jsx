@@ -22,7 +22,8 @@ const questionsFor = t => [
 ];
 
 export default function Step1Problem() {
-  const { state, c, upd, updC, inp, fieldHelp, addReference, removeC, runSpecCoach, applySpecCoach, t, lang } = useStore();
+  const { state, c, upd, updC, inp, fieldHelp, addReference, refreshRefSummary, removeC, runSpecCoach, applySpecCoach, t, lang } = useStore();
+  const [openRefId, setOpenRefId] = React.useState(null);
   const p = c.problem;
   const sc = c.specCoach;
   const aiReady = (p.statement || '').trim().length > 0;
@@ -338,17 +339,85 @@ export default function Step1Problem() {
                 r.url || ''
               ].filter(Boolean).join(' · ');
               const typeLabel = { not: t('NOT', 'NOTE'), link: 'LINK', dosya: t('DOSYA', 'FILE') }[r.type || 'not'] || (r.type || 'not').toUpperCase();
+              const isOpen = openRefId === (r.id || i);
+              const setField = (k, v) => updC(cc => {
+                const x = (cc.references || [])[i];
+                if (!x) return;
+                x[k] = v;
+                // Metin değişti: eski YZ özeti artık içerikle uyuşmaz — silinir, kapatınca yeniden üretilir.
+                if (k === 'text') { x.summary = ''; x.fetchFailed = false; }
+              });
+              const closeEditor = () => { setOpenRefId(null); if (r.id) refreshRefSummary(r.id); };
               return (
-                <div key={r.id || i} style={{ display: 'flex', gap: 10, alignItems: 'flex-start', border: '1px solid var(--line-2)', borderRadius: 8, padding: '10px 12px', background: 'var(--surface-2)' }}>
-                  <div style={{ flex: 'none', background: 'var(--pri)', color: 'var(--on-pri)', borderRadius: 5, font: '700 10px/1 Helvetica,Arial,sans-serif', padding: '4px 7px', marginTop: 2 }}>R{i + 1}</div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-                      <span style={{ flex: 'none', font: '700 9.5px Helvetica,Arial,sans-serif', letterSpacing: '.6px', color: 'var(--pri-soft-ink)', background: 'var(--tag-bg)', borderRadius: 4, padding: '3px 6px' }}>{typeLabel}</span>
-                      <span style={{ font: '600 13px/1.4 Helvetica,Arial,sans-serif', color: 'var(--ink)', overflowWrap: 'anywhere' }}>{r.title || r.url || t('Referans', 'Reference')}</span>
+                <div key={r.id || i} style={{ border: '1px solid ' + (isOpen ? 'var(--pri-border-4)' : 'var(--line-2)'), borderRadius: 8, background: 'var(--surface-2)' }}>
+                  <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', padding: '10px 12px' }}>
+                    <div style={{ flex: 'none', background: 'var(--pri)', color: 'var(--on-pri)', borderRadius: 5, font: '700 10px/1 Helvetica,Arial,sans-serif', padding: '4px 7px', marginTop: 2 }}>R{i + 1}</div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+                        <span style={{ flex: 'none', font: '700 9.5px Helvetica,Arial,sans-serif', letterSpacing: '.6px', color: 'var(--pri-soft-ink)', background: 'var(--tag-bg)', borderRadius: 4, padding: '3px 6px' }}>{typeLabel}</span>
+                        <span style={{ font: '600 13px/1.4 Helvetica,Arial,sans-serif', color: 'var(--ink)', overflowWrap: 'anywhere' }}>{r.title || r.url || t('Referans', 'Reference')}</span>
+                      </div>
+                      <div style={{ font: '11.5px/1.5 Helvetica,Arial,sans-serif', color: 'var(--muted)', marginTop: 3, overflowWrap: 'anywhere' }}>{meta}</div>
                     </div>
-                    <div style={{ font: '11.5px/1.5 Helvetica,Arial,sans-serif', color: 'var(--muted)', marginTop: 3, overflowWrap: 'anywhere' }}>{meta}</div>
+                    <HButton
+                      onClick={() => (isOpen ? closeEditor() : setOpenRefId(r.id || i))}
+                      aria-expanded={isOpen}
+                      aria-label={t((isOpen ? 'Referans düzenleyiciyi kapat: ' : 'Referansı görüntüle ve düzenle: ') + (r.title || 'R' + (i + 1)), (isOpen ? 'Close the reference editor: ' : 'View and edit the reference: ') + (r.title || 'R' + (i + 1)))}
+                      style={{ flex: 'none', padding: '5px 10px', border: '1px solid var(--field-border)', borderRadius: 6, background: 'var(--surface)', color: isOpen ? 'var(--pri)' : 'var(--ink-3)', font: '600 11.5px Helvetica,Arial,sans-serif', cursor: 'pointer' }}
+                      hover={{ background: 'var(--surface-4)' }}
+                    >{isOpen ? t('Kapat ▲', 'Close ▲') : t('✎ Aç', '✎ Open')}</HButton>
+                    <RemoveButton onClick={() => { if (isOpen) setOpenRefId(null); removeC(t('referans', 'reference'), cc => cc.references.splice(i, 1)); }} />
                   </div>
-                  <RemoveButton onClick={() => removeC(t('referans', 'reference'), cc => cc.references.splice(i, 1))} />
+
+                  {isOpen ? (
+                    <div style={{ borderTop: '1px solid var(--line-2)', padding: '11px 12px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+                      <label style={{ display: 'block' }}>
+                        <span style={{ display: 'block', font: '600 11px Helvetica,Arial,sans-serif', color: 'var(--muted)', margin: '0 0 3px' }}>{t('Başlık', 'Title')}</span>
+                        <input
+                          className="pcx-field-sm" value={r.title || ''}
+                          onChange={e => setField('title', e.target.value)}
+                          style={{ width: '100%', boxSizing: 'border-box', padding: '8px 11px', border: '1px solid var(--field-border)', borderRadius: 6, font: '13px/1.4 Helvetica,Arial,sans-serif', color: 'var(--ink)', background: 'var(--surface)', outline: 'none' }}
+                        />
+                      </label>
+                      {r.type === 'link' ? (
+                        <label style={{ display: 'block' }}>
+                          <span style={{ display: 'block', font: '600 11px Helvetica,Arial,sans-serif', color: 'var(--muted)', margin: '0 0 3px' }}>URL</span>
+                          <input
+                            className="pcx-field-sm" value={r.url || ''}
+                            onChange={e => setField('url', e.target.value)}
+                            style={{ width: '100%', boxSizing: 'border-box', padding: '8px 11px', border: '1px solid var(--field-border)', borderRadius: 6, font: '13px/1.4 Helvetica,Arial,sans-serif', color: 'var(--ink)', background: 'var(--surface)', outline: 'none' }}
+                          />
+                        </label>
+                      ) : null}
+                      <label style={{ display: 'block' }}>
+                        <span style={{ display: 'block', font: '600 11px Helvetica,Arial,sans-serif', color: 'var(--muted)', margin: '0 0 3px' }}>
+                          {r.type === 'dosya' ? t('Dosyadan çıkarılan metin — ilgisiz bölümleri silebilirsiniz', 'Text extracted from the file — you can delete irrelevant parts') : r.type === 'link' ? t('Linkten alınan içerik', 'Content fetched from the link') : t('Not metni', 'Note text')}
+                          {' · '}{(r.text || '').length}{t(' karakter', ' characters')}
+                        </span>
+                        <textarea
+                          className="pcx-field-sm" value={r.text || ''}
+                          onChange={e => setField('text', e.target.value)}
+                          placeholder={t('Referans metni…', 'Reference text…')}
+                          style={{ width: '100%', boxSizing: 'border-box', padding: '8px 11px', border: '1px solid var(--field-border)', borderRadius: 6, font: '12.5px/1.5 Helvetica,Arial,sans-serif', color: 'var(--ink)', background: 'var(--surface)', outline: 'none', resize: 'vertical', minHeight: 130, maxHeight: 340 }}
+                        />
+                      </label>
+                      {(r.summary || '').trim() ? (
+                        <div style={{ background: 'var(--pri-soft-2)', border: '1px solid var(--pri-border-4)', borderRadius: 7, padding: '8px 11px' }}>
+                          <div style={{ font: '700 10px Helvetica,Arial,sans-serif', color: 'var(--pri-soft-ink)', letterSpacing: '.5px', margin: '0 0 3px' }}>{t('YZ ÖZETİ (rehbere bu gider)', 'AI SUMMARY (this is what the coach uses)')}</div>
+                          <div style={{ font: '11.5px/1.55 Helvetica,Arial,sans-serif', color: 'var(--ink-3)', whiteSpace: 'pre-wrap' }}>{r.summary}</div>
+                        </div>
+                      ) : null}
+                      <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+                        <HButton
+                          onClick={closeEditor}
+                          aria-label={t('Referans düzenlemeyi bitir', 'Finish editing the reference')}
+                          style={{ flex: 'none', padding: '7px 13px', border: '1px solid var(--pri)', borderRadius: 7, background: 'var(--pri)', color: 'var(--on-pri)', font: '600 12px Helvetica,Arial,sans-serif', cursor: 'pointer' }}
+                          hover={{ background: 'var(--pri-hover)' }}
+                        >{t('Tamam', 'Done')}</HButton>
+                        <span style={{ font: '11px/1.5 Helvetica,Arial,sans-serif', color: 'var(--muted)' }}>{t('Değişiklikler anında kaydedilir; uzun metinlerde YZ özeti kapatınca yeniden üretilir.', 'Changes are saved instantly; for long texts the AI summary is regenerated on close.')}</span>
+                      </div>
+                    </div>
+                  ) : null}
                 </div>
               );
             })}
