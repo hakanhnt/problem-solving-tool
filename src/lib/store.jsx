@@ -2,7 +2,7 @@
 // Veri şeması prototiple aynıdır: localStorage anahtarı `pcx_workbook_v1`.
 
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
-import { STORAGE_KEY, STEPS, stepsFor, blankCase, exampleCase, defaultPrinciples } from './defaults.js';
+import { STORAGE_KEY, STEPS, stepsFor, blankCase, exampleCase, exampleCase2, defaultPrinciples } from './defaults.js';
 import { mkT } from './i18n.js';
 import {
   complete, buildSystem, buildCoachTask, coachItems, parseJsonReply,
@@ -56,9 +56,11 @@ function normalize(state) {
     s.theme = prefersDark ? 'dark' : 'light';
   }
   if (!Array.isArray(s.principles) || !s.principles.length) s.principles = defaultPrinciples(s.lang);
+  // İkinci örnek vaka (GDA stok uyumu) — mevcut kayıtlara migrasyonla eklenir.
+  if (!s.cases.ornek2) s.cases.ornek2 = exampleCase2();
   Object.keys(s.cases).forEach(k => {
     const cc = s.cases[k];
-    if (!cc.name) cc.name = k === 'ornek' ? 'Örnek Çalışma' : (k === 'benim' ? 'Benim Çalışmam' : 'Çalışma');
+    if (!cc.name) cc.name = k === 'ornek' ? 'Örnek Çalışma' : (k === 'ornek2' ? 'Örnek Çalışma 2 — GDA Stok Uyumu' : (k === 'benim' ? 'Benim Çalışmam' : 'Çalışma'));
     if (!Array.isArray(cc.actions)) cc.actions = [];
     if (!Array.isArray(cc.tracking)) cc.tracking = [];
     if (!Array.isArray(cc.references)) cc.references = [];
@@ -159,7 +161,7 @@ export function StoreProvider({ children }) {
   const effCase = useCallback(s => {
     const keys = Object.keys(s.cases);
     let k = s.activeCase;
-    if (!s.cases[k]) k = keys.find(x => x !== 'ornek') || keys[0];
+    if (!s.cases[k]) k = keys.find(x => x !== 'ornek' && x !== 'ornek2') || keys[0];
     return k;
   }, []);
 

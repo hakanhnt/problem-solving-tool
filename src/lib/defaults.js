@@ -368,6 +368,211 @@ function exampleCaseEn() {
   };
 }
 
+
+/** İkinci örnek vaka: antrepo GDA stok uyum problemi (gerçek bir doğrulama
+ * setinden damıtılmıştır; kişi adları rollerle, kuruma özgü sistem adları
+ * jenerik karşılıklarıyla değiştirilmiştir). */
+export function exampleCase2() {
+  return {
+    name: 'Örnek Çalışma 2 — GDA Stok Uyumu',
+    problem: {
+      statement: "Antrepo operasyonlarında GDA (gümrük denetimindeki alan) stok uyumu hedefi sıfır uyumsuzluk olmasına rağmen, WMS geçişi sonrasında aylık ortalama 1.850 adet üründe beyanname-stok uyumsuzluğu (GDA fazlası/eksiği) tespit edilmektedir. Uyumsuzluklar gümrük uyum riski doğurmakta; tek bir barkodun analizi 45 dakika sürmekte ve düzeltme çalışmaları operasyonu yavaşlatmaktadır.",
+      geo: "İki antrepo tesisi (A ve B); en yüksek yoğunluk çift WMS kullanılan A tesisinde",
+      time: "WMS (Faz-2) geçişinden bu yana — 2026 Q1–Q3",
+      brand: "Çoklu beyannameli ve asortili ürünlerde yoğun; açık adet ürünlerde seyrek",
+      kpiName: "GDA uyumsuz stok (adet/ay)", target: "0", actual: "1850",
+      direction: "dusuk", unit: "adet", targetHigh: ""
+    },
+    drivers: [
+      { name: "Depo operasyon yürütmesi (toplama, adresleme, sorter)", note: "Operatör hataları, statü takibi ve istisna ürün yönetimi; antrepo yönetimi ile yürür." },
+      { name: "WMS ve entegrasyon mimarisi", note: "Çift WMS yapısı, GDA sayacı, entegrasyon job'ları ve izleme/alarm mekanizmaları; IT ile yürür." },
+      { name: "İthalat / gümrük süreci", note: "Dosya-beyanname ilişkisi, sevk onayı, redrese ve Tareks statüleri; ithalat ekibi ve YGM ile yürür." },
+      { name: "Üretici / tedarik kalitesi", note: "Koli içi iç barkod ve asorti doğruluğu, menşei ülke kontrolleri; tedarik zinciri ile yürür." },
+      { name: "Organizasyon ve yönetişim", note: "Süreç/domain sahipliği, kadrolar (takım lideri, eğitmen), önceliklendirme; üst yönetim ile yürür." }
+    ],
+    driverAnalysis: [
+      { driver: "WMS ve entegrasyon", component: "Çift WMS arasındaki senkronizasyon job'ları", issue: "Job'lar zaman zaman (2 günde bir) çalışmıyor; izleme ve alarm olmadığından adres stoğu sistemsel çoğalıyor." },
+      { driver: "Depo operasyonu", component: "El terminali toplama kontrolü", issue: "GDA'sı sıfırlanan/rezervesi olmaması gereken ürünler terminalde görünmüyor; sistem toplamaya izin veriyor." },
+      { driver: "İthalat / gümrük", component: "Dosya-beyanname ilişkilendirme", issue: "Sistem dosya adedinden fazla adede ilişki kurmaya izin veriyor; GDA kalan adedi ekranda görünmüyor." },
+      { driver: "Üretici / tedarik", component: "Koli içi iç barkod doğruluğu", issue: "Asorti barkodu doğru, koli içi iç barkodlar hatalı gelebiliyor; menşei ülkede doğrulama sistemi yok." }
+    ],
+    sipoc: [
+      { s: "Üretici", i: "Koliler, asorti/iç barkodlar, çeki listesi", p: "Yükleme ve menşei ülke çıkış kontrolü", o: "Doğru barkodlu, beyana uygun koli", c: "Antrepo ürün kabul" },
+      { s: "İthalat ekibi / YGM", i: "Beyanname, dosya, GDA sayacı", p: "Dosya-beyanname ilişkilendirme ve sevk onayı", o: "GDA'ya uygun sevk kararı", c: "Depo operasyonu / müşteri" },
+      { s: "IT / entegrasyon", i: "WMS-gümrük sistemi hareket verisi", p: "Sayaç ve stok senkronizasyonu", o: "Tutarlı envanter-beyanname kaydı", c: "Operasyon, uyum ve stok ekipleri" }
+    ],
+    findings: [
+      { text: "Operatör kaynaklı toplama/adresleme hataları (fazla/eksik/yanlış ürün) aylık ~620 adet uyumsuzluk üretiyor.", evidence: "Aylık hata kayıtları + sorter reject verisi, son 3 ay", share: "620" },
+      { text: "Çift WMS entegrasyon job'larının izlenmeden durması aylık ~430 adet sistemsel stok çoğalması/uyuşmazlığı yaratıyor.", evidence: "Entegrasyon hata logları ve stok mutabakat kayıtları", share: "430" },
+      { text: "Çoklu beyannameli ürünlerde hatalı dosya-beyanname eşleştirmesi aylık ~380 adet GDA fazlası oluşturuyor.", evidence: "GDA raporu ile beyanname kalemlerinin manuel karşılaştırması (barkod başına 45 dk)", share: "380" },
+      { text: "Üretici kaynaklı koli içi iç barkod/asorti hataları aylık ~170 adet uyumsuzluk olarak ürün kabule yansıyor.", evidence: "Ürün kabul tutanakları ve şahit numune kontrol kayıtları", share: "170" }
+    ],
+    whys: [
+      "GDA onayı tamamlanmadan stok oluşturulup rezerveye ve sevke konu olabiliyor; sistem bunu engellemiyor.",
+      "WMS'te GDA kontrolü zorunlu bir kontrol noktası olarak tasarlanmamış; karantina/ayrıştırma mekanizması yok.",
+      "Sistem yalnızca operasyon ihtiyacına göre geliştirilmiş; GDA analiz gereksinimleri tasarıma hiç dahil edilmemiş.",
+      "GDA uyum çalışması etkin proje yönetişimi ve önceliklendirmeyle yönetilmemiş; gereksinimler netleşmeden dedike ekip başka projelere kaydırılmış.",
+      "Uçtan uca süreç sahipliği ve fonksiyonlar arası yönetişim kurulmamış; her ekip (IT, ithalat, operasyon, uyum) yalnızca kendi adımına bakmış."
+    ],
+    whyChains: [
+      {
+        label: "Dal: operatör hataları neden bu kadar yüksek?",
+        whys: [
+          "Eğitim/farkındalık eksik; turnover yüksek, kişi bazlı performans geri bildirimi yok.",
+          "Takım lideri ve operasyon eğitmeni kadroları boş; yetkin aday havuzu yetersiz.",
+          "Örgüt şeması ihtiyacı karşılamıyor; ek kadro tanımlanamadı.",
+          "Organizasyon ve İK arasında örgüt şeması konusunda üst yönetim hizalanması yapılamadı.",
+          ""
+        ]
+      },
+      {
+        label: "Dal: üretici kaynaklı hatalar neden depoya kadar geliyor?",
+        whys: [
+          "Koli içi iç barkod ve asorti dağılımı hatalı gelebiliyor; ürün kabul kontrolü yakalayamıyor.",
+          "Menşei ülkede yükleme öncesi doğrulama/early-warning sistemi yok; şahit numune sıklığı yetersiz.",
+          "Kaynakta (üretici tarafında) önleyici kalite güvence sistemi hiç kurulmamış.",
+          "", ""
+        ]
+      }
+    ],
+    fishbone: {
+      insan: "GDA eğitimi ve risk farkındalığı eksik; takım lideri/eğitmen kadroları boş; turnover ve multiskill zorunluluğu hata üretiyor.",
+      metot: "Uçtan uca süreç, RACI ve SLA tanımsız; karantina, redrese, transfer ve palet otel istisna süreçleri tasarlanmamış.",
+      sistem: "GDA onayı zorunlu değil; el terminali GDA'sı sıfır ürünü gösteriyor; çift WMS job'ları izlenmiyor; barkod bazlı GDA takibi yok.",
+      girdi: "Üreticiden koli içi iç barkod/asorti hatalı gelebiliyor; menşei ülke doğrulaması ve yeterli şahit numune yok.",
+      olcum: "Uçtan uca hatalı ürün raporu/panosu yok; sayaç-beyanname karşılaştırması manuel (barkod başına 45 dk).",
+      cevre: "Tarım/Tareks gibi bakanlık süreçleri uzun sürüyor; yasak ülke kararları ve mevzuat değişimleri statüleri karmaşıklaştırıyor."
+    },
+    rootCauses: [
+      {
+        text: "Uçtan uca GDA süreç tasarımı ve yönetişimi yok: kontrol noktaları, RACI, SLA ve istisna süreçleri (karantina, redrese, transfer) tanımlanmamış.",
+        principles: [2, 11], competency: "Uçtan uca süreç tasarımı ve 'önemli olanı ölç' disiplini",
+        status: "dogrulandi", findings: [0, 2],
+        evidence: "Süreç dokümantasyonu tarandı: GDA kontrolü tamamlanmadan stok oluşturulmasını engelleyen hiçbir süreç standardı, RACI ya da SLA kaydı yok.",
+        explainsSpec: "Evet — tasarımsızlık her tesiste var; uyumsuzluğun çoklu beyannameli ürünlerde yoğunlaşmasını KN2 ve KN3 ile birlikte açıklıyor.",
+        testPlan: "Uçtan uca süreç çizilip kontrol noktaları tanımlandığında operatör ve eşleştirme kaynaklı uyumsuzluğun düşmesi beklenir.",
+        testResult: "",
+        kpiExpected: "B1+B3 kaynaklı uyumsuzlukta belirgin azalma"
+      },
+      {
+        text: "Önleyici kontrol (poka-yoke) tasarlanmamış: GDA onayı zorunlu değil, karantina mekanizması yok, el terminali GDA'sı sıfır ürünün toplanmasına izin veriyor.",
+        principles: [11, 7], competency: "Hata önleyici sistem tasarımı (poka-yoke) yetkinliği",
+        status: "dogrulandi", findings: [0],
+        evidence: "Sistem incelemesi: WMS'te GDA onayı iş kuralı olarak tanımlı değil; GDA'sı sıfırlanan ürünler terminalde görünmüyor ve toplama engellenmiyor — canlıda doğrulandı.",
+        explainsSpec: "Evet — kontrolün olmadığı her akışta hata oluşabiliyor; açık adet ürünlerde az görülmesi eşleştirme karmaşıklığının düşüklüğüyle tutarlı.",
+        testPlan: "Zorunlu GDA kontrol noktası pilotu: onaysız stok oluşturma/rezerve denemelerinin sistemce bloklanma oranı izlenir.",
+        testResult: "",
+        kpiExpected: "Operatör kaynaklı uyumsuzluk (B1) 620 → 200 adet/ay altına"
+      },
+      {
+        text: "Ana veri ve entegrasyon mimarisi eksik tasarlanmış: çift WMS yapısı, senkronizasyon-izleme-alarm mekanizması ve barkod bazlı GDA-envanter bağı yok.",
+        principles: [11], competency: "Kurumsal entegrasyon yönetimi (izleme, alarm, mutabakat)",
+        status: "destekleniyor", findings: [1, 2],
+        evidence: "Entegrasyon logları: job'lar ortalama 2 günde bir sessizce duruyor; hiçbir alarm üretilmiyor. GDA raporunda barkod bağı olmadığından tek barkod analizi 45 dk sürüyor.",
+        explainsSpec: "Evet — çift WMS kullanılan A tesisinde yoğunlaşmayı doğrudan açıklıyor.",
+        testPlan: "Job izleme + alarm devreye alınıp bir ay izlenir; sistemsel çoğalma adedinin düşmesi beklenir.",
+        testResult: "",
+        kpiExpected: "Entegrasyon kaynaklı uyumsuzluk (B2) 430 → 100 adet/ay altına"
+      },
+      {
+        text: "Fonksiyonlar arası yönetişim ve organizasyon eksik: GDA'nın süreç/domain sahibi yok; takım lideri ve eğitmen kadroları üst yönetim hizalanması yapılamadığı için boş.",
+        principles: [4, 9], competency: "Fonksiyonlar arası yönetişim kurma ve örgütsel kabiliyet planlama",
+        status: "destekleniyor", findings: [0],
+        evidence: "Organizasyon şeması ve kadro kayıtları: GDA sorumlusu head-count yok; iki tesiste takım lideri ve operasyon eğitmeni pozisyonları açık; ortak karar yapısı kurulmamış.",
+        explainsSpec: "Kısmen — sahipsizlik her yerde aynı; tek başına dağılımı açıklamaz, KN1-KN3 ile birlikte açıklar.",
+        testPlan: "GDA Program Ofisi ve tek yönetici sahip atandıktan sonra aksiyon kapanma hızının ve tekrarlayan hataların izlenmesi.",
+        testResult: "",
+        kpiExpected: "Aksiyon kapanma süresi ve tekrarlayan hata oranında ölçülebilir düşüş"
+      },
+      {
+        text: "Kurumsal talep ve proje yönetişimi eksikliği: GDA Faz-2 önceliklendirilmedi, kaynak ve risk planında GDA yer almadı, dedike ekip dağıtıldı.",
+        principles: [0, 1], competency: "Proje yönetişimi, kaynak ve risk planlama",
+        status: "hipotez", findings: [1],
+        evidence: "Proje kayıtları: Faz-2 gereksinimleri netleşmeden dedike geliştirme ekibi başka projelere kaydırılmış; risk planında GDA maddesi bulunmuyor.",
+        explainsSpec: "Evet — uyumsuzluğun Faz-2 geçişi sonrasında başlaması bu kökle zaman olarak örtüşüyor.",
+        testPlan: "Faz-2 tek yol haritasında yeniden başlatılıp haftalık yönlendirme komitesiyle izlendiğinde geliştirme teslimatlarının hızlanması beklenir.",
+        testResult: "",
+        kpiExpected: "Kritik IT taleplerinin teslim süresinde kısalma; B2 ve B3'te dolaylı azalma"
+      },
+      {
+        text: "Kaynakta (üretici tarafında) kalite güvence sistemi yok: menşei ülke doğrulaması, early-warning/RFID ve yeterli şahit numune kontrolü kurulmamış.",
+        principles: [7, 9], competency: "Tedarikçi kalite güvence sistemi kurma",
+        status: "hipotez", findings: [3],
+        evidence: "Ürün kabul tutanakları: iç barkod/asorti hataları düzenli tekrar ediyor; üreticiye tanımlı bir GDA süreci, kontrol noktası ya da RACI bulunamadı.",
+        explainsSpec: "Kısmen — üretici hatası tüm tesislere aynı oranda yansıyor; tesis kırılımını değil B4 payını açıklıyor.",
+        testPlan: "Hata oranı yüksek üreticilerde QC sıklaştırma pilotu; ürün kabulde yakalanan hata adedinin değişimi izlenir.",
+        testResult: "",
+        kpiExpected: "Üretici kaynaklı uyumsuzluk (B4) 170 → 60 adet/ay altına"
+      }
+    ],
+    alternatives: [
+      { name: "GDA Program Ofisi: tek yönetici sahip, fonksiyonlar arası yönetişim ve haftalık yönlendirme komitesi", method: "Sistem düşüncesi", note: "IT, ithalat, operasyon, uyum ve stok ekiplerini tek yönetişim altında toplar; sahiplik dağınıklığını kökten çözer. Düşük maliyet, üst yönetim kararı gerektirir." },
+      { name: "WMS'e önleyici kontroller paketi: zorunlu GDA onay noktası, otomatik karantina, sayaç-beyanname otomatik mutabakatı, barkod bazlı GDA raporu", method: "Algoritmik düşünce", note: "Hataları oluşmadan engeller (poka-yoke); IT geliştirme kapasitesi ve Faz-2 önceliklendirmesi gerektirir." },
+      { name: "RFID ve dijital izlenebilirlik yatırımı: statü takibi otomasyonu, menşei ülke yükleme doğrulaması", method: "Best practice adaptasyonu", note: "Manuel takibi kökten kaldırır; yüksek yatırım ve uzun devreye alma süresi (12+ ay), orta vadeli." }
+    ],
+    criteria: [
+      { name: "Etki (uyumsuzluğu azaltma potansiyeli)", weight: "40", yon: "yuksek", d1: "Uyumsuzluğu %10'dan az azaltır", d3: "Uyumsuzluğu yarıya indirir", d5: "Uyumsuzluğu %80+ azaltır", source: "Bulgu payları (B1-B4) ve kök neden beklenen etkileri" },
+      { name: "Uygulama hızı", weight: "25", yon: "yuksek", d1: "12+ ay (yatırım projesi)", d3: "1 çeyrekte devrede", d5: "1 ay içinde devrede", source: "IT yol haritası ve kadro planı" },
+      { name: "Maliyet / kaynak ihtiyacı", weight: "20", yon: "dusuk", d1: "Büyük yatırım (donanım + altyapı)", d3: "Belirgin IT geliştirme eforu", d5: "Mevcut kadroyla, ek bütçesiz", source: "Kaba efor tahmini (IT + PMO)" },
+      { name: "Gümrük uyum riskini düşürme", weight: "15", yon: "yuksek", d1: "Riski dolaylı etkiler", d3: "Riskin bir bölümünü kapatır", d5: "Riski doğrudan ve kalıcı kapatır", source: "Uyum ekibi risk değerlendirmesi" }
+    ],
+    scores: { '0_0': '4', '0_1': '4', '0_2': '4', '0_3': '4', '1_0': '5', '1_1': '3', '1_2': '3', '1_3': '5', '2_0': '4', '2_1': '1', '2_2': '1', '2_3': '4' },
+    decision: {
+      choice: "A1 ve A2 birlikte uygulanır: GDA Program Ofisi ve tek yönetici sahip hemen atanır; önleyici kontroller paketi, yeniden başlatılan Faz-2 yol haritasının ilk teslimatı olarak devreye alınır. A3 (RFID) orta vadeli yatırım olarak planlanır.",
+      rationale: "Matris A1 ile A2'yi başa baş gösteriyor ve sonuç 'uygulama hızı' kriterine duyarlı — bu tam da iki alternatifin birbirini tamamladığının işareti: yönetişim (A1) olmadan kontroller paketi (A2) önceliklendirilemiyor; kontroller olmadan yönetişim hatayı fiziksel olarak engelleyemiyor. Karar KN1-KN5'i birlikte adresler; KN6 (üretici) için tedarik tarafı aksiyonu ayrıca yürütülür. Hedef: aylık uyumsuzluğu 2 çeyrekte 500 adedin altına, ardından sıfıra indirmek."
+    },
+    thinking: {
+      assume: "Hataların çoğunun operatörden kaynaklandığını varsayıyorduk; barkod bazlı analiz önemli bir bölümün sistem/entegrasyon kaynaklı olduğunu gösterdi. İkinci varsayım: sayaç bozulmaları nadirdir — hareket geçmişi analiziyle test edilmeli.",
+      alt: "Uyumsuzluk operatör hatası değil, çift WMS senkron kayıplarının birikimi olabilir; ya da üretici kaynaklı iç barkod hataları ürün kabulde görünmezleşiyor olabilir. İkisi de kırılım bazında ölçülmeli.",
+      cost: "Önleyici kontroller kurulmazsa bedeli gümrük uyum riski ve olası cezalar olarak şirket öder; kurulursa ilk aylarda ek kontrol adımları nedeniyle operasyon hızından feragat edilir — bu bedeli operasyon ekibi öder."
+    },
+    spec: {
+      nerede: { v: "Antrepo tesisleri; en yoğun çift WMS kullanılan A tesisi", y: "GDA'ya konu olmayan milli depo operasyonları" },
+      zaman: { v: "WMS Faz-2 geçişinden bu yana (2026 Q1+)", y: "Geçiş öncesi dönem — hatalar manuel süreçle sınırlı ve düşüktü" },
+      kirilim: { v: "Çoklu beyannameli ve asortili ürünler", y: "Tek beyannameli açık adet ürünler" },
+      buyukluk: { v: "Aylık ~1.850 adet; tek barkod analizi 45 dk", y: "Hiçbir ayda sıfır uyumsuzluk görülmüyor" },
+      degisiklik: "Faz-2 geçişiyle çift WMS yapısına geçildi ve GDA kontrolleri devreye alınmadan canlıya çıkıldı; gereksinimler netleşmeden dedike IT ekibi başka projelere kaydırıldı."
+    },
+    containment: {
+      action: "Sevk onayı öncesi kritik dosyalarda manuel sayaç-beyanname karşılaştırması + GDA'sı sıfır ürünlerin haftalık taranıp ayrı depo koduna çekilmesi",
+      owner: "Antrepo yönetimi + uyum ekibi",
+      until: "Zorunlu GDA kontrol noktası ve tek WMS entegrasyonu devreye girene kadar",
+      removed: false
+    },
+    precheck: { p1: true, p2: true, p3: false },
+    fmea: [
+      { mode: "Program Ofisi kurulur ama yaptırım gücü olmaz", effect: "Kararlar yine ekipler arasında sürüncemede kalır", cause: "Yönetici sahibe eskalasyon/veto yetkisi tanımlanmaz", s: "8", o: "5", d: "4", onlem: "Yönetici sahibe yazılı eskalasyon ve operasyon durdurma yetkisi tanımlanması" },
+      { mode: "Zorunlu GDA kontrolü operasyonu yavaşlatınca bypass edilir", effect: "Kontrol kâğıt üzerinde kalır, uyumsuzluk sürer", cause: "Yoğun dönemde hız baskısı", s: "7", o: "5", d: "3", onlem: "Bypass işlemlerinin loglanıp haftalık yönlendirme komitesine raporlanması" }
+    ],
+    forcefield: {
+      driving: [
+        { text: "Gümrük uyum ve ceza riski baskısı", strength: "5" },
+        { text: "Üst yönetim görünürlüğü (yönetici özeti gündemi)", strength: "4" },
+        { text: "Operasyonun manuel düzeltme yükünden kurtulma isteği", strength: "3" }
+      ],
+      restraining: [
+        { text: "IT kaynak darlığı ve rakip proje öncelikleri", strength: "4", azaltma: "Faz-2'nin tek yol haritasında üst yönetim kararıyla önceliklendirilmesi" },
+        { text: "Ek kontrol adımlarının operasyonu yavaşlatma endişesi", strength: "3", azaltma: "Kontrollerin akışa gömülmesi ve otomasyonla hızlandırılması" },
+        { text: "Ekiplerin mevcut çalışma alışkanlıkları", strength: "2", azaltma: "Eğitim programı ve one-point-lesson uygulamaları" }
+      ]
+    },
+    actions: [
+      { text: "Hatalı dosya ilişkilerinin IT ile birlikte düzeltilmesi; GDA raporuna barkod bağı eklenerek hatalı ürün adedinin net tespiti", owner: "Stok yönetimi + IT geliştirme", startDate: "2026-07-01", dueDate: "2026-08-15", due: "", etki: "4", efor: "3", status: "devam", rcIdx: "2", findingIdx: "2", successCriteria: "Uyumsuz barkod listesi sıfırlanır; GDA raporu barkod bazında bakiye gösterir", evidence: "", delayReason: "", priority: "yuksek" },
+      { text: "GDA Program Ofisi kurulması ve tek yönetici sahip atanması; haftalık yönlendirme komitesinin başlatılması", owner: "Üst yönetim", startDate: "2026-08-05", dueDate: "2026-09-01", due: "", etki: "5", efor: "2", status: "bekliyor", rcIdx: "3", findingIdx: "0", successCriteria: "Yönetici sahip atanır; komite 4 hafta üst üste toplanır", evidence: "", delayReason: "", priority: "yuksek" },
+      { text: "WMS'te zorunlu GDA onay kontrol noktası ve otomatik karantina iş kuralının devreye alınması (IT talebi)", owner: "İthalat sistem sorumlusu + IT", startDate: "2026-08-05", dueDate: "2026-09-01", due: "", etki: "5", efor: "3", status: "devam", rcIdx: "1", findingIdx: "0", successCriteria: "GDA onayı olmadan stok oluşturulamaz ve rezerve edilemez", evidence: "", delayReason: "", priority: "yuksek" },
+      { text: "Çift WMS entegrasyonunun teke indirilmesi; senkronizasyon izleme ve alarm mekanizmasının kurulması", owner: "IT mimari ekibi", startDate: "2026-08-10", dueDate: "2026-10-01", due: "", etki: "5", efor: "4", status: "bekliyor", rcIdx: "2", findingIdx: "1", successCriteria: "Job duruşları 15 dk içinde alarma dönüşür; sistemsel çoğalma sıfırlanır", evidence: "", delayReason: "", priority: "yuksek" },
+      { text: "Uçtan uca GDA işletim modelinin tasarlanması: süreç, RACI, SLA ve istisna süreçleri (karantina, redrese, transfer, palet otel)", owner: "Kurumsal süreç yönetimi", startDate: "2026-08-10", dueDate: "2026-09-15", due: "", etki: "4", efor: "3", status: "bekliyor", rcIdx: "0", findingIdx: "0", successCriteria: "Onaylı süreç dokümanı + RACI + SLA yayınlanır ve iki tesiste uygulanır", evidence: "", delayReason: "", priority: "orta" },
+      { text: "GDA Faz-2 geliştirme taleplerinin tek yol haritasında toplanması, önceliklendirilmesi ve haftalık takibi", owner: "PMO + lojistik sistem sorumlusu", startDate: "2026-08-05", dueDate: "2026-08-20", due: "", etki: "4", efor: "2", status: "devam", rcIdx: "4", findingIdx: "1", successCriteria: "Tüm kritik talepler tek yol haritasında; ilk teslimat tarihi kesinleşir", evidence: "", delayReason: "", priority: "yuksek" },
+      { text: "Tüm antrepolarda GDA eğitim programı: işbaşı eğitimi, one-point-lesson, eğitim kayıtları ve pozitif disiplin takibi", owner: "İK + akademi + operasyon", startDate: "2026-08-15", dueDate: "2026-09-15", due: "", etki: "3", efor: "2", status: "bekliyor", rcIdx: "3", findingIdx: "0", successCriteria: "Tüm depo personeli eğitimi tamamlar; kayıtlar imzalı tutulur", evidence: "", delayReason: "", priority: "orta" },
+      { text: "Hata oranı yüksek üreticilerde QC sıklaştırma ve reklamasyon süreci; üretici GDA eğitimleri", owner: "Tedarik zinciri kalite", startDate: "2026-09-01", dueDate: "2026-10-15", due: "", etki: "3", efor: "3", status: "bekliyor", rcIdx: "5", findingIdx: "3", successCriteria: "Üretici bazlı hata panosu kurulur; en kötü 5 üreticide plan devrede", evidence: "", delayReason: "", priority: "orta" }
+    ],
+    tracking: [
+      { label: "Temmuz (baz)", value: "1850" }
+    ],
+    retro: { valid: "", worked: "", lessons: "" }
+  };
+}
+
 /** "+ Yeni" ekranındaki vaka şablonları — blankCase üzerine uygulanan kısmi ön dolgular. */
 export const CASE_TEMPLATES = [
   {

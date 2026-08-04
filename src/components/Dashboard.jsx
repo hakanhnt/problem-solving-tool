@@ -54,7 +54,8 @@ export default function Dashboard() {
   const pct = v => (lang === 'en' ? v + '%' : '%' + v);
 
   const caseKeys = Object.keys(state.cases);
-  caseKeys.sort((a, b) => (a === 'ornek' ? -1 : b === 'ornek' ? 1 : 0));
+  const caseRank = k => (k === 'ornek' ? 0 : k === 'ornek2' ? 1 : 2);
+  caseKeys.sort((a, b) => caseRank(a) - caseRank(b));
   const packs = caseKeys.map(k => ({ key: k, c: state.cases[k], p: casePack(state.cases[k], lang) }));
 
   const totOverdue = packs.reduce((n, x) => n + x.p.overdue.length, 0);

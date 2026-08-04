@@ -1,6 +1,6 @@
 import React from 'react';
 import { useStore } from '../lib/store.jsx';
-import { blankCase, exampleCase, stepsFor, caseTemplatesFor } from '../lib/defaults.js';
+import { blankCase, exampleCase, exampleCase2, stepsFor, caseTemplatesFor } from '../lib/defaults.js';
 import { stepChecklist, caseMaturity } from '../lib/derive.js';
 import { HButton, HA } from '../ui/primitives.jsx';
 import Logo from '../ui/Logo.jsx';
@@ -28,7 +28,8 @@ export default function Sidebar({ onNavigate }) {
   const backupStale = !state.lastBackup || (Date.now() - new Date(state.lastBackup).getTime()) > 7 * 86400000;
 
   const caseKeys = Object.keys(state.cases);
-  caseKeys.sort((a, b) => (a === 'ornek' ? -1 : b === 'ornek' ? 1 : 0));
+  const caseRank = k => (k === 'ornek' ? 0 : k === 'ornek2' ? 1 : 2);
+  caseKeys.sort((a, b) => caseRank(a) - caseRank(b));
 
   const selectCase = k => { upd(n => { n.activeCase = k; }); setTimeout(() => ensureCoach(), 60); if (onNavigate) onNavigate(); };
 
@@ -42,8 +43,8 @@ export default function Sidebar({ onNavigate }) {
     upd(n => {
       n.trash = { key: k, data: n.cases[k], name: n.cases[k].name || k };
       delete n.cases[k];
-      if (!Object.keys(n.cases).some(x => x !== 'ornek')) n.cases['c' + Date.now()] = blankCase(undefined, n.lang);
-      if (n.activeCase === k) { n.activeCase = Object.keys(n.cases).find(x => x !== 'ornek') || Object.keys(n.cases)[0]; n.step = 1; }
+      if (!Object.keys(n.cases).some(x => x !== 'ornek' && x !== 'ornek2')) n.cases['c' + Date.now()] = blankCase(undefined, n.lang);
+      if (n.activeCase === k) { n.activeCase = Object.keys(n.cases).find(x => x !== 'ornek' && x !== 'ornek2') || Object.keys(n.cases)[0]; n.step = 1; }
     });
   };
 
@@ -105,7 +106,7 @@ export default function Sidebar({ onNavigate }) {
                 aria-label={t('Çalışmayı aç: ', 'Open case: ') + (state.cases[k].name || k) + (act ? t(' (açık)', ' (open)') : '')}
                 style={{ flex: 1, minWidth: 0, cursor: 'pointer', border: 'none', background: 'transparent', textAlign: 'left', padding: 0, font: '600 12.5px/1.3 Helvetica,Arial,sans-serif', color: act ? 'var(--pri)' : 'var(--ink-3)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
               >{state.cases[k].name || k}</button>
-              {k !== 'ornek' ? (
+              {k !== 'ornek' && k !== 'ornek2' ? (
                 <>
                   <HButton
                     onClick={() => renameCase(k)} title={t('Yeniden adlandır', 'Rename')}
@@ -231,9 +232,9 @@ export default function Sidebar({ onNavigate }) {
       ) : null}
 
       <div style={{ padding: '14px 16px', borderTop: '1px solid var(--line-3)', display: 'flex', flexDirection: 'column', gap: 10 }}>
-        {eff === 'ornek' ? (
+        {eff === 'ornek' || eff === 'ornek2' ? (
           <HButton
-            onClick={() => { if (confirm(t('Örnek çalışma ilk haline döndürülecek. Emin misiniz?', 'The example case will be reset to its original state. Are you sure?'))) upd(n => { n.cases.ornek = exampleCase(n.lang); }); }}
+            onClick={() => { if (confirm(t('Örnek çalışma ilk haline döndürülecek. Emin misiniz?', 'The example case will be reset to its original state. Are you sure?'))) upd(n => { if (eff === 'ornek2') n.cases.ornek2 = exampleCase2(); else n.cases.ornek = exampleCase(n.lang); }); }}
             style={{ padding: '8px 10px', border: '1px solid var(--field-border)', borderRadius: 6, background: 'var(--surface)', color: 'var(--ink-3)', font: '600 12px Helvetica,Arial,sans-serif', cursor: 'pointer' }}
             hover={{ background: 'var(--surface-4)' }}
           >{t('Örnek çalışmayı sıfırla', 'Reset example case')}</HButton>
