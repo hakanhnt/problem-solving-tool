@@ -4,7 +4,7 @@ import { preCheckItemsFor } from '../lib/mindcheck.js';
 import { THINKING_METHODS, thinkingMethodsFor } from '../lib/defaults.js';
 import { fmtNum } from '../lib/i18n.js';
 import { THINKING_METHOD_INFO } from '../lib/thinking.js';
-import { decisionMatrix, isOverdue } from '../lib/derive.js';
+import { decisionMatrix, isOverdue, timingAdvice } from '../lib/derive.js';
 import ThinkingCheck from '../components/ThinkingCheck.jsx';
 import { Card, CardHead, GuidanceBox, MethodBox, AddButton, RemoveButton, YZButton, Badge, HButton, Spinner, AdvancedSection, S, useNarrow } from '../ui/primitives.jsx';
 
@@ -537,6 +537,59 @@ export default function Step6Countermeasures() {
       >
         <ThinkingCheck />
       </AdvancedSection>
+
+      {/* Karar zamanlaması — ASAP/ALAP: kararın NE ZAMAN verileceği de bir karardır */}
+      <Card>
+        <CardHead
+          title={t('Karar zamanlaması', 'Decision timing')}
+          sub={t('Doğru kararın bir de doğru zamanı vardır: geri alma bedeline göre hemen verin (ASAP) ya da analiz için geciktirin (ALAP).', 'The right decision also has a right time: decide now (ASAP) or delay for analysis (ALAP), depending on the cost of reversal.')}
+        />
+        <MethodBox>{t('Eylem ilkeleri: geri alması ucuz kararı HEMEN verin; geri alması pahalı kararı fırsat penceresi kapanana dek analizle geciktirin; yeterli bilgiye ulaştığınızı gösteren işaret gerçekleştiğinde bilgi toplamayı BIRAKIN ve uygulayın.', 'Action principles: decide a cheaply reversible decision NOW; delay an expensive-to-reverse decision with analysis until the opportunity window closes; STOP gathering information and act once your enough-information signal fires.')}</MethodBox>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <label style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+            <span style={{ flex: 'none', font: '600 12.5px Helvetica,Arial,sans-serif', color: 'var(--ink-3)' }}>{t('Bu kararı geri almanın bedeli:', 'Cost of reversing this decision:')}</span>
+            <select
+              className="pcx-field" value={(c.timing || {}).reversal || ''}
+              onChange={e => updC(cc => { cc.timing = cc.timing || { reversal: '', window: '', stopSignal: '' }; cc.timing.reversal = e.target.value; })}
+              style={{ ...S.select, flex: '1 1 220px', font: '13px Helvetica,Arial,sans-serif' }}
+            >
+              <option value="">{t('— seçin —', '— select —')}</option>
+              <option value="dusuk">{t('Düşük — kolayca geri alınır / küçük test', 'Low — easily reversed / small test')}</option>
+              <option value="orta">{t('Orta — geri almak zahmetli ama mümkün', 'Moderate — reversal is costly but possible')}</option>
+              <option value="yuksek">{t('Yüksek — geri dönüşü yok ya da çok pahalı', 'High — irreversible or very expensive to undo')}</option>
+            </select>
+          </label>
+          {(() => {
+            const adv = timingAdvice(c.timing, lang);
+            if (!adv) return null;
+            const tone = adv.key === 'asap' ? ['var(--ok-soft)', 'var(--ok-border)', 'var(--ok-ink)'] : adv.key === 'alap' ? ['var(--warn-soft)', 'var(--warn-border)', 'var(--warn-ink)'] : ['var(--pri-soft)', 'var(--pri-border-5)', 'var(--pri-ink)'];
+            return (
+              <div style={{ background: tone[0], border: '1px solid ' + tone[1], borderRadius: 8, padding: '10px 13px' }}>
+                <div style={{ font: '700 12px Helvetica,Arial,sans-serif', color: tone[2] }}>{adv.label}</div>
+                <div style={{ font: '12px/1.55 Helvetica,Arial,sans-serif', color: tone[2], marginTop: 3 }}>{adv.text}</div>
+              </div>
+            );
+          })()}
+          <label style={{ display: 'block' }}>
+            <span style={{ display: 'block', font: '600 12px Helvetica,Arial,sans-serif', color: 'var(--ink-3)', margin: '0 0 4px' }}>{t('Fırsat penceresi / son karar tarihi', 'Opportunity window / decision deadline')}</span>
+            <input
+              className="pcx-field" value={(c.timing || {}).window || ''}
+              onChange={e => updC(cc => { cc.timing = cc.timing || { reversal: '', window: '', stopSignal: '' }; cc.timing.window = e.target.value; })}
+              placeholder={t('Örn: sipariş penceresi 15 Eylül\'de kapanıyor — o güne kadar karar verilmeli', 'E.g., the order window closes on 15 Sept — decide by then')}
+              style={{ width: '100%', boxSizing: 'border-box', padding: '8px 11px', border: '1px solid var(--field-border)', borderRadius: 6, font: '13px/1.4 Helvetica,Arial,sans-serif', color: 'var(--ink)', background: 'var(--surface)', outline: 'none' }}
+            />
+          </label>
+          <label style={{ display: 'block' }}>
+            <span style={{ display: 'block', font: '600 12px Helvetica,Arial,sans-serif', color: 'var(--ink-3)', margin: '0 0 4px' }}>{t('Durma işareti — hangi bilgiye ulaşınca karar verilecek?', 'Stop signal — what information will trigger the decision?')}</span>
+            <input
+              className="pcx-field" value={(c.timing || {}).stopSignal || ''}
+              onChange={e => updC(cc => { cc.timing = cc.timing || { reversal: '', window: '', stopSignal: '' }; cc.timing.stopSignal = e.target.value; })}
+              placeholder={t('Örn: pilot sonucu alındığında ya da iki teklif karşılaştırıldığında bilgi toplamayı bırak', 'E.g., stop gathering information once the pilot result is in or two quotes are compared')}
+              style={{ width: '100%', boxSizing: 'border-box', padding: '8px 11px', border: '1px solid var(--field-border)', borderRadius: 6, font: '13px/1.4 Helvetica,Arial,sans-serif', color: 'var(--ink)', background: 'var(--surface)', outline: 'none' }}
+            />
+          </label>
+        </div>
+      </Card>
 
       {/* Karar */}
       <Card>

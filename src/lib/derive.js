@@ -493,3 +493,75 @@ export function driverMap(c) {
     return { name: d.name, sub: subs.join(' · '), hasSub: !!subs.length };
   });
 }
+
+/** Karar zamanlaması (ASAP/ALAP) önerisi — Berrak Düşünme'deki eylem ilkelerinden.
+ *  Geri alma bedeline göre: düşük → hemen ver (ASAP), yüksek → analiz için geciktir (ALAP). */
+export function timingAdvice(timing, lang) {
+  const en = lang === 'en';
+  const T = (tr, e) => (en ? e : tr);
+  const r = (timing || {}).reversal;
+  if (r !== 'dusuk' && r !== 'orta' && r !== 'yuksek') return null;
+  if (r === 'dusuk') {
+    return {
+      key: 'asap', label: T('ASAP — hemen karar verin', 'ASAP — decide now'),
+      text: T('Geri alma bedeli düşük: kararı mümkün olan en kısa sürede verin ya da küçük bir testle deneyin. Ucuz geri dönüşü olan kararda fazladan analiz, fırsat maliyetidir.',
+        'The cost of reversal is low: decide as soon as possible, or try it with a small test. On a cheaply reversible decision, extra analysis is opportunity cost.')
+    };
+  }
+  if (r === 'yuksek') {
+    return {
+      key: 'alap', label: T('ALAP — analiz için geciktirin', 'ALAP — delay for analysis'),
+      text: T('Geri alma bedeli yüksek: kararı olabildiğince geciktirip düşünme araçlarıyla (matris, FMEA, pre-mortem) tüm yönleriyle analiz edin — ama fırsat penceresi kapanmadan ve durma işaretiniz gerçekleştiğinde kararı VERİN; sonsuz bilgi toplamak da bir karardır.',
+        'The cost of reversal is high: delay the decision as long as possible and analyse it from every angle with your thinking tools (matrix, FMEA, pre-mortem) — but DECIDE before the opportunity window closes and once your stop signal fires; gathering information forever is also a decision.')
+    };
+  }
+  return {
+    key: 'orta', label: T('Dengeli — kritik belirsizliği test edin', 'Balanced — test the critical uncertainty'),
+    text: T('Geri alma bedeli orta: en kritik belirsizliği hızla test edin; yeterli bilgiye ulaştığınızı gösteren durma işaretiniz gerçekleştiğinde kararı verin.',
+      'The cost of reversal is moderate: quickly test the most critical uncertainty; decide once your stop signal shows you have enough information.')
+  };
+}
+
+/** Vaka triyajı: fayda/maliyet/aciliyet cevaplarından akış önerisi.
+ *  Kural tablosu — maliyet düşükse hızlı çözüm (low-hanging fruit); fayda maliyeti
+ *  karşılamıyorsa beklet/delege; aksi halde tam akış. */
+export function triageAdvice(triage, lang) {
+  const en = lang === 'en';
+  const T = (tr, e) => (en ? e : tr);
+  const v = x => (x === 'dusuk' ? 1 : x === 'orta' ? 2 : x === 'yuksek' ? 3 : 0);
+  const { cost, benefit, urgency } = triage || {};
+  if (!v(cost) || !v(benefit)) return null;
+  const urgent = urgency === 'yuksek';
+  let key;
+  if (cost === 'dusuk') key = 'hizli';
+  else if (benefit === 'dusuk') key = cost === 'yuksek' ? 'beklet' : 'delege';
+  else key = v(benefit) >= v(cost) ? 'tam' : 'delege';
+  const L = {
+    hizli: {
+      label: T('⚡ Hızlı çözüm önerilir', '⚡ Quick solve recommended'),
+      text: T('Kök neden kısa sürede bulunabilir (low-hanging fruit): 8 adımlık akış yerine hızlı çözüm modunu kullanın — tanım, sürücü, birkaç "neden" ve önlem yeterli.',
+        'The root cause can be found quickly (low-hanging fruit): instead of the 8-step flow, use quick-solve mode — a definition, driver, a few whys and a countermeasure are enough.')
+    },
+    tam: {
+      label: T('Tam akış önerilir', 'Full flow recommended'),
+      text: T('Kökten çözümün faydası, harcanacak analiz maliyetini karşılıyor: 8 adımlık tam akışı uygulamaya değer.',
+        'The benefit of a root-cause fix justifies the analysis cost: the full 8-step flow is worth it.')
+    },
+    delege: {
+      label: T('Delege etmeyi düşünün', 'Consider delegating'),
+      text: T('Fayda, harcanacak analiz maliyetinin altında görünüyor: mümkünse sorunu süreç sahibine delege edin ya da kapsamı daraltıp hızlı çözümle yetinin.',
+        'The benefit looks lower than the analysis cost: delegate the problem to the process owner if possible, or narrow the scope and settle for a quick solve.')
+    },
+    beklet: {
+      label: T('Bekletin / kabullenin', 'Park it / accept it'),
+      text: T('Düşük fayda + yüksek maliyet: bu sorunu şimdilik bekletmek (ya da bilinçli olarak kabullenmek) kaynaklarınızı daha önemli sorunlara ayırır.',
+        'Low benefit + high cost: parking this problem for now (or consciously accepting it) frees your resources for more important problems.')
+    }
+  };
+  const out = { key, ...L[key] };
+  if (urgent && (key === 'tam' || key === 'delege')) {
+    out.urgencyNote = T('⏰ Zaman kısıtı yüksek: analiz derinliğini fırsat penceresine göre sınırlayın; zaman yalnızca alternatif üretmeye yetiyorsa yanal düşünmeyle alternatifleri değerlendirip karar verin.',
+      '⏰ Time pressure is high: cap the analysis depth by the opportunity window; if time only allows generating alternatives, evaluate them with lateral thinking and decide.');
+  }
+  return out;
+}

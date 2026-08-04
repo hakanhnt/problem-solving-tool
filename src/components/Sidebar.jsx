@@ -1,7 +1,7 @@
 import React from 'react';
 import { useStore } from '../lib/store.jsx';
 import { blankCase, exampleCase, exampleCase2, stepsFor, caseTemplatesFor } from '../lib/defaults.js';
-import { stepChecklist, caseMaturity } from '../lib/derive.js';
+import { stepChecklist, caseMaturity, triageAdvice } from '../lib/derive.js';
 import { HButton, HA } from '../ui/primitives.jsx';
 import Logo from '../ui/Logo.jsx';
 
@@ -50,12 +50,17 @@ export default function Sidebar({ onNavigate }) {
 
   const [tplOpen, setTplOpen] = React.useState(false);
   const [tplName, setTplName] = React.useState('');
+  const [triage, setTriage] = React.useState({ cost: '', benefit: '', urgency: '' });
 
-  const createCase = tpl => {
+  const closeTpl = () => { setTplOpen(false); setTplName(''); setTriage({ cost: '', benefit: '', urgency: '' }); };
+
+  const createCase = (tpl, mode) => {
     const id = 'c' + Date.now();
     upd(n => {
-      const nc = blankCase((tplName || '').trim() || (tpl.key === 'bos' ? (n.lang === 'en' ? 'New Case' : 'Yeni Çalışma') : tpl.ad), n.lang);
-      if (tpl.fill) {
+      const nc = blankCase((tplName || '').trim() || (mode === 'quick' ? (n.lang === 'en' ? 'Quick Solve' : 'Hızlı Çözüm') : (!tpl || tpl.key === 'bos' ? (n.lang === 'en' ? 'New Case' : 'Yeni Çalışma') : tpl.ad)), n.lang);
+      if (mode === 'quick') nc.mode = 'quick';
+      nc.triage = { ...triage };
+      if (tpl && tpl.fill) {
         if (tpl.fill.problem) Object.assign(nc.problem, tpl.fill.problem);
         if (tpl.fill.drivers) nc.drivers = structuredClone(tpl.fill.drivers);
         if (tpl.fill.criteria) nc.criteria = structuredClone(tpl.fill.criteria);
@@ -64,8 +69,7 @@ export default function Sidebar({ onNavigate }) {
       n.activeCase = id;
       n.step = 1;
     });
-    setTplOpen(false);
-    setTplName('');
+    closeTpl();
   };
 
   return (
@@ -143,6 +147,14 @@ export default function Sidebar({ onNavigate }) {
         </div>
       ) : null}
 
+      {c.mode === 'quick' ? (
+        <div style={{ padding: '12px 16px', flex: 1, overflow: 'auto' }}>
+          <div style={{ background: 'var(--pri-soft)', border: '1px solid var(--pri-border-5)', borderRadius: 9, padding: '11px 13px' }}>
+            <div style={{ font: '700 12px Helvetica,Arial,sans-serif', color: 'var(--pri-ink)' }}>⚡ {t('Hızlı çözüm modu', 'Quick solve mode')}</div>
+            <div style={{ font: '11px/1.5 Helvetica,Arial,sans-serif', color: 'var(--pri-soft-ink)', marginTop: 3 }}>{t('Bu çalışma tek ekranlık hızlı akışta. Sorun derinleşirse ekrandaki düğmeyle 8 adımlık tam akışa geçirebilirsiniz — girilenler taşınır.', 'This case is in the one-screen quick flow. If the problem runs deeper, promote it to the 8-step full flow with the on-screen button — your entries carry over.')}</div>
+          </div>
+        </div>
+      ) : (<>
       <div style={{ padding: '12px 16px 8px' }}>
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, margin: '0 0 6px' }}>
           <div style={{ flex: 1, font: '700 10.5px Helvetica,Arial,sans-serif', color: 'var(--muted)', letterSpacing: '.8px' }}>{t('ÇALIŞMA İLERLEMESİ', 'CASE PROGRESS')}</div>
@@ -197,17 +209,64 @@ export default function Sidebar({ onNavigate }) {
           );
         })}
       </nav>
+      </>)}
 
       {tplOpen ? (
-        <div data-noprint="1" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 60, padding: 24 }} onClick={() => setTplOpen(false)}>
-          <div style={{ background: 'var(--surface)', borderRadius: 12, width: 480, maxWidth: '94vw', maxHeight: '84vh', overflow: 'auto', padding: '18px 20px', boxShadow: '0 18px 50px rgba(0,0,0,.3)' }} onClick={e => e.stopPropagation()}>
+        <div data-noprint="1" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 60, padding: 24 }} onClick={closeTpl}>
+          <div style={{ background: 'var(--surface)', borderRadius: 12, width: 520, maxWidth: '94vw', maxHeight: '84vh', overflow: 'auto', padding: '18px 20px', boxShadow: '0 18px 50px rgba(0,0,0,.3)' }} onClick={e => e.stopPropagation()}>
             <div style={{ font: '700 15px Helvetica,Arial,sans-serif', color: 'var(--ink)', margin: '0 0 4px' }}>{t('Yeni çalışma', 'New case')}</div>
-            <div style={{ font: '12px/1.5 Helvetica,Arial,sans-serif', color: 'var(--muted)', margin: '0 0 12px' }}>{t("Şablonlar yalnızca KPI adı, aday driver'lar ve karar kriterlerini ön doldurur — hepsi düzenlenebilir. Problem ifadesini her durumda siz yazarsınız.", 'Templates only pre-fill the KPI name, candidate drivers and decision criteria — all editable. You always write the problem statement yourself.')}</div>
+            <div style={{ font: '12px/1.5 Helvetica,Arial,sans-serif', color: 'var(--muted)', margin: '0 0 12px' }}>{t('Her sorun aynı derinliği hak etmez: önce kısa bir fayda/maliyet triyajı yapın, sonra tam akış ya da hızlı çözüm seçin.', 'Not every problem deserves the same depth: run a short benefit/cost triage first, then choose the full flow or a quick solve.')}</div>
             <input
               className="pcx-field" value={tplName} onChange={e => setTplName(e.target.value)}
               placeholder={t('Çalışma adı (boşsa şablon adı kullanılır)', 'Case name (template name used if blank)')}
               style={{ width: '100%', boxSizing: 'border-box', padding: '9px 11px', border: '1px solid var(--field-border)', borderRadius: 6, font: '13px/1.4 Helvetica,Arial,sans-serif', color: 'var(--ink)', background: 'var(--surface)', outline: 'none', margin: '0 0 12px' }}
             />
+
+            {/* Triyaj kapısı — fayda/maliyet/aciliyet → akış önerisi */}
+            <div data-triage="1" style={{ background: 'var(--surface-4)', border: '1px solid var(--line-strong)', borderRadius: 9, padding: '11px 13px', margin: '0 0 12px' }}>
+              <div style={{ font: '700 10.5px Helvetica,Arial,sans-serif', color: 'var(--muted)', letterSpacing: '.6px', margin: '0 0 8px' }}>{t('TRİYAJ — BU SORUN HANGİ AKIŞI HAK EDİYOR? (isteğe bağlı)', 'TRIAGE — WHICH FLOW DOES THIS PROBLEM DESERVE? (optional)')}</div>
+              {[
+                { k: 'cost', q: t('Kökten çözüm için gereken analiz süresi/kaynağı?', 'Analysis time/resources needed for a root-cause fix?'), opts: [['dusuk', t('Kısa — dakikalar/saatler', 'Short — minutes/hours')], ['orta', t('Orta — günler', 'Moderate — days')], ['yuksek', t('Yüksek — haftalar / ek kaynak', 'High — weeks / extra resources')]] },
+                { k: 'benefit', q: t('Kökten çözümün sağlayacağı fayda?', 'Benefit of a root-cause fix?'), opts: [['dusuk', t('Düşük', 'Low')], ['orta', t('Orta', 'Moderate')], ['yuksek', t('Yüksek', 'High')]] },
+                { k: 'urgency', q: t('Zaman kısıtı / fırsat penceresi?', 'Time pressure / opportunity window?'), opts: [['dusuk', t('Acele yok', 'No rush')], ['orta', t('Orta', 'Moderate')], ['yuksek', t('Çok acil', 'Very urgent')]] }
+              ].map(row => (
+                <label key={row.k} style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', margin: '0 0 6px' }}>
+                  <span style={{ flex: '1 1 200px', font: '600 11.5px/1.4 Helvetica,Arial,sans-serif', color: 'var(--ink-3)' }}>{row.q}</span>
+                  <select
+                    className="pcx-field" value={triage[row.k]}
+                    onChange={e => setTriage(x => ({ ...x, [row.k]: e.target.value }))}
+                    style={{ flex: '1 1 170px', padding: '6px 8px', border: '1px solid var(--field-border)', borderRadius: 6, font: '12px Helvetica,Arial,sans-serif', color: 'var(--ink)', background: 'var(--surface)' }}
+                  >
+                    <option value="">{t('— seçin —', '— select —')}</option>
+                    {row.opts.map(([v, lb]) => <option key={v} value={v}>{lb}</option>)}
+                  </select>
+                </label>
+              ))}
+              {(() => {
+                const adv = triageAdvice(triage, lang);
+                if (!adv) return null;
+                const warn = adv.key === 'beklet' || adv.key === 'delege';
+                return (
+                  <div role="status" style={{ marginTop: 4, background: warn ? 'var(--warn-soft)' : adv.key === 'hizli' ? 'var(--pri-soft)' : 'var(--ok-soft)', border: '1px solid ' + (warn ? 'var(--warn-border)' : adv.key === 'hizli' ? 'var(--pri-border-5)' : 'var(--ok-border)'), borderRadius: 7, padding: '8px 11px' }}>
+                    <div style={{ font: '700 11.5px Helvetica,Arial,sans-serif', color: warn ? 'var(--warn-ink)' : adv.key === 'hizli' ? 'var(--pri-ink)' : 'var(--ok-ink)' }}>{adv.label}</div>
+                    <div style={{ font: '11px/1.5 Helvetica,Arial,sans-serif', color: warn ? 'var(--warn-ink)' : adv.key === 'hizli' ? 'var(--pri-ink)' : 'var(--ok-ink)', marginTop: 2 }}>{adv.text}</div>
+                    {adv.urgencyNote ? <div style={{ font: '11px/1.5 Helvetica,Arial,sans-serif', color: 'var(--warn-ink)', marginTop: 3 }}>{adv.urgencyNote}</div> : null}
+                  </div>
+                );
+              })()}
+            </div>
+
+            {/* Hızlı çözüm modu */}
+            <HButton
+              onClick={() => createCase(null, 'quick')}
+              style={{ display: 'block', width: '100%', boxSizing: 'border-box', textAlign: 'left', padding: '11px 13px', border: '1px solid var(--pri-border)', borderRadius: 9, background: 'var(--pri-soft)', cursor: 'pointer', margin: '0 0 12px' }}
+              hover={{ background: 'var(--pri-soft-hover)' }}
+            >
+              <div style={{ font: '700 13px Helvetica,Arial,sans-serif', color: 'var(--pri-ink)' }}>⚡ {t('Hızlı çözüm oluştur', 'Create a quick solve')}</div>
+              <div style={{ font: '11.5px/1.5 Helvetica,Arial,sans-serif', color: 'var(--pri-soft-ink)', marginTop: 2 }}>{t('15-20 dakikalık sorunlar için tek ekran: tanım, sürücü, birkaç "neden", önlem ve sorumlu. Derinleşirse tek tıkla tam akışa geçer.', 'One screen for 15-20 minute problems: definition, driver, a few whys, countermeasure and owner. Promotes to the full flow with one click if it runs deeper.')}</div>
+            </HButton>
+
+            <div style={{ font: '700 10.5px Helvetica,Arial,sans-serif', color: 'var(--muted)', letterSpacing: '.6px', margin: '0 0 8px' }}>{t('TAM AKIŞ (8 ADIM) — ŞABLON SEÇİN', 'FULL FLOW (8 STEPS) — PICK A TEMPLATE')}</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {caseTemplatesFor(lang).map(tpl => (
                 <HButton
@@ -222,7 +281,7 @@ export default function Sidebar({ onNavigate }) {
             </div>
             <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 12 }}>
               <HButton
-                onClick={() => setTplOpen(false)}
+                onClick={closeTpl}
                 style={{ padding: '8px 14px', border: '1px solid var(--field-border)', borderRadius: 7, background: 'var(--surface)', color: 'var(--ink-3)', font: '600 12px Helvetica,Arial,sans-serif', cursor: 'pointer' }}
                 hover={{ background: 'var(--surface-4)' }}
               >{t('Vazgeç', 'Cancel')}</HButton>

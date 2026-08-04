@@ -133,18 +133,26 @@ export default function Dashboard() {
             >
               <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
                 <div style={{ flex: 1, minWidth: 0, font: '700 14px/1.3 Helvetica,Arial,sans-serif', color: 'var(--ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{cc.name || key}</div>
-                <span style={{ flex: 'none', font: '600 10px Helvetica,Arial,sans-serif', color: ms.ink, background: ms.bg, border: '1px solid ' + ms.border, borderRadius: 20, padding: '3px 8px' }}>{p.maturity.label}</span>
+                {cc.mode === 'quick'
+                  ? <span style={{ flex: 'none', font: '600 10px Helvetica,Arial,sans-serif', color: 'var(--pri-ink)', background: 'var(--pri-soft)', border: '1px solid var(--pri-border-5)', borderRadius: 20, padding: '3px 8px' }}>⚡ {t('Hızlı çözüm', 'Quick solve')}</span>
+                  : <span style={{ flex: 'none', font: '600 10px Helvetica,Arial,sans-serif', color: ms.ink, background: ms.bg, border: '1px solid ' + ms.border, borderRadius: 20, padding: '3px 8px' }}>{p.maturity.label}</span>}
               </div>
 
-              {/* 8 adımlık mini ilerleme */}
-              <div style={{ display: 'flex', gap: 3 }} role="img" aria-label={t('8 adımdan ' + p.okSteps.length + ' adımın ölçütleri tamam', p.okSteps.length + ' of 8 steps meet their criteria')}>
-                {[1, 2, 3, 4, 5, 6, 7, 8].map(n => (
-                  <div key={n} title={n + '. ' + stepsFor(lang)[n - 1].title} style={{ flex: 1, height: 4, borderRadius: 2, background: p.okSteps.includes(n) ? 'var(--ok)' : 'var(--line)' }} />
-                ))}
-              </div>
+              {/* 8 adımlık mini ilerleme — hızlı çözüm vakalarında anlamsız, gizlenir */}
+              {cc.mode !== 'quick' ? (
+                <div style={{ display: 'flex', gap: 3 }} role="img" aria-label={t('8 adımdan ' + p.okSteps.length + ' adımın ölçütleri tamam', p.okSteps.length + ' of 8 steps meet their criteria')}>
+                  {[1, 2, 3, 4, 5, 6, 7, 8].map(n => (
+                    <div key={n} title={n + '. ' + stepsFor(lang)[n - 1].title} style={{ flex: 1, height: 4, borderRadius: 2, background: p.okSteps.includes(n) ? 'var(--ok)' : 'var(--line)' }} />
+                  ))}
+                </div>
+              ) : null}
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: 4, font: '11.5px/1.5 Helvetica,Arial,sans-serif', color: 'var(--ink-3)' }}>
-                {p.g.hasGap ? (
+                {cc.mode === 'quick' ? (
+                  (cc.problem.statement || '').trim()
+                    ? <div style={{ color: 'var(--ink-3)', overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>{cc.problem.statement}</div>
+                    : <div style={{ color: 'var(--muted)' }}>{t('Sorun tanımı girilmemiş.', 'No problem definition entered.')}</div>
+                ) : p.g.hasGap ? (
                   <div>
                     <strong>{(cc.problem.kpiName || 'KPI')}:</strong>{' '}
                     <span style={{ color: p.g.good ? 'var(--ok-ink)' : 'var(--alert)', fontWeight: 700 }}>{p.g.kpiGapText}</span>
@@ -155,19 +163,21 @@ export default function Dashboard() {
                   {t('Aksiyon: ', 'Actions: ')}{p.actions.length ? p.doneActions.length + '/' + p.actions.length + t(' tamam', ' done') : t('planlanmadı', 'not planned')}
                   {p.overdue.length ? <span style={{ color: 'var(--alert)', fontWeight: 700 }}> · {p.overdue.length}{t(' gecikti ⏰', ' overdue ⏰')}</span> : null}
                 </div>
-                <div style={{ color: 'var(--muted)' }}>
-                  {t('Kök neden: ', 'Root causes: ')}{p.rcs.length ? p.verifiedRcs.length + '/' + p.rcs.length + t(' doğrulanmış', ' verified') : t('yazılmamış', 'not written')}
-                  {' · '}{t('Karar: ', 'Decision: ')}{p.decisionSet ? t('verildi', 'made') : t('bekliyor', 'pending')}
-                </div>
+                {cc.mode !== 'quick' ? (
+                  <div style={{ color: 'var(--muted)' }}>
+                    {t('Kök neden: ', 'Root causes: ')}{p.rcs.length ? p.verifiedRcs.length + '/' + p.rcs.length + t(' doğrulanmış', ' verified') : t('yazılmamış', 'not written')}
+                    {' · '}{t('Karar: ', 'Decision: ')}{p.decisionSet ? t('verildi', 'made') : t('bekliyor', 'pending')}
+                  </div>
+                ) : null}
               </div>
 
               <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 'auto', paddingTop: 2 }}>
-                <span style={{
+                {cc.mode !== 'quick' ? <span style={{
                   flex: 'none', font: '700 10px Helvetica,Arial,sans-serif', borderRadius: 10, padding: '2px 7px',
                   color: p.conf.total >= 80 ? 'var(--ok-ink)' : p.conf.total >= 50 ? 'var(--pri-ink)' : 'var(--warn-ink)',
                   background: p.conf.total >= 80 ? 'var(--ok-soft)' : p.conf.total >= 50 ? 'var(--pri-soft)' : 'var(--warn-soft)',
                   border: '1px solid ' + (p.conf.total >= 80 ? 'var(--ok-border)' : p.conf.total >= 50 ? 'var(--pri-border-5)' : 'var(--warn-border)')
-                }}>{t('Güven: ', 'Confidence: ')}{pct(p.conf.total)}</span>
+                }}>{t('Güven: ', 'Confidence: ')}{pct(p.conf.total)}</span> : null}
                 <span style={{ marginLeft: 'auto', font: '600 11.5px Helvetica,Arial,sans-serif', color: 'var(--pri)' }}>{active ? t('Açık çalışma →', 'Currently open →') : t('Aç →', 'Open →')}</span>
               </div>
             </button>

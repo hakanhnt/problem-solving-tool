@@ -5,6 +5,7 @@ import SharedView from './components/SharedView.jsx';
 import { stepsFor } from './lib/defaults.js';
 import Sidebar from './components/Sidebar.jsx';
 import Dashboard from './components/Dashboard.jsx';
+import QuickCase from './components/QuickCase.jsx';
 import Landing from './components/Landing.jsx';
 import CoachPanel from './components/CoachPanel.jsx';
 import StepHeader from './components/StepHeader.jsx';
@@ -125,6 +126,10 @@ export default function App() {
       {state.dashOpen ? (
         <main data-main="1" style={{ flex: 1, minWidth: 0, overflow: 'auto' }}>
           <Dashboard />
+        </main>
+      ) : c.mode === 'quick' ? (
+        <main data-main="1" style={{ flex: 1, minWidth: 0, overflow: 'auto' }}>
+          <QuickCase />
         </main>
       ) : (
       <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>

@@ -65,6 +65,9 @@ export function blankCase(name, lang) {
   }
   return {
     name: name || 'Benim Çalışmam',
+    mode: 'full',
+    triage: { cost: '', benefit: '', urgency: '' },
+    timing: { reversal: '', window: '', stopSignal: '' },
     problem: { statement: '', geo: '', time: '', brand: '', kpiName: '', target: '', actual: '', direction: '', unit: '', targetHigh: '' },
     drivers: [], driverAnalysis: [], sipoc: [], findings: [],
     whys: ['', '', '', '', ''],
@@ -375,6 +378,13 @@ function exampleCaseEn() {
 export function exampleCase2() {
   return {
     name: 'Örnek Çalışma 2 — GDA Stok Uyumu',
+    mode: 'full',
+    triage: { cost: 'yuksek', benefit: 'yuksek', urgency: 'yuksek' },
+    timing: {
+      reversal: 'yuksek',
+      window: 'Gümrük denetim dönemi öncesi kalıcı kontroller devrede olmalı; her geçen ay ~1.850 adet yeni uyumsuzluk birikiyor.',
+      stopSignal: 'Kök nedenler bulgularla doğrulanıp zorunlu GDA kontrol noktası pilotu test edildiğinde bilgi toplamayı bırakıp kararı uygula.'
+    },
     problem: {
       statement: "Antrepo operasyonlarında GDA (gümrük denetimindeki alan) stok uyumu hedefi sıfır uyumsuzluk olmasına rağmen, WMS geçişi sonrasında aylık ortalama 1.850 adet üründe beyanname-stok uyumsuzluğu (GDA fazlası/eksiği) tespit edilmektedir. Uyumsuzluklar gümrük uyum riski doğurmakta; tek bir barkodun analizi 45 dakika sürmekte ve düzeltme çalışmaları operasyonu yavaşlatmaktadır.",
       geo: "İki antrepo tesisi (A ve B); en yüksek yoğunluk çift WMS kullanılan A tesisinde",

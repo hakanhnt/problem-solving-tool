@@ -70,6 +70,10 @@ function normalize(state) {
     if (!cc.containment) cc.containment = { action: '', owner: '', until: '', removed: false };
     // Karar öncesi zihin kontrolü işaretleri — eski kayıtlar kayıpsız açılır.
     if (!cc.precheck) cc.precheck = { p1: false, p2: false, p3: false };
+    // Triyaj, karar zamanlaması ve hızlı çözüm modu — eski kayıtlar kayıpsız açılır.
+    if (cc.mode !== 'quick') cc.mode = 'full';
+    if (!cc.triage) cc.triage = { cost: '', benefit: '', urgency: '' };
+    if (!cc.timing) cc.timing = { reversal: '', window: '', stopSignal: '' };
     // FMEA ve kuvvet alanı — eski kayıtlar kayıpsız açılır.
     if (!Array.isArray(cc.fmea)) cc.fmea = [];
     if (!cc.forcefield) cc.forcefield = { driving: [], restraining: [] };

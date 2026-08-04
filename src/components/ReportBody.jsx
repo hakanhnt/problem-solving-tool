@@ -4,7 +4,7 @@
 
 import React from 'react';
 import { prioMeta } from '../lib/store.jsx';
-import { gapInfo, decisionMatrix, trackingBars, paretoData, traceability, confidenceScore, caseMaturity, rcStatusMeta, isOverdue, driverMap } from '../lib/derive.js';
+import { gapInfo, decisionMatrix, trackingBars, paretoData, traceability, confidenceScore, caseMaturity, rcStatusMeta, isOverdue, driverMap, timingAdvice } from '../lib/derive.js';
 import { PRE_DECISION_QUESTIONS } from '../lib/thinking.js';
 import { mkT, fmtNum } from '../lib/i18n.js';
 import { fishboneCatsFor } from '../lib/defaults.js';
@@ -497,6 +497,20 @@ export default function ReportBody({ c, principles, sections, companyName, summa
                 {(c.decision.rationale || '').trim() ? <div style={{ font: '12.5px/1.55 Helvetica,Arial,sans-serif', color: 'var(--ok-ink)', marginTop: 6 }}>{c.decision.rationale}</div> : null}
               </div>
             ) : null}
+
+            {(() => {
+              const tm = c.timing || {};
+              const adv = timingAdvice(tm, lang);
+              if (!adv && !(tm.window || '').trim() && !(tm.stopSignal || '').trim()) return null;
+              return (
+                <div style={{ marginTop: 10, background: 'var(--surface-4)', border: '1px solid var(--line-strong)', borderRadius: 8, padding: '10px 13px' }}>
+                  <div style={{ font: '600 11px Helvetica,Arial,sans-serif', color: 'var(--ink-3)', letterSpacing: '.4px', margin: '0 0 4px' }}>{t('KARAR ZAMANLAMASI', 'DECISION TIMING')}</div>
+                  {adv ? <div style={body}><strong>{adv.label}</strong> — {t('geri alma bedeli: ', 'cost of reversal: ')}{tm.reversal === 'dusuk' ? t('düşük', 'low') : tm.reversal === 'orta' ? t('orta', 'moderate') : t('yüksek', 'high')}</div> : null}
+                  {(tm.window || '').trim() ? <div style={body}>{t('Fırsat penceresi: ', 'Opportunity window: ')}{tm.window}</div> : null}
+                  {(tm.stopSignal || '').trim() ? <div style={body}>{t('Durma işareti: ', 'Stop signal: ')}{tm.stopSignal}</div> : null}
+                </div>
+              );
+            })()}
 
             {pmItems.length ? (
               <div style={{ marginTop: 12 }}>
