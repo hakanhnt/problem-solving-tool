@@ -79,7 +79,8 @@ export function blankCase(name, lang) {
       { name: 'Maliyet / kaynak ihtiyacı', weight: '20', yon: 'dusuk', d1: 'Yüksek bütçe / yeni kadro gerektirir', d3: 'Orta düzey bütçe veya kısmi kaynak', d5: 'Mevcut kaynakla, ek bütçesiz yapılır', source: '' },
       { name: 'Risk / uygulanabilirlik', weight: '15', yon: 'dusuk', d1: 'Yüksek riskli, dış bağımlılığı çok', d3: 'Yönetilebilir riskler var', d5: 'Düşük riskli, kontrolümüzde', source: '' }
     ], scores: {},
-    decision: { choice: '', rationale: '' },
+    decision: { choice: '', rationale: '', secondOrder: '', outsideView: '' },
+    tripwires: [],
     thinking: { assume: '', alt: '', cost: '' },
     spec: { nerede: { v: '', y: '' }, zaman: { v: '', y: '' }, kirilim: { v: '', y: '' }, buyukluk: { v: '', y: '' }, degisiklik: '' },
     containment: { action: '', owner: '', until: '', removed: false },
@@ -529,8 +530,14 @@ export function exampleCase2() {
     scores: { '0_0': '4', '0_1': '4', '0_2': '4', '0_3': '4', '1_0': '5', '1_1': '3', '1_2': '3', '1_3': '5', '2_0': '4', '2_1': '1', '2_2': '1', '2_3': '4' },
     decision: {
       choice: "A1 ve A2 birlikte uygulanır: GDA Program Ofisi ve tek yönetici sahip hemen atanır; önleyici kontroller paketi, yeniden başlatılan Faz-2 yol haritasının ilk teslimatı olarak devreye alınır. A3 (RFID) orta vadeli yatırım olarak planlanır.",
-      rationale: "Matris A1 ile A2'yi başa baş gösteriyor ve sonuç 'uygulama hızı' kriterine duyarlı — bu tam da iki alternatifin birbirini tamamladığının işareti: yönetişim (A1) olmadan kontroller paketi (A2) önceliklendirilemiyor; kontroller olmadan yönetişim hatayı fiziksel olarak engelleyemiyor. Karar KN1-KN5'i birlikte adresler; KN6 (üretici) için tedarik tarafı aksiyonu ayrıca yürütülür. Hedef: aylık uyumsuzluğu 2 çeyrekte 500 adedin altına, ardından sıfıra indirmek."
+      rationale: "Matris A1 ile A2'yi başa baş gösteriyor ve sonuç 'uygulama hızı' kriterine duyarlı — bu tam da iki alternatifin birbirini tamamladığının işareti: yönetişim (A1) olmadan kontroller paketi (A2) önceliklendirilemiyor; kontroller olmadan yönetişim hatayı fiziksel olarak engelleyemiyor. Karar KN1-KN5'i birlikte adresler; KN6 (üretici) için tedarik tarafı aksiyonu ayrıca yürütülür. Hedef: aylık uyumsuzluğu 2 çeyrekte 500 adedin altına, ardından sıfıra indirmek.",
+      secondOrder: "Zorunlu GDA kontrol noktası ilk aylarda toplama/sevk hızını düşürür → yoğun dönemde operasyon bypass baskısı oluşur (FMEA'da adreslendi: bypass loglama). Program Ofisi'nin yaptırım gücü diğer projelerin kaynağını çekebilir → PMO ile tek yol haritasında çakışma yönetimi gerekir. Kontroller devreye girince mevcut kirli stokun temizliği ayrı bir iş yükü olarak ortaya çıkar — geçiş planına dahil edildi.",
+      outsideView: "Kurumdaki önceki WMS geçişi de plandan ~2 kat uzun sürmüştü; sektörde entegrasyon programlarının çoğunluğu ilk terminini aşıyor. Bu yüzden Faz-2 teslimat hedefi tek seferde değil, aylık ara teslimatlarla planlandı ve KPI hedefi 2 çeyreğe yayıldı."
     },
+    tripwires: [
+      { condition: "Aylık uyumsuzluk 2 ay üst üste 1.500 adedin altına inmezse", response: "Yönlendirme komitesi kapsamı daraltır: yalnız çoklu beyannameli ürün akışına odaklanılır ve A3 (RFID) fizibilitesi öne çekilir.", checkDate: "2026-10-15", status: "" },
+      { condition: "Zorunlu GDA kontrolü bypass oranı haftalık %5'i aşarsa", response: "Operasyon durdurma yetkisi devreye girer; bypass gerektiren istisna akışlar 1 hafta içinde sistemde tanımlanır.", checkDate: "2026-09-15", status: "" }
+    ],
     thinking: {
       assume: "Hataların çoğunun operatörden kaynaklandığını varsayıyorduk; barkod bazlı analiz önemli bir bölümün sistem/entegrasyon kaynaklı olduğunu gösterdi. İkinci varsayım: sayaç bozulmaları nadirdir — hareket geçmişi analiziyle test edilmeli.",
       alt: "Uyumsuzluk operatör hatası değil, çift WMS senkron kayıplarının birikimi olabilir; ya da üretici kaynaklı iç barkod hataları ürün kabulde görünmezleşiyor olabilir. İkisi de kırılım bazında ölçülmeli.",

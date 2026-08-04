@@ -650,9 +650,14 @@ export default function Step6Countermeasures() {
               <div style={{ font: '700 10.5px Helvetica,Arial,sans-serif', color: 'var(--pri-soft-ink)', letterSpacing: '.8px' }}>{t('REHBERİN KARAR ÖNERİSİ', "COACH'S DECISION SUGGESTION")}</div>
               <div style={{ font: '600 13px/1.5 Helvetica,Arial,sans-serif', color: 'var(--ink)' }}>{dc.choice}</div>
               <div style={{ font: '12.5px/1.55 Helvetica,Arial,sans-serif', color: 'var(--ink-3)' }}>{dc.rationale}</div>
+              {(dc.secondOrder || '').trim() ? (
+                <div style={{ font: '12px/1.55 Helvetica,Arial,sans-serif', color: 'var(--ink-3)' }}>
+                  <strong>{t('İkinci basamak: ', 'Second order: ')}</strong>{dc.secondOrder}
+                </div>
+              ) : null}
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                 <HButton
-                  onClick={() => updC(cc => { if (!cc.decisionCoach) return; cc.decision.choice = cc.decisionCoach.choice; cc.decision.rationale = cc.decisionCoach.rationale; })}
+                  onClick={() => updC(cc => { if (!cc.decisionCoach) return; cc.decision.choice = cc.decisionCoach.choice; cc.decision.rationale = cc.decisionCoach.rationale; if ((cc.decisionCoach.secondOrder || '').trim() && !(cc.decision.secondOrder || '').trim()) cc.decision.secondOrder = cc.decisionCoach.secondOrder; })}
                   style={{ padding: '8px 14px', border: '1px solid var(--pri)', borderRadius: 8, background: 'var(--pri)', color: 'var(--on-pri)', font: '600 12px Helvetica,Arial,sans-serif', cursor: 'pointer' }}
                   hover={S.primaryHover}
                 >{t('Karar alanlarına aktar', 'Apply to decision fields')}</HButton>
@@ -677,7 +682,25 @@ export default function Step6Countermeasures() {
         <textarea
           className="pcx-field" value={c.decision.rationale} onChange={inp('decision', 'rationale')}
           placeholder={t('Bu karar kök nedeni nasıl gideriyor? Hangi kısıt ve riskleri nasıl karşılıyor?', 'How does this decision eliminate the root cause? How does it handle constraints and risks?')}
-          style={{ ...S.textarea, minHeight: 76, height: 376 }}
+          style={{ ...S.textarea, minHeight: 76, height: 376, margin: '0 0 12px' }}
+        />
+
+        {/* İkinci basamak düşünme (Munger/Parrish) */}
+        <label style={S.label}>{t('Ve sonra ne olacak? — ikinci basamak etkileri', 'And then what? — second-order effects')}</label>
+        <div style={{ font: '11.5px/1.5 Helvetica,Arial,sans-serif', color: 'var(--muted)', margin: '0 0 6px' }}>{t('Karar uygulanınca kimler/hangi süreçler etkilenir; çözümün kendisi hangi yeni problemi doğurabilir? İki basamak ileriyi yazın.', 'Once implemented, who and which processes are affected; what new problem might the solution itself create? Think two steps ahead.')}</div>
+        <textarea
+          className="pcx-field" value={c.decision.secondOrder || ''} onChange={inp('decision', 'secondOrder')}
+          placeholder={t('Örn: zorunlu kontrol operasyonu yavaşlatır → yoğun dönemde bypass baskısı doğar → loglama ve istisna akışı gerekir.', 'E.g., the mandatory check slows operations → bypass pressure builds in peak season → logging and an exception flow are needed.')}
+          style={{ ...S.textarea, minHeight: 60, height: 96, margin: '0 0 12px' }}
+        />
+
+        {/* Dış görünüm / referans sınıfı (Kahneman) */}
+        <label style={S.label}>{t('Dış görünüm — benzer girişimler gerçekte nasıl sonuçlandı?', 'Outside view — how did similar initiatives actually turn out?')}</label>
+        <div style={{ font: '11.5px/1.5 Helvetica,Arial,sans-serif', color: 'var(--muted)', margin: '0 0 6px' }}>{t('Planlama yanılgısının panzehiri: kendi planınıza değil, benzer girişimlerin gerçek sonuçlarına bakın (kurum içi geçmiş, sektör deneyimi, yukarıdaki Benzer Vakalar paneli). Termin ve etki beklentinizi buna göre düzeltin.', "The antidote to the planning fallacy: look at the actual outcomes of similar initiatives (internal history, industry experience, the Similar Cases panel above), not at your own plan. Adjust your deadline and impact expectations accordingly.")}</div>
+        <textarea
+          className="pcx-field" value={c.decision.outsideView || ''} onChange={inp('decision', 'outsideView')}
+          placeholder={t('Örn: önceki sistem geçişimiz plandan 2 kat uzun sürdü — bu yüzden hedefi ara teslimatlara böldük.', 'E.g., our previous system migration took twice as long as planned — so we split the target into interim deliveries.')}
+          style={{ ...S.textarea, minHeight: 60, height: 96 }}
         />
       </Card>
 

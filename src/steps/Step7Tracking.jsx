@@ -250,6 +250,53 @@ export default function Step7Tracking() {
         <AddButton onClick={() => updC(cc => { cc.tracking = cc.tracking || []; cc.tracking.push({ label: '', value: '' }); })}>{t('+ Ölçüm ekle', '+ Add measurement')}</AddButton>
       </Card>
 
+      {/* Tetik çizgileri (tripwires) — kriz anında değil, sakin kafayla önceden verilen kararlar */}
+      <Card>
+        <div style={{ ...S.cardTitle, margin: '0 0 4px' }}>{t('Tetik çizgileri', 'Tripwires')}</div>
+        <div style={S.cardSub}>{t('"X gerçekleşirse, önceden anlaştığımız Z devreye girer." Tepkiyi kriz anında değil, şimdi — sakin kafayla — kararlaştırın.', '"If X happens, the pre-agreed Z kicks in." Decide the response now, with a clear head — not in the middle of the crisis.')}</div>
+        <MethodBox margin="0 0 14px">{t('Tetik çizgisi ölçülebilir bir koşul + tarih + önceden kararlaştırılmış tepkidir. Kontrol tarihi geldiğinde koşula bakın: gerçekleştiyse tepkiyi tartışmadan uygulayın, gerçekleşmediyse çizgiyi kapatın. Sürüklenmeyi (kaynayan kurbağa) önler.', 'A tripwire is a measurable condition + a date + a pre-agreed response. When the check date arrives, look at the condition: if it fired, execute the response without re-debating; if not, close the line. It prevents drift (the boiling frog).')}</MethodBox>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, margin: '0 0 10px' }}>
+          {(c.tripwires || []).map((tw, i) => {
+            const overdue = (tw.checkDate || '') && !tw.status && tw.checkDate < new Date().toISOString().slice(0, 10);
+            return (
+              <div key={i} style={{ border: '1px solid ' + (tw.status === 'tetiklendi' ? 'var(--alert-border)' : overdue ? 'var(--warn-border)' : 'var(--line-2)'), borderRadius: 8, padding: '10px 12px', background: tw.status === 'tetiklendi' ? 'var(--alert-soft-2)' : 'var(--surface-2)', display: 'flex', flexDirection: 'column', gap: 8 }}>
+                <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+                  <input
+                    className="pcx-field-sm" value={tw.condition || ''} onChange={inp('tripwires', i, 'condition')}
+                    placeholder={t('Koşul — örn. KPI 2 ay içinde 500\'ün altına inmezse', 'Condition — e.g. if the KPI is not below 500 within 2 months')}
+                    aria-label={t((i + 1) + '. tetik koşulu', 'Trip condition ' + (i + 1))}
+                    style={{ ...S.inputSm, flex: '2 1 260px' }}
+                  />
+                  <input
+                    className="pcx-field-sm" type="date" value={tw.checkDate || ''} onChange={inp('tripwires', i, 'checkDate')}
+                    aria-label={t((i + 1) + '. tetik kontrol tarihi', 'Trip check date ' + (i + 1))}
+                    style={{ ...S.inputSm, flex: 'none', width: 140 }}
+                  />
+                  <select
+                    className="pcx-field-sm" value={tw.status || ''} onChange={inp('tripwires', i, 'status')}
+                    aria-label={t((i + 1) + '. tetik durumu', 'Trip status ' + (i + 1))}
+                    style={{ ...S.select, flex: 'none', width: 190, font: '12px Helvetica,Arial,sans-serif' }}
+                  >
+                    <option value="">{t('İzleniyor', 'Watching')}</option>
+                    <option value="tetiklendi">{t('Tetiklendi — tepki devrede', 'Fired — response active')}</option>
+                    <option value="temiz">{t('Gerçekleşmedi / kapandı', 'Did not fire / closed')}</option>
+                  </select>
+                  <RemoveButton onClick={() => removeC(t('tetik çizgisi', 'tripwire'), cc => cc.tripwires.splice(i, 1))} />
+                </div>
+                <input
+                  className="pcx-field-sm" value={tw.response || ''} onChange={inp('tripwires', i, 'response')}
+                  placeholder={t('Önceden kararlaştırılan tepki — örn. kapsam daraltılır, B planına geçilir, eskalasyon yapılır', 'Pre-agreed response — e.g. narrow the scope, switch to plan B, escalate')}
+                  aria-label={t((i + 1) + '. tetik tepkisi', 'Trip response ' + (i + 1))}
+                  style={{ ...S.inputSm, width: '100%', boxSizing: 'border-box' }}
+                />
+                {overdue ? <div style={{ font: '600 11.5px Helvetica,Arial,sans-serif', color: 'var(--warn-ink)' }}>{t('⏰ Kontrol tarihi geçti — koşula bakın: tetiklendi mi, kapandı mı?', '⏰ Check date has passed — evaluate the condition: did it fire or close?')}</div> : null}
+              </div>
+            );
+          })}
+        </div>
+        <AddButton onClick={() => updC(cc => { cc.tripwires = cc.tripwires || []; cc.tripwires.push({ condition: '', response: '', checkDate: '', status: '' }); })}>{t('+ Tetik çizgisi ekle', '+ Add tripwire')}</AddButton>
+      </Card>
+
       <Card>
         <div style={{ ...S.cardTitle, margin: '0 0 4px' }}>{t('Retrospektif', 'Retrospective')}</div>
         <div style={S.cardSub}>{t('Döngüyü dürüstçe kapatın — bu cevaplar bir sonraki probleminizde sizi daha iyi yapacak.', 'Close the loop honestly — these answers will make you better on your next problem.')}</div>

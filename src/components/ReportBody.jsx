@@ -512,6 +512,19 @@ export default function ReportBody({ c, principles, sections, companyName, summa
               );
             })()}
 
+            {(c.decision.secondOrder || '').trim() ? (
+              <div style={{ marginTop: 10, background: 'var(--surface-4)', border: '1px solid var(--line-strong)', borderRadius: 8, padding: '10px 13px' }}>
+                <div style={{ font: '600 11px Helvetica,Arial,sans-serif', color: 'var(--ink-3)', letterSpacing: '.4px', margin: '0 0 4px' }}>{t('İKİNCİ BASAMAK ETKİLERİ — "VE SONRA NE OLACAK?"', 'SECOND-ORDER EFFECTS — "AND THEN WHAT?"')}</div>
+                <div style={body}>{c.decision.secondOrder}</div>
+              </div>
+            ) : null}
+            {(c.decision.outsideView || '').trim() ? (
+              <div style={{ marginTop: 10, background: 'var(--surface-4)', border: '1px solid var(--line-strong)', borderRadius: 8, padding: '10px 13px' }}>
+                <div style={{ font: '600 11px Helvetica,Arial,sans-serif', color: 'var(--ink-3)', letterSpacing: '.4px', margin: '0 0 4px' }}>{t('DIŞ GÖRÜNÜM — BENZER GİRİŞİMLER GERÇEKTE NASIL SONUÇLANDI?', 'OUTSIDE VIEW — HOW DID SIMILAR INITIATIVES ACTUALLY TURN OUT?')}</div>
+                <div style={body}>{c.decision.outsideView}</div>
+              </div>
+            ) : null}
+
             {pmItems.length ? (
               <div style={{ marginTop: 12 }}>
                 <div style={{ font: '600 11px Helvetica,Arial,sans-serif', color: 'var(--ink-3)', letterSpacing: '.4px', margin: '0 0 6px' }}>{t('PRE-MORTEM — ÖNGÖRÜLEN BAŞARISIZLIK SENARYOLARI', 'PRE-MORTEM — ANTICIPATED FAILURE SCENARIOS')}</div>
@@ -636,7 +649,7 @@ export default function ReportBody({ c, principles, sections, companyName, summa
           </div>
         ) : null}
 
-        {(trackRows.length || RETRO_ROWS.length) && on('izleme') ? (
+        {(trackRows.length || RETRO_ROWS.length || (c.tripwires || []).some(tw => (tw.condition || '').trim())) && on('izleme') ? (
           <div>
             <div style={secTitle}>{t('7 · İZLEME VE RETROSPEKTİF', '7 · TRACKING AND RETROSPECTIVE')}</div>
 
@@ -659,6 +672,25 @@ export default function ReportBody({ c, principles, sections, companyName, summa
               <div style={{ ...body, margin: '0 0 8px' }}>
                 <strong>{t('KPI ölçümleri:', 'KPI measurements:')}</strong> {trackRows.map(t2 => (t2.label || '—') + ': ' + (t2.value || '—')).join(' · ')}
                 {(c.problem.target || '').trim() ? <span style={{ color: 'var(--muted)' }}> ({t('hedef ', 'target ')}{c.problem.target})</span> : null}
+              </div>
+            ) : null}
+
+            {(c.tripwires || []).filter(tw => (tw.condition || '').trim()).length ? (
+              <div style={{ margin: '10px 0' }}>
+                <div style={{ font: '600 11px Helvetica,Arial,sans-serif', color: 'var(--ink-3)', letterSpacing: '.4px', margin: '0 0 6px' }}>{t('TETİK ÇİZGİLERİ — önceden kararlaştırılmış tepkiler', 'TRIPWIRES — pre-agreed responses')}</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+                  {(c.tripwires || []).filter(tw => (tw.condition || '').trim()).map((tw, i) => (
+                    <div key={i} style={body}>
+                      <strong>{tw.condition}</strong>
+                      {(tw.response || '').trim() ? <span> → {tw.response}</span> : null}
+                      <span style={{ color: 'var(--muted)' }}>
+                        {(tw.checkDate || '').trim() ? ' · ' + t('kontrol: ', 'check: ') + tw.checkDate : ''}
+                        {tw.status === 'tetiklendi' ? ' · ' : tw.status === 'temiz' ? ' · ' : ''}
+                      </span>
+                      {tw.status === 'tetiklendi' ? <span style={{ color: 'var(--alert)', fontWeight: 700 }}>{t('TETİKLENDİ', 'FIRED')}</span> : tw.status === 'temiz' ? <span style={{ color: 'var(--ok-ink)', fontWeight: 700 }}>{t('gerçekleşmedi ✓', 'did not fire ✓')}</span> : null}
+                    </div>
+                  ))}
+                </div>
               </div>
             ) : null}
 

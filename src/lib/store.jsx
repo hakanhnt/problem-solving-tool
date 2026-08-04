@@ -74,6 +74,10 @@ function normalize(state) {
     if (cc.mode !== 'quick') cc.mode = 'full';
     if (!cc.triage) cc.triage = { cost: '', benefit: '', urgency: '' };
     if (!cc.timing) cc.timing = { reversal: '', window: '', stopSignal: '' };
+    // İkinci basamak düşünme, dış görünüm ve tetik çizgileri — eski kayıtlar kayıpsız açılır.
+    if (cc.decision && cc.decision.secondOrder === undefined) cc.decision.secondOrder = '';
+    if (cc.decision && cc.decision.outsideView === undefined) cc.decision.outsideView = '';
+    if (!Array.isArray(cc.tripwires)) cc.tripwires = [];
     // FMEA ve kuvvet alanı — eski kayıtlar kayıpsız açılır.
     if (!Array.isArray(cc.fmea)) cc.fmea = [];
     if (!cc.forcefield) cc.forcefield = { driving: [], restraining: [] };
@@ -410,7 +414,7 @@ export function StoreProvider({ children }) {
     const s0 = stateRef.current;
     const eff = effCase(s0);
     if (s0.cases[eff].decisionCoach && s0.cases[eff].decisionCoach.status === 'busy') return;
-    upd(n => { n.cases[eff].decisionCoach = { status: 'busy', choice: '', rationale: '' }; });
+    upd(n => { n.cases[eff].decisionCoach = { status: 'busy', choice: '', rationale: '', secondOrder: '' }; });
     (async () => {
       try {
         const c = stateRef.current.cases[eff];
@@ -420,9 +424,9 @@ export function StoreProvider({ children }) {
           messages: [{ role: 'user', content: 'Alternatiflerime, kriterlerime ve matris puanlarıma göre karar önerini JSON olarak üret.' }]
         });
         const j = parseJsonReply(reply);
-        upd(n => { n.cases[eff].decisionCoach = { status: 'done', choice: String(j.oneri || ''), rationale: String(j.gerekce || '') }; });
+        upd(n => { n.cases[eff].decisionCoach = { status: 'done', choice: String(j.oneri || ''), rationale: String(j.gerekce || ''), secondOrder: String(j.ikinciBasamak || '') }; });
       } catch (e) {
-        upd(n => { n.cases[eff].decisionCoach = { status: 'error', choice: '', rationale: '', errMsg: String((e && e.message) || e) }; });
+        upd(n => { n.cases[eff].decisionCoach = { status: 'error', choice: '', rationale: '', secondOrder: '', errMsg: String((e && e.message) || e) }; });
       }
     })();
   }, [upd, effCase, callAi, systemFor]);
