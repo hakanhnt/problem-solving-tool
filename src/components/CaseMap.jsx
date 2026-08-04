@@ -49,7 +49,8 @@ export default function CaseMap({ c, lang = 'tr', onNavigate }) {
       </div>
 
       <div style={{ overflowX: 'auto', paddingBottom: 6 }}>
-        <div style={{ position: 'relative', width: m.w, minHeight: m.h + 30 }}>
+        {/* Yazdırmada harita kâğıt genişliğine sığacak şekilde ölçeklenir (index.css @media print) */}
+        <div data-casemap-fit="1" style={{ position: 'relative', width: m.w, minHeight: m.h + 30, '--pz': Math.min(1, 660 / m.w) }}>
           {/* Sütun başlıkları */}
           {headers.map((h, i) => (
             <div key={i} style={{ position: 'absolute', left: i * MAP_COL_W + 14, top: 0, width: MAP_NODE_W, font: '700 9.5px Helvetica,Arial,sans-serif', color: 'var(--muted)', letterSpacing: '.7px' }}>{h}</div>

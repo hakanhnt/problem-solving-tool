@@ -244,4 +244,11 @@ summary:focus-visible,
   [data-noprint]{display:none !important}
   [data-app-root]{display:block !important;height:auto !important;overflow:visible !important}
   [data-main]{overflow:visible !important}
+  /* Grafikler arka plan rengiyle çizilir (Pareto/kuvvet alanı çubukları, kılçık kutuları):
+     tarayıcının "arka planları basma" varsayılanı bu ayarla aşılır. */
+  *{-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important}
+  /* Diyagram ve tablolar sayfa sonunda ortadan bölünmesin */
+  [data-avoid-break]{break-inside:avoid;page-break-inside:avoid}
+  /* Vaka haritası kâğıt genişliğine sığacak şekilde ölçeklenir (bileşen --pz değerini hesaplar) */
+  [data-casemap-fit]{zoom:var(--pz,1)}
 }

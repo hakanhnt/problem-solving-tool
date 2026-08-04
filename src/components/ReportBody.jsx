@@ -105,7 +105,7 @@ export default function ReportBody({ c, principles, sections, companyName, summa
       </div>
 
       {/* Tek sayfalık yönetici özeti — raporun en başında, tek bakışta durum */}
-      <div style={{ background: 'var(--pri-soft-2)', border: '1px solid var(--pri-border-4)', borderRadius: 8, padding: '14px 16px', margin: '0 0 20px' }}>
+      <div data-avoid-break="1" style={{ background: 'var(--pri-soft-2)', border: '1px solid var(--pri-border-4)', borderRadius: 8, padding: '14px 16px', margin: '0 0 20px' }}>
         <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap', margin: '0 0 8px' }}>
           <div style={{ font: '700 10.5px Helvetica,Arial,sans-serif', color: 'var(--pri-soft-ink)', letterSpacing: '.8px' }}>{t('YÖNETİCİ ÖZETİ', 'EXECUTIVE SUMMARY')}</div>
           <span style={{ font: '600 10.5px Helvetica,Arial,sans-serif', color: 'var(--pri-ink)', background: 'var(--pri-soft)', border: '1px solid var(--pri-border-5)', borderRadius: 20, padding: '3px 9px' }}>{t('Durum: ', 'Status: ')}{maturity.label}</span>
@@ -177,7 +177,7 @@ export default function ReportBody({ c, principles, sections, companyName, summa
             ) : null}
 
             {specRows.length ? (
-              <div style={{ marginTop: 12 }}>
+              <div data-avoid-break="1" style={{ marginTop: 12 }}>
                 <div style={{ font: '600 11px Helvetica,Arial,sans-serif', color: 'var(--ink-3)', letterSpacing: '.4px', margin: '0 0 6px' }}>{t('VAR / YOK BELİRTİMİ', 'IS / IS-NOT SPECIFICATION')}</div>
                 <div style={{ overflowX: 'auto' }}>
                   <table style={{ borderCollapse: 'collapse', width: '100%' }}>
@@ -207,7 +207,7 @@ export default function ReportBody({ c, principles, sections, companyName, summa
             {(() => {
               const dm = driverMap(c);
               return (
-                <div style={{ display: 'flex', gap: 0, alignItems: 'stretch', border: '1px solid var(--line-2)', borderRadius: 8, background: 'var(--surface-2)', padding: '12px 14px', overflowX: 'auto' }}>
+                <div data-avoid-break="1" style={{ display: 'flex', gap: 0, alignItems: 'stretch', border: '1px solid var(--line-2)', borderRadius: 8, background: 'var(--surface-2)', padding: '12px 14px', overflowX: 'auto' }}>
                   <div style={{ flex: 'none', alignSelf: 'center', background: 'var(--pri)', color: 'var(--on-pri)', borderRadius: 8, padding: '10px 12px', font: '700 11.5px/1.4 Helvetica,Arial,sans-serif', maxWidth: 150, textAlign: 'center' }}>
                     {(c.problem.kpiName || '').trim() || 'KPI'}
                   </div>
@@ -273,7 +273,7 @@ export default function ReportBody({ c, principles, sections, companyName, summa
               ))}
             </div>
             {pareto ? (
-              <div style={{ marginTop: 10, border: '1px solid var(--line-2)', borderRadius: 8, background: 'var(--surface-2)', padding: '10px 12px' }}>
+              <div data-avoid-break="1" style={{ marginTop: 10, border: '1px solid var(--line-2)', borderRadius: 8, background: 'var(--surface-2)', padding: '10px 12px' }}>
                 <div style={{ font: '600 11px Helvetica,Arial,sans-serif', color: 'var(--ink-3)', letterSpacing: '.4px', margin: '0 0 8px' }}>
                   {t('PARETO — SAPMAYA KATKI DAĞILIMI', 'PARETO — CONTRIBUTION TO THE GAP')}
                 </div>
@@ -327,7 +327,7 @@ export default function ReportBody({ c, principles, sections, companyName, summa
               </div>
             ))}
             {fbRows.length ? (
-              <div style={{ marginTop: 10 }}>
+              <div data-avoid-break="1" style={{ marginTop: 10 }}>
                 <div style={{ font: '600 11px Helvetica,Arial,sans-serif', color: 'var(--ink-3)', letterSpacing: '.4px', margin: '0 0 6px' }}>{t('BALIK KILÇIĞI (ISHIKAWA) DİYAGRAMI', 'FISHBONE (ISHIKAWA) DIAGRAM')}</div>
                 {(() => {
                   const cats = fishboneCatsFor(lang);
@@ -438,7 +438,7 @@ export default function ReportBody({ c, principles, sections, companyName, summa
             </div>
 
             {hasScores && (c.criteria || []).length ? (
-              <div style={{ margin: '0 0 12px' }}>
+              <div data-avoid-break="1" style={{ margin: '0 0 12px' }}>
                 <div style={{ font: '600 11px Helvetica,Arial,sans-serif', color: 'var(--ink-3)', letterSpacing: '.4px', margin: '0 0 6px' }}>{t('KARAR MATRİSİ (1–5 · ağırlıklı toplam)', 'DECISION MATRIX (1–5 · weighted total)')}</div>
                 {!M.valid ? (
                   <div style={{ font: '11.5px/1.5 Helvetica,Arial,sans-serif', color: 'var(--alert)', background: 'var(--alert-soft)', border: '1px solid var(--alert-border)', borderRadius: 6, padding: '7px 10px', margin: '0 0 6px' }}>
@@ -556,7 +556,7 @@ export default function ReportBody({ c, principles, sections, companyName, summa
             ) : null}
 
             {fmeaRows.length ? (
-              <div style={{ marginTop: 12 }}>
+              <div data-avoid-break="1" style={{ marginTop: 12 }}>
                 <div style={{ font: '600 11px Helvetica,Arial,sans-serif', color: 'var(--ink-3)', letterSpacing: '.4px', margin: '0 0 6px' }}>{t('FMEA — EN YÜKSEK RİSKLİ HATA TÜRLERİ (RPN = Ş×O×T)', 'FMEA — HIGHEST-RISK FAILURE MODES (RPN = S×O×D)')}</div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                   {fmeaRows.slice().sort((x, y) => (rpnOf(y) || 0) - (rpnOf(x) || 0)).slice(0, 5).map((r, i) => (
@@ -572,7 +572,7 @@ export default function ReportBody({ c, principles, sections, companyName, summa
             ) : null}
 
             {(ffD.length || ffR.length) ? (
-              <div style={{ marginTop: 12 }}>
+              <div data-avoid-break="1" style={{ marginTop: 12 }}>
                 <div style={{ font: '600 11px Helvetica,Arial,sans-serif', color: 'var(--ink-3)', letterSpacing: '.4px', margin: '0 0 6px' }}>{t('KUVVET ALANI ANALİZİ (LEWIN)', 'FORCE FIELD ANALYSIS (LEWIN)')}</div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, border: '1px solid var(--line-2)', borderRadius: 8, background: 'var(--surface-2)', padding: '10px 12px' }}>
                   {[
@@ -673,7 +673,7 @@ export default function ReportBody({ c, principles, sections, companyName, summa
                 <div style={{ font: '600 11px Helvetica,Arial,sans-serif', color: 'var(--ink-3)', letterSpacing: '.4px', margin: '0 0 6px' }}>
                   {t('KPI TRENDİ — ', 'KPI TREND — ')}{(c.problem.kpiName || 'KPI')}{(c.problem.target || '').trim() ? t(' · hedef ', ' · target ') + c.problem.target : ''}
                 </div>
-                <div style={{ display: 'flex', gap: 14, alignItems: 'flex-end', border: '1px solid var(--line-2)', borderRadius: 8, background: 'var(--surface-2)', padding: '14px 14px 8px', overflowX: 'auto' }}>
+                <div data-avoid-break="1" style={{ display: 'flex', gap: 14, alignItems: 'flex-end', border: '1px solid var(--line-2)', borderRadius: 8, background: 'var(--surface-2)', padding: '14px 14px 8px', overflowX: 'auto' }}>
                   {bars.map((tb, i) => (
                     <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, flex: 'none', minWidth: 52 }}>
                       <div style={{ font: '700 11.5px Helvetica,Arial,sans-serif', color: 'var(--ink)' }}>{tb.value}</div>
