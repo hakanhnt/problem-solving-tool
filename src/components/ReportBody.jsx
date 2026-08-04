@@ -4,7 +4,7 @@
 
 import React from 'react';
 import { prioMeta } from '../lib/store.jsx';
-import { gapInfo, decisionMatrix, trackingBars, paretoData, traceability, confidenceScore, caseMaturity, rcStatusMeta, isOverdue } from '../lib/derive.js';
+import { gapInfo, decisionMatrix, trackingBars, paretoData, traceability, confidenceScore, caseMaturity, rcStatusMeta, isOverdue, driverMap } from '../lib/derive.js';
 import { PRE_DECISION_QUESTIONS } from '../lib/thinking.js';
 import { mkT, fmtNum } from '../lib/i18n.js';
 import { fishboneCatsFor } from '../lib/defaults.js';
@@ -204,11 +204,31 @@ export default function ReportBody({ c, principles, sections, companyName, summa
         {drivers.length && on('driver') ? (
           <div>
             <div style={secTitle}>{t('2 · İŞ SÜRÜCÜSÜ HARİTASI', '2 · BUSINESS DRIVER MAP')}</div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-              {drivers.map((d, i) => (
-                <div key={i} style={body}><strong>{d.name}</strong>{(d.note || '').trim() ? <span style={{ color: 'var(--ink-4)' }}> — {d.note}</span> : null}</div>
-              ))}
-            </div>
+            {(() => {
+              const dm = driverMap(c);
+              return (
+                <div style={{ display: 'flex', gap: 0, alignItems: 'stretch', border: '1px solid var(--line-2)', borderRadius: 8, background: 'var(--surface-2)', padding: '12px 14px', overflowX: 'auto' }}>
+                  <div style={{ flex: 'none', alignSelf: 'center', background: 'var(--pri)', color: 'var(--on-pri)', borderRadius: 8, padding: '10px 12px', font: '700 11.5px/1.4 Helvetica,Arial,sans-serif', maxWidth: 150, textAlign: 'center' }}>
+                    {(c.problem.kpiName || '').trim() || 'KPI'}
+                  </div>
+                  <div style={{ flex: 'none', alignSelf: 'stretch', width: 18, position: 'relative' }} aria-hidden="true">
+                    <div style={{ position: 'absolute', left: '50%', top: 12, bottom: 12, width: 2, background: 'var(--pri-border)' }} />
+                  </div>
+                  <div style={{ flex: 1, minWidth: 260, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                    {drivers.map((d, i) => (
+                      <div key={i} style={{ display: 'flex', gap: 0, alignItems: 'center' }}>
+                        <div aria-hidden="true" style={{ flex: 'none', width: 14, height: 2, background: 'var(--pri-border)' }} />
+                        <div style={{ flex: 1, background: 'var(--surface)', border: '1px solid var(--pri-border-2)', borderRadius: 7, padding: '7px 10px' }}>
+                          <div style={{ font: '700 12px/1.4 Helvetica,Arial,sans-serif', color: 'var(--ink)' }}>D{i + 1} · {d.name}</div>
+                          {(dm[i] && dm[i].hasSub) ? <div style={{ font: '11px/1.45 Helvetica,Arial,sans-serif', color: 'var(--pri-soft-ink)', marginTop: 2 }}>{t('Alt bileşenler: ', 'Subcomponents: ')}{dm[i].sub}</div> : null}
+                          {(d.note || '').trim() ? <div style={{ font: '11px/1.45 Helvetica,Arial,sans-serif', color: 'var(--ink-4)', marginTop: 2 }}>{d.note}</div> : null}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })()}
           </div>
         ) : null}
 
@@ -253,6 +273,29 @@ export default function ReportBody({ c, principles, sections, companyName, summa
               ))}
             </div>
             {pareto ? (
+              <div style={{ marginTop: 10, border: '1px solid var(--line-2)', borderRadius: 8, background: 'var(--surface-2)', padding: '10px 12px' }}>
+                <div style={{ font: '600 11px Helvetica,Arial,sans-serif', color: 'var(--ink-3)', letterSpacing: '.4px', margin: '0 0 8px' }}>
+                  {t('PARETO — SAPMAYA KATKI DAĞILIMI', 'PARETO — CONTRIBUTION TO THE GAP')}
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+                  {pareto.bars.map(bar => (
+                    <div key={bar.label} style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                      <div style={{ flex: 'none', width: 26, font: '700 10.5px Helvetica,Arial,sans-serif', color: 'var(--pri)' }}>{bar.label}</div>
+                      <div style={{ flex: 1, height: 14, background: 'var(--surface-4)', borderRadius: 4, overflow: 'hidden' }}>
+                        <div style={{ width: bar.w + '%', height: '100%', background: pareto.vital.includes(bar.label) ? 'var(--pri)' : 'var(--pri-bar)', borderRadius: 4 }} />
+                      </div>
+                      <div style={{ flex: 'none', width: 88, font: '11px Helvetica,Arial,sans-serif', color: 'var(--ink-3)', textAlign: 'right' }}>
+                        {fmtNum(lang, bar.v)}{pareto.unit ? ' ' + pareto.unit : ''} · {pct(pareto.mode === 'kpi' ? bar.pctOfGap : bar.pctInternal)}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div style={{ font: '10px/1.4 Helvetica,Arial,sans-serif', color: 'var(--muted)', marginTop: 5 }}>
+                  {t('Koyu çubuklar öncelikli (vital few) bulgulardır.', 'Dark bars are the vital-few findings.')}
+                </div>
+              </div>
+            ) : null}
+            {pareto ? (
               <div style={{ marginTop: 8, font: '12.5px/1.55 Helvetica,Arial,sans-serif', color: 'var(--pri-ink)' }}>
                 <strong>Pareto:</strong>{' '}
                 {pareto.mode === 'kpi' ? (
@@ -285,12 +328,43 @@ export default function ReportBody({ c, principles, sections, companyName, summa
             ))}
             {fbRows.length ? (
               <div style={{ marginTop: 10 }}>
-                <div style={{ font: '600 11px Helvetica,Arial,sans-serif', color: 'var(--ink-3)', letterSpacing: '.4px', margin: '0 0 6px' }}>{t('BALIK KILÇIĞI (ISHIKAWA) KATEGORİLERİ', 'FISHBONE (ISHIKAWA) CATEGORIES')}</div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                  {fbRows.map(([k, label]) => (
-                    <div key={k} style={body}><strong style={{ color: 'var(--pri-soft-ink)' }}>{label}:</strong> {fb[k]}</div>
-                  ))}
-                </div>
+                <div style={{ font: '600 11px Helvetica,Arial,sans-serif', color: 'var(--ink-3)', letterSpacing: '.4px', margin: '0 0 6px' }}>{t('BALIK KILÇIĞI (ISHIKAWA) DİYAGRAMI', 'FISHBONE (ISHIKAWA) DIAGRAM')}</div>
+                {(() => {
+                  const cats = fishboneCatsFor(lang);
+                  const fbTop = cats.slice(0, 3), fbBottom = cats.slice(3);
+                  const cell = f => (
+                    <>
+                      <div style={{ font: '700 9.5px Helvetica,Arial,sans-serif', color: 'var(--pri)', letterSpacing: '.4px', margin: '0 0 3px' }}>{f.title}</div>
+                      <div style={{ font: '10.5px/1.45 Helvetica,Arial,sans-serif', color: 'var(--ink-3)' }}>{(fb[f.key] || '').trim() || '—'}</div>
+                    </>
+                  );
+                  return (
+                    <div style={{ border: '1px solid var(--line-2)', borderRadius: 8, background: 'var(--surface-2)', padding: '12px 14px', overflowX: 'auto' }}>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 130px', gap: 8, alignItems: 'center', minWidth: 560 }}>
+                        {fbTop.map(f => (
+                          <div key={f.key} style={{ alignSelf: 'end', border: '1px solid var(--pri-border-2)', borderRadius: 7, background: 'var(--surface)', padding: '7px 9px', minHeight: 52 }}>
+                            {cell(f)}
+                            <div aria-hidden="true" style={{ width: 2, height: 12, background: 'var(--pri-border)', margin: '6px auto -19px' }} />
+                          </div>
+                        ))}
+                        <div />
+                        <div aria-hidden="true" style={{ gridColumn: '1 / 4', height: 0, borderTop: '3px solid var(--pri)', position: 'relative' }}>
+                          <div style={{ position: 'absolute', right: -11, top: -8, font: '700 13px Helvetica,Arial,sans-serif', color: 'var(--pri)' }}>▶</div>
+                        </div>
+                        <div style={{ background: 'var(--alert)', color: 'var(--on-pri)', borderRadius: 8, padding: '9px 10px', font: '700 10.5px/1.4 Helvetica,Arial,sans-serif', textAlign: 'center' }}>
+                          {(c.problem.kpiName || '').trim() || t('Problem', 'Problem')}
+                        </div>
+                        {fbBottom.map(f => (
+                          <div key={f.key} style={{ alignSelf: 'start', border: '1px solid var(--pri-border-2)', borderRadius: 7, background: 'var(--surface)', padding: '7px 9px', minHeight: 52 }}>
+                            <div aria-hidden="true" style={{ width: 2, height: 12, background: 'var(--pri-border)', margin: '-19px auto 6px' }} />
+                            {cell(f)}
+                          </div>
+                        ))}
+                        <div />
+                      </div>
+                    </div>
+                  );
+                })()}
               </div>
             ) : null}
           </div>
@@ -458,15 +532,38 @@ export default function ReportBody({ c, principles, sections, companyName, summa
             {(ffD.length || ffR.length) ? (
               <div style={{ marginTop: 12 }}>
                 <div style={{ font: '600 11px Helvetica,Arial,sans-serif', color: 'var(--ink-3)', letterSpacing: '.4px', margin: '0 0 6px' }}>{t('KUVVET ALANI ANALİZİ (LEWIN)', 'FORCE FIELD ANALYSIS (LEWIN)')}</div>
-                <div style={body}>
-                  {ffD.length ? <div style={{ color: 'var(--ok-ink)' }}>{t('İtici: ', 'Driving: ')}{ffD.map(x => x.text + ' (' + (x.strength || '?') + '/5)').join(' · ')}</div> : null}
-                  {ffR.length ? <div style={{ color: 'var(--warn-ink)', marginTop: 3 }}>{t('Kısıtlayıcı: ', 'Restraining: ')}{ffR.map(x => x.text + ' (' + (x.strength || '?') + '/5)' + ((x.azaltma || '').trim() ? t(' → zayıflatma: ', ' → mitigation: ') + x.azaltma : '')).join(' · ')}</div> : null}
-                  {(() => {
-                    const d = ffD.reduce((acc, x) => acc + (parseInt(x.strength, 10) || 0), 0);
-                    const r = ffR.reduce((acc, x) => acc + (parseInt(x.strength, 10) || 0), 0);
-                    return <div style={{ marginTop: 3, color: 'var(--ink-4)' }}>{t('Toplam: itici ' + d + ' / kısıtlayıcı ' + r, 'Totals: driving ' + d + ' vs restraining ' + r)}</div>;
-                  })()}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, border: '1px solid var(--line-2)', borderRadius: 8, background: 'var(--surface-2)', padding: '10px 12px' }}>
+                  {[
+                    { list: ffD, title: t('İTİCİ →', 'DRIVING →'), ink: 'var(--ok-ink)', bar: 'var(--ok)', right: false },
+                    { list: ffR, title: t('← KISITLAYICI', '← RESTRAINING'), ink: 'var(--warn-ink)', bar: 'var(--warn-ink)', right: true }
+                  ].map((col, cidx) => {
+                    const total = col.list.reduce((acc, x) => acc + (parseInt(x.strength, 10) || 0), 0);
+                    return (
+                      <div key={cidx} style={{ minWidth: 0 }}>
+                        <div style={{ display: 'flex', gap: 6, alignItems: 'baseline', margin: '0 0 6px' }}>
+                          <div style={{ flex: 1, font: '700 9.5px Helvetica,Arial,sans-serif', color: col.ink, letterSpacing: '.5px' }}>{col.title}</div>
+                          <div style={{ font: '700 11px Helvetica,Arial,sans-serif', color: col.ink }}>{total}</div>
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+                          {col.list.map((x, i) => (
+                            <div key={i}>
+                              <div style={{ font: '11px/1.4 Helvetica,Arial,sans-serif', color: 'var(--ink)' }}>{x.text} <span style={{ color: 'var(--muted)' }}>({x.strength || '?'}/5)</span></div>
+                              <div aria-hidden="true" style={{ height: 4, borderRadius: 2, background: 'var(--surface-4)', overflow: 'hidden', marginTop: 2 }}>
+                                <div style={{ width: ((parseInt(x.strength, 10) || 0) * 20) + '%', height: '100%', background: col.bar, marginLeft: col.right ? 'auto' : 0 }} />
+                              </div>
+                              {col.right && (x.azaltma || '').trim() ? <div style={{ font: '10px/1.4 Helvetica,Arial,sans-serif', color: 'var(--ok-ink)', marginTop: 1 }}>{t('Zayıflatma: ', 'Mitigation: ')}{x.azaltma}</div> : null}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
+                {(() => {
+                  const d = ffD.reduce((acc, x) => acc + (parseInt(x.strength, 10) || 0), 0);
+                  const r = ffR.reduce((acc, x) => acc + (parseInt(x.strength, 10) || 0), 0);
+                  return <div style={{ marginTop: 4, font: '11px/1.5 Helvetica,Arial,sans-serif', color: d >= r ? 'var(--ok-ink)' : 'var(--warn-ink)' }}>{t('Toplam: itici ' + d + ' / kısıtlayıcı ' + r, 'Totals: driving ' + d + ' vs restraining ' + r)}</div>;
+                })()}
               </div>
             ) : null}
           </div>
