@@ -167,6 +167,11 @@ summary:focus-visible,
 :root{--focus-ring:#1d4ed8}
 :root[data-theme="dark"]{--focus-ring:#93c5fd}
 
+/* Kısa ekranlarda kenar çubuğu sıkışmasın: marka rozetleri gizlenir */
+@media (max-height: 720px){
+  .pcx-brand-chips{display:none !important}
+}
+
 /* Ekran okuyucuya özel metin (görsel olarak gizli, okunur) */
 .pcx-sr-only{
   position:absolute;width:1px;height:1px;padding:0;margin:-1px;
