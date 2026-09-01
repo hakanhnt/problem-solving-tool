@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useStore } from '../lib/store.jsx';
 import { buildShareHash } from '../lib/share.js';
+import { exportReportToWord, wordFileName } from '../lib/wordExport.js';
 import ReportBody from '../components/ReportBody.jsx';
 import A3Body from '../components/A3Body.jsx';
 import CaseMap from '../components/CaseMap.jsx';
@@ -59,6 +60,12 @@ export default function Step8Report() {
     setTimeout(() => setShareMsg(''), 9000);
   };
 
+  const reportRef = useRef(null);
+  const downloadWord = () => {
+    if (!reportRef.current) return;
+    exportReportToWord(reportRef.current, wordFileName(c.name, lang), c.name || (c.problem.kpiName || 'Rapor'));
+  };
+
   return (
     <div>
       {/* Araç çubuğu — yazdırmada gizli */}
@@ -68,6 +75,15 @@ export default function Step8Report() {
           style={{ padding: '10px 16px', border: '1px solid var(--pri)', borderRadius: 8, background: 'var(--pri)', color: 'var(--on-pri)', font: '600 13px Helvetica,Arial,sans-serif', cursor: 'pointer' }}
           hover={S.primaryHover}
         >{t('Yazdır / PDF olarak kaydet', 'Print / Save as PDF')}</HButton>
+
+        {cfg.view === 'full' || !['a3', 'map'].includes(cfg.view) ? (
+          <HButton
+            onClick={downloadWord}
+            title={t('Düzenlenebilir Word belgesi indirir (.doc — Word\'de açıp .docx olarak kaydedebilirsiniz). Grafikler Word\'de sadeleşir; görsel çıktı için PDF kullanın.', 'Downloads an editable Word document (.doc — open in Word and save as .docx). Charts are simplified in Word; use PDF for visual output.')}
+            style={{ padding: '10px 16px', border: '1px solid var(--pri-border)', borderRadius: 8, background: 'var(--surface)', color: 'var(--pri)', font: '600 13px Helvetica,Arial,sans-serif', cursor: 'pointer' }}
+            hover={S.ghostHover}
+          >{t('📝 Word olarak indir', '📝 Download as Word')}</HButton>
+        ) : null}
 
         <HButton
           onClick={shareLink}
@@ -184,7 +200,9 @@ export default function Step8Report() {
           <CaseMap c={c} lang={lang} onNavigate={goStep} />
         </>
       ) : (
-        <ReportBody c={c} principles={principles} sections={cfg.sections} companyName={cfg.company} lang={lang} />
+        <div ref={reportRef}>
+          <ReportBody c={c} principles={principles} sections={cfg.sections} companyName={cfg.company} lang={lang} />
+        </div>
       )}
     </div>
   );
