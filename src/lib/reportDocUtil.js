@@ -1,6 +1,8 @@
 // reportDoc.js için saf yardımcılar — Word (.doc) HTML üretimi.
 // store.jsx'e (JSX) bağımlı olmamak için burada kalır; node --test ile test edilebilir.
 
+import { fmtNum } from './i18n.js';
+
 export const FT = 'Helvetica,Arial,sans-serif';
 export const hasT = (v) => !!(v || '').toString().trim();
 export const esc = (v) =>
@@ -26,6 +28,45 @@ export const table = (headCells, rows) =>
       r.cells.map((cl) => `<td style="${TD}${r.bg ? `background:${r.bg};` : ''}${cl.center ? 'text-align:center;' : ''}${cl.style || ''}">${cl.html}</td>`).join('')
     }</tr>`).join('')
   }</tbody></table>`;
+
+// Yatay çubuk — tablo + bgcolor tekniği; hem Word'de hem HTML'de güvenilir render olur (flex/canvas yok).
+export const bar = (pctVal, color, track) => {
+  const w = Math.max(0, Math.min(100, Math.round(pctVal || 0)));
+  const tk = track || '#efedea';
+  return `<table cellpadding="0" cellspacing="0" width="100%" style="border-collapse:collapse;background:${tk};margin:2px 0;"><tr>`
+    + (w > 0 ? `<td height="12" width="${w}%" bgcolor="${color}" style="background:${color};height:12px;line-height:12px;font-size:1px;">&nbsp;</td>` : '')
+    + (w < 100 ? `<td height="12" style="height:12px;line-height:12px;font-size:1px;">&nbsp;</td>` : '')
+    + `</tr></table>`;
+};
+
+// Çubuk grafik: rows=[{label, pct, color, value}] → etiket · çubuk · değer satırları (Word/HTML uyumlu).
+const CTD = `padding:2px 8px 3px 0;font:11.5px/1.4 ${FT};color:#26241f;vertical-align:middle;`;
+export const barChart = (rows) =>
+  `<table cellpadding="0" cellspacing="0" width="100%" style="border-collapse:collapse;width:100%;margin:2px 0 8px;"><tbody>${
+    rows.map((r) => `<tr>`
+      + `<td style="${CTD}width:34%;">${r.label}</td>`
+      + `<td style="${CTD}width:46%;">${bar(r.pct, r.color)}</td>`
+      + `<td style="${CTD}width:20%;text-align:right;white-space:nowrap;">${r.value || ''}</td>`
+      + `</tr>`).join('')
+  }</tbody></table>`;
+
+// Pareto özet cümlesi (KPI/iç mod). t=çevirmen, pct=yüzde biçimleyici (reportDoc'tan gelir).
+export const paretoText = (pareto, lang, t, pct) => {
+  if (!pareto) return '';
+  const u = pareto.unit ? ' ' + pareto.unit : '';
+  let txt;
+  if (pareto.mode === 'kpi') {
+    txt = t('KPI sapması ', 'KPI gap ') + fmtNum(lang, pareto.gap) + u
+      + t('; bulgularla açıklanan ', '; explained by findings ') + fmtNum(lang, pareto.explained) + u + ' (' + pct(pareto.explainedPct) + ')'
+      + (pareto.unexplained > 0 ? t(', açıklanamayan ', ', unexplained ') + fmtNum(lang, pareto.unexplained) + u + ' (' + pct(pareto.unexplainedPct) + ')' : '') + '. '
+      + t('Öncelikli bulgular: ', 'Vital few findings: ') + pareto.vital.join(' + ') + ' (' + pareto.bars.map((b) => b.label + ' ' + pct(b.pctOfGap)).join(' · ') + t(' — sapmaya oranla', ' — relative to the gap') + ').'
+      + (pareto.overflow > 0 ? ' ⚠ ' + t('Katkı toplamı KPI sapmasını ', 'Total contributions exceed the KPI gap by ') + fmtNum(lang, pareto.overflow) + u + t(' aşıyor; veriler gözden geçirilmeli.', '; the data should be reviewed.') : '');
+  } else {
+    txt = t('KPI sapması girilmediği için yalnızca bulguların iç dağılımı: ', 'No KPI gap entered, so only the internal distribution of findings: ') + pareto.vital.join(' + ')
+      + t(' → kümülatif pay ', ' → cumulative share ') + pct(pareto.vitalPct) + ' (' + pareto.bars.map((b) => b.label + ' ' + pct(b.pctInternal)).join(' · ') + ').';
+  }
+  return `<div style="font:12.5px/1.55 ${FT};color:#2c4159;margin-top:6px;"><strong>Pareto:</strong> ${esc(txt)}</div>`;
+};
 
 /** Uzantısız dosya adı: şirket → KPI → vaka → 'rapor'. */
 export function reportFileName(c, companyName) {

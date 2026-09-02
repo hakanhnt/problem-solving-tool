@@ -10,7 +10,7 @@ import {
 import { preDecisionQuestionsFor } from './thinking.js';
 import { mkT, fmtNum } from './i18n.js';
 import { fishboneCatsFor } from './defaults.js';
-import { FT, hasT, esc, LBL, BOX, h2, line, small, table, reportFileName, prio } from './reportDocUtil.js';
+import { FT, hasT, esc, LBL, BOX, h2, line, small, table, bar, barChart, paretoText, reportFileName, prio } from './reportDocUtil.js';
 
 export { reportFileName };
 
@@ -156,20 +156,18 @@ export function buildReportDoc(c, opts = {}) {
     ).join('');
     if (pareto) {
       s += `<div style="${LBL}">${t('PARETO — SAPMAYA KATKI DAĞILIMI', 'PARETO — CONTRIBUTION TO THE GAP')}</div>`;
-      s += table(
-        [{ html: '&nbsp;' }, { html: esc(t('Bulgu', 'Finding')) }, { html: esc(t('Katkı', 'Contribution')), center: true }, { html: t('Pay', 'Share'), center: true }],
-        pareto.bars.map((bar) => ({
-          bg: pareto.vital.includes(bar.label) ? '#eef2f7' : undefined,
-          cells: [
-            { html: `<strong style="color:#35506e;">${esc(bar.label)}</strong>` },
-            { html: esc((bar.text || '').slice(0, 80)) },
-            { html: esc(fmtNum(lang, bar.v) + (pareto.unit ? ' ' + pareto.unit : '')), center: true },
-            { html: esc(pct(pareto.mode === 'kpi' ? bar.pctOfGap : bar.pctInternal)), center: true }
-          ]
-        }))
-      );
-      s += small(t('Koyu satırlar öncelikli (vital few) bulgulardır.', 'Shaded rows are the vital-few findings.'), '#65605a');
-      s += buildParetoText();
+      s += barChart(pareto.bars.map((b) => {
+        const sharePct = pareto.mode === 'kpi' ? b.pctOfGap : b.pctInternal;
+        const vital = pareto.vital.includes(b.label);
+        return {
+          label: `<strong style="color:#35506e;">${esc(b.label)}</strong> <span style="color:#6d6860;">${esc((b.text || '').slice(0, 46))}</span>`,
+          pct: sharePct,
+          color: vital ? '#35506e' : '#8fb0d4',
+          value: esc(fmtNum(lang, b.v) + (pareto.unit ? ' ' + pareto.unit : '') + ' · ' + pct(sharePct))
+        };
+      }));
+      s += small(t('Koyu çubuklar öncelikli (vital few) bulgulardır.', 'Dark bars are the vital-few findings.'), '#65605a');
+      s += paretoText(pareto, lang, t, pct);
     }
     out.push(s);
   }
@@ -310,10 +308,12 @@ export function buildReportDoc(c, opts = {}) {
     let s = h2(t('7 · İZLEME VE RETROSPEKTİF', '7 · TRACKING AND RETROSPECTIVE'));
     if (bars.length) {
       s += `<div style="${LBL}">${t('KPI TRENDİ — ', 'KPI TREND — ')}${esc(p.kpiName || 'KPI')}${hasT(p.target) ? esc(t(' · hedef ', ' · target ') + p.target) : ''}</div>`;
-      s += table(
-        [{ html: esc(t('Dönem', 'Period')) }, { html: esc(t('Değer', 'Value')), center: true }],
-        bars.map((tb) => ({ cells: [{ html: esc(tb.label) }, { html: esc(tb.value), center: true }] }))
-      );
+      s += barChart(bars.map((tb) => ({
+        label: esc(tb.label),
+        pct: Math.round((parseInt(tb.h, 10) || 0) / 110 * 100),
+        color: (tb.bg || '').includes('--ok') ? '#4a6741' : '#8fb0d4',
+        value: `<strong>${esc(tb.value)}</strong>`
+      })));
     } else if (trackRows.length) {
       s += line(`<strong>${t('KPI ölçümleri:', 'KPI measurements:')}</strong> ${esc(trackRows.map((x) => (x.label || '—') + ': ' + (x.value || '—')).join(' · '))}${hasT(p.target) ? ` <span style="color:#65605a;">(${t('hedef ', 'target ')}${esc(p.target)})</span>` : ''}`);
     }
@@ -360,10 +360,12 @@ export function buildReportDoc(c, opts = {}) {
       s += small(t('✓ Zincirde kopukluk bulunmadı: her bulgu bir kök nedene, her kök neden bir aksiyona bağlı ve sonuç KPI ile izleniyor.', '✓ No breaks in the chain: every finding links to a root cause, every root cause to an action, and the outcome is tracked with the KPI.'), '#3d5a3d');
     }
     s += `<div style="${LBL}">${t('ANALİZ GÜVEN SEVİYESİ — ', 'ANALYSIS CONFIDENCE LEVEL — ')}${esc(pct(conf.total))} (${esc(conf.label)})</div>`;
-    s += table(
-      [{ html: esc(t('Kontrol', 'Check')) }, { html: esc(t('Puan', 'Score')), center: true }],
-      conf.checks.map((ch) => ({ cells: [{ html: esc(ch.label) }, { html: esc(pct(ch.pct)), center: true }] }))
-    );
+    s += barChart(conf.checks.map((ch) => ({
+      label: esc(ch.label),
+      pct: ch.pct,
+      color: ch.pct >= 80 ? '#4a6741' : ch.pct >= 50 ? '#8fb0d4' : '#d9b25a',
+      value: esc(pct(ch.pct))
+    })));
     s += small(t('Bu gösterge çalışmanın bütünlüğünü ölçer (kanıt, test, bağlantı, doğrulama) — analizin bilimsel doğruluğunu garanti etmez.', 'This indicator measures the integrity of the case (evidence, tests, links, verification) — it does not guarantee the scientific correctness of the analysis.'), '#65605a');
     out.push(s);
   }
@@ -406,22 +408,6 @@ export function buildReportDoc(c, opts = {}) {
     if (warn.length) s += `<div style="background:#faf3e3;border:1px solid #eaddb8;border-radius:6px;padding:9px 12px;font:12px/1.6 ${FT};color:#6f654f;"><strong>${t('Bu raporu okurken dikkat:', 'Note while reading this report:')}</strong> ${esc(warn.join(' · '))}.</div>`;
     if (summary) s += `<div style="font:13px/1.65 ${FT};color:#26241f;white-space:pre-wrap;margin-top:10px;padding-top:10px;border-top:1px solid #d8e2ee;">${esc(summary)}</div>`;
     return s + `</div>`;
-  }
-
-  function buildParetoText() {
-    if (!pareto) return '';
-    let txt;
-    if (pareto.mode === 'kpi') {
-      txt = t('KPI sapması ', 'KPI gap ') + fmtNum(lang, pareto.gap) + (pareto.unit ? ' ' + pareto.unit : '')
-        + t('; bulgularla açıklanan ', '; explained by findings ') + fmtNum(lang, pareto.explained) + (pareto.unit ? ' ' + pareto.unit : '') + ' (' + pct(pareto.explainedPct) + ')'
-        + (pareto.unexplained > 0 ? t(', açıklanamayan ', ', unexplained ') + fmtNum(lang, pareto.unexplained) + (pareto.unit ? ' ' + pareto.unit : '') + ' (' + pct(pareto.unexplainedPct) + ')' : '') + '. '
-        + t('Öncelikli bulgular: ', 'Vital few findings: ') + pareto.vital.join(' + ') + ' (' + pareto.bars.map((b) => b.label + ' ' + pct(b.pctOfGap)).join(' · ') + t(' — sapmaya oranla', ' — relative to the gap') + ').'
-        + (pareto.overflow > 0 ? ' ⚠ ' + t('Katkı toplamı KPI sapmasını ', 'Total contributions exceed the KPI gap by ') + fmtNum(lang, pareto.overflow) + (pareto.unit ? ' ' + pareto.unit : '') + t(' aşıyor; veriler gözden geçirilmeli.', '; the data should be reviewed.') : '');
-    } else {
-      txt = t('KPI sapması girilmediği için yalnızca bulguların iç dağılımı: ', 'No KPI gap entered, so only the internal distribution of findings: ') + pareto.vital.join(' + ')
-        + t(' → kümülatif pay ', ' → cumulative share ') + pct(pareto.vitalPct) + ' (' + pareto.bars.map((b) => b.label + ' ' + pct(b.pctInternal)).join(' · ') + ').';
-    }
-    return `<div style="font:12.5px/1.55 ${FT};color:#2c4159;margin-top:6px;"><strong>Pareto:</strong> ${esc(txt)}</div>`;
   }
 
   function buildDecisionExtras() {
@@ -476,8 +462,8 @@ export function buildReportDoc(c, opts = {}) {
       const dTot = ffD.reduce((acc, x) => acc + (parseInt(x.strength, 10) || 0), 0);
       const rTot = ffR.reduce((acc, x) => acc + (parseInt(x.strength, 10) || 0), 0);
       s += `<div style="${LBL}">${t('KUVVET ALANI ANALİZİ (LEWIN)', 'FORCE FIELD ANALYSIS (LEWIN)')}</div>`;
-      const dList = ffD.map((x) => `${esc(x.text)} (${esc(x.strength || '?')}/5)`);
-      const rList = ffR.map((x) => `${esc(x.text)} (${esc(x.strength || '?')}/5)${hasT(x.azaltma) ? ' — ' + t('zayıflatma: ', 'mitigation: ') + esc(x.azaltma) : ''}`);
+      const dList = ffD.map((x) => `${esc(x.text)} <span style="color:#65605a;">(${esc(x.strength || '?')}/5)</span>${bar((parseInt(x.strength, 10) || 0) * 20, '#4a6741')}`);
+      const rList = ffR.map((x) => `${esc(x.text)} <span style="color:#65605a;">(${esc(x.strength || '?')}/5)</span>${bar((parseInt(x.strength, 10) || 0) * 20, '#805f2e')}${hasT(x.azaltma) ? `<span style="color:#3d5a3d;">${t('Zayıflatma: ', 'Mitigation: ')}${esc(x.azaltma)}</span>` : ''}`);
       const maxLen = Math.max(dList.length, rList.length);
       s += table(
         [{ html: `${t('İTİCİ →', 'DRIVING →')} (${dTot})` }, { html: `${t('← KISITLAYICI', '← RESTRAINING')} (${rTot})` }],
