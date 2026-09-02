@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useStore } from '../lib/store.jsx';
 import { buildShareHash } from '../lib/share.js';
 import { buildReportDoc, reportFileName } from '../lib/reportDoc.js';
+import { buildReportDocx, reportFileNameDocx } from '../lib/reportDocx.js';
 import { downloadFile } from '../lib/download.js';
 import ReportBody from '../components/ReportBody.jsx';
 import A3Body from '../components/A3Body.jsx';
@@ -72,13 +73,13 @@ export default function Step8Report() {
         >{t('Yazdır / PDF olarak kaydet', 'Print / Save as PDF')}</HButton>
 
         <HButton
-          onClick={() => {
-            const html = buildReportDoc(c, { principles, sections: cfg.sections, companyName: cfg.company, lang, format: 'doc' });
-            downloadFile(reportFileName(c, cfg.company) + '.doc', '\ufeff' + html, 'application/msword');
+          onClick={async () => {
+            const blob = await buildReportDocx(c, { principles, sections: cfg.sections, companyName: cfg.company, lang });
+            downloadFile(reportFileNameDocx(c, cfg.company) + '.docx', blob);
           }}
           style={{ padding: '10px 16px', border: '1px solid var(--pri-border)', borderRadius: 8, background: 'var(--surface)', color: 'var(--pri)', font: '600 13px Helvetica,Arial,sans-serif', cursor: 'pointer' }}
           hover={S.ghostHover}
-        >{t('Word (.doc) olarak indir', 'Download as Word (.doc)')}</HButton>
+        >{t('Word (.docx) olarak indir', 'Download as Word (.docx)')}</HButton>
 
         <HButton
           onClick={() => {

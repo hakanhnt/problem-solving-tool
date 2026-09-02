@@ -50,21 +50,25 @@ export const barChart = (rows) =>
       + `</tr>`).join('')
   }</tbody></table>`;
 
-// Pareto özet cümlesi (KPI/iç mod). t=çevirmen, pct=yüzde biçimleyici (reportDoc'tan gelir).
-export const paretoText = (pareto, lang, t, pct) => {
+// Pareto özet cümlesi — DÜZ METİN (HTML ve OOXML ikisi de kullanır). t=çevirmen, pct=yüzde biçimleyici.
+export const paretoSentence = (pareto, lang, t, pct) => {
   if (!pareto) return '';
   const u = pareto.unit ? ' ' + pareto.unit : '';
-  let txt;
   if (pareto.mode === 'kpi') {
-    txt = t('KPI sapması ', 'KPI gap ') + fmtNum(lang, pareto.gap) + u
+    return t('KPI sapması ', 'KPI gap ') + fmtNum(lang, pareto.gap) + u
       + t('; bulgularla açıklanan ', '; explained by findings ') + fmtNum(lang, pareto.explained) + u + ' (' + pct(pareto.explainedPct) + ')'
       + (pareto.unexplained > 0 ? t(', açıklanamayan ', ', unexplained ') + fmtNum(lang, pareto.unexplained) + u + ' (' + pct(pareto.unexplainedPct) + ')' : '') + '. '
       + t('Öncelikli bulgular: ', 'Vital few findings: ') + pareto.vital.join(' + ') + ' (' + pareto.bars.map((b) => b.label + ' ' + pct(b.pctOfGap)).join(' · ') + t(' — sapmaya oranla', ' — relative to the gap') + ').'
       + (pareto.overflow > 0 ? ' ⚠ ' + t('Katkı toplamı KPI sapmasını ', 'Total contributions exceed the KPI gap by ') + fmtNum(lang, pareto.overflow) + u + t(' aşıyor; veriler gözden geçirilmeli.', '; the data should be reviewed.') : '');
-  } else {
-    txt = t('KPI sapması girilmediği için yalnızca bulguların iç dağılımı: ', 'No KPI gap entered, so only the internal distribution of findings: ') + pareto.vital.join(' + ')
-      + t(' → kümülatif pay ', ' → cumulative share ') + pct(pareto.vitalPct) + ' (' + pareto.bars.map((b) => b.label + ' ' + pct(b.pctInternal)).join(' · ') + ').';
   }
+  return t('KPI sapması girilmediği için yalnızca bulguların iç dağılımı: ', 'No KPI gap entered, so only the internal distribution of findings: ') + pareto.vital.join(' + ')
+    + t(' → kümülatif pay ', ' → cumulative share ') + pct(pareto.vitalPct) + ' (' + pareto.bars.map((b) => b.label + ' ' + pct(b.pctInternal)).join(' · ') + ').';
+};
+
+// HTML sürümü — paretoSentence'ı sarar (reportDoc.js kullanır).
+export const paretoText = (pareto, lang, t, pct) => {
+  const txt = paretoSentence(pareto, lang, t, pct);
+  if (!txt) return '';
   return `<div style="font:12.5px/1.55 ${FT};color:#2c4159;margin-top:6px;"><strong>Pareto:</strong> ${esc(txt)}</div>`;
 };
 
