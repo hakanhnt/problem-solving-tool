@@ -119,10 +119,10 @@ export default function CoachPanel() {
             >{t('Tekrar dene', 'Try again')}</HButton>
             {/^Ayarlar|anahtar|API adresi/i.test(ck.errMsg || '') ? (
               <HButton
-                onClick={() => upd(n => { n.showSettings = true; })}
+                onClick={() => upd(n => { n.showSettings = 'baglanti'; })}
                 style={{ flex: 'none', padding: '8px 14px', border: '1px solid var(--pri)', borderRadius: 8, background: 'var(--pri)', color: 'var(--on-pri)', font: '600 12px Helvetica,Arial,sans-serif', cursor: 'pointer' }}
                 hover={{ background: 'var(--pri-hover)' }}
-              >{t('⚙ Ayarları aç', '⚙ Open settings')}</HButton>
+              >{t('Bağlantı ayarlarını aç', 'Open connection settings')}</HButton>
             ) : null}
           </div>
         ) : null}

@@ -390,7 +390,7 @@ export default function Sidebar({ onNavigate, onCollapse }) {
           {backupStale ? (
             <button
               type="button"
-              onClick={() => { upd(n => { n.showSettings = true; }); if (onNavigate) onNavigate(); }}
+              onClick={() => { upd(n => { n.showSettings = 'veri'; }); if (onNavigate) onNavigate(); }}
               style={{ padding: 0, border: 'none', background: 'none', cursor: 'pointer', textAlign: 'left', font: 'inherit', color: 'var(--warn-ink)' }}
             >{t('Veriler yalnızca bu tarayıcıda. Henüz yedek almadınız; yedeklemek için tıklayın.', 'Data lives only in this browser. No backup yet; click to back up.')}</button>
           ) : t('Veriler yalnızca bu tarayıcıda saklanır.', 'Data is stored only in this browser.')}
