@@ -7,7 +7,7 @@ import { downloadFile } from '../lib/download.js';
 import ReportBody from '../components/ReportBody.jsx';
 import A3Body from '../components/A3Body.jsx';
 import CaseMap from '../components/CaseMap.jsx';
-import { HButton, Spinner, S } from '../ui/primitives.jsx';
+import { Spinner } from '../ui/primitives.jsx';
 
 const SECTION_CHIPS = t => [
   { key: 'tanim', label: t('Problem tanımı', 'Problem definition') },
@@ -62,136 +62,122 @@ export default function Step8Report() {
     setTimeout(() => setShareMsg(''), 9000);
   };
 
+  const sectionChips = SECTION_CHIPS(t);
+  const includedCount = sectionChips.filter(x => cfg.sections[x.key] !== false).length;
+  const hasStatement = !!((c.problem || {}).statement || '').trim();
+  const hasRootCause = (c.rootCauses || []).some(r => (r.text || '').trim());
+  const thin = !hasStatement || !hasRootCause;
+
+  const downloadDocx = async () => {
+    const blob = await buildReportDocx(c, { principles, sections: cfg.sections, companyName: cfg.company, lang });
+    downloadFile(reportFileNameDocx(c, cfg.company) + '.docx', blob);
+  };
+  const downloadHtml = () => {
+    const html = buildReportDoc(c, { principles, sections: cfg.sections, companyName: cfg.company, lang, format: 'html' });
+    downloadFile(reportFileName(c, cfg.company) + '.html', html, 'text/html;charset=utf-8');
+  };
+
+  const VIEWS = [
+    ['full', t('Tam rapor', 'Full report'), t('Tüm bölümleriyle ayrıntılı rapor', 'Detailed report with all sections')],
+    ['a3', t('A3 özeti', 'A3 summary'), t('Tek sayfalık Toyota A3 düzeni; A3 yatay yazdırılır', 'One-page Toyota A3 layout; prints on A3 landscape')],
+    ['map', t('Vaka haritası', 'Case map'), t('Verilerinizden türetilen bağlantı grafiği; kopuk düğümleri gösterir', 'Connection graph derived from your data; shows disconnected nodes')]
+  ];
+
   return (
     <div>
-      {/* Araç çubuğu — yazdırmada gizli */}
-      <div data-noprint="1" style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap', margin: '0 0 18px' }}>
-        <HButton
-          onClick={() => window.print()}
-          style={{ padding: '10px 16px', border: '1px solid var(--pri)', borderRadius: 8, background: 'var(--pri)', color: 'var(--on-pri)', font: '600 13px Helvetica,Arial,sans-serif', cursor: 'pointer' }}
-          hover={S.primaryHover}
-        >{t('Yazdır / PDF olarak kaydet', 'Print / Save as PDF')}</HButton>
-
-        <HButton
-          onClick={async () => {
-            const blob = await buildReportDocx(c, { principles, sections: cfg.sections, companyName: cfg.company, lang });
-            downloadFile(reportFileNameDocx(c, cfg.company) + '.docx', blob);
-          }}
-          style={{ padding: '10px 16px', border: '1px solid var(--pri-border)', borderRadius: 8, background: 'var(--surface)', color: 'var(--pri)', font: '600 13px Helvetica,Arial,sans-serif', cursor: 'pointer' }}
-          hover={S.ghostHover}
-        >{t('Word (.docx) olarak indir', 'Download as Word (.docx)')}</HButton>
-
-        <HButton
-          onClick={() => {
-            const html = buildReportDoc(c, { principles, sections: cfg.sections, companyName: cfg.company, lang, format: 'html' });
-            downloadFile(reportFileName(c, cfg.company) + '.html', html, 'text/html;charset=utf-8');
-          }}
-          style={{ padding: '10px 16px', border: '1px solid var(--pri-border)', borderRadius: 8, background: 'var(--surface)', color: 'var(--pri)', font: '600 13px Helvetica,Arial,sans-serif', cursor: 'pointer' }}
-          hover={S.ghostHover}
-        >{t('HTML olarak indir', 'Download as HTML')}</HButton>
-
-        <HButton
-          onClick={shareLink}
-          style={{ padding: '10px 16px', border: '1px solid var(--pri-border)', borderRadius: 8, background: 'var(--surface)', color: 'var(--pri)', font: '600 13px Helvetica,Arial,sans-serif', cursor: 'pointer' }}
-          hover={S.ghostHover}
-        >{t('🔗 Paylaşım linki kopyala', '🔗 Copy share link')}</HButton>
-
-        {rsIdle ? (
-          <HButton
-            onClick={runReportSummary}
-            style={{ padding: '10px 16px', border: '1px solid var(--pri-border)', borderRadius: 8, background: 'var(--surface)', color: 'var(--pri)', font: '600 13px Helvetica,Arial,sans-serif', cursor: 'pointer' }}
-            hover={S.ghostHover}
-          >{t('YZ ile yönetici özeti oluştur', 'Generate executive summary with AI')}</HButton>
-        ) : null}
-        {report && report.status === 'busy' ? (
-          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-            <Spinner size={14} /><div style={{ font: '600 12px Helvetica,Arial,sans-serif', color: 'var(--pri)' }}>{t('Yönetici özeti hazırlanıyor…', 'Preparing executive summary…')}</div>
+      {thin ? (
+        <div data-noprint="1" className="pcx-rep-empty">
+          <div className="pcx-rep-empty-title">{t('Rapor henüz boş görünecek', 'The report will look empty for now')}</div>
+          <p>{t('Anlamlı bir rapor için en az bir problem ifadesi ve bir kök neden gerekiyor. Eksik olanları tamamladıkça rapor kendiliğinden dolar.', 'A meaningful report needs at least a problem statement and one root cause. As you fill in what is missing, the report fills itself.')}</p>
+          <div className="pcx-rep-row">
+            {!hasStatement ? <button type="button" className="pcx-rep-btn is-pri" onClick={() => goStep(1)}>{t('Adım 1: Problemi tanımla', 'Step 1: Define the problem')}</button> : null}
+            {!hasRootCause ? <button type="button" className={'pcx-rep-btn' + (hasStatement ? ' is-pri' : '')} onClick={() => goStep(5)}>{t('Adım 5: Kök nedeni yaz', 'Step 5: Write the root cause')}</button> : null}
           </div>
-        ) : null}
-        {report && report.status === 'error' ? (
-          <div style={{ font: '12px Helvetica,Arial,sans-serif', color: 'var(--alert)' }}>{t('Özet oluşturulamadı', 'Summary generation failed')}{report && report.errMsg ? ' (' + report.errMsg + ')' : ''}{t(' — tekrar deneyin.', ' — try again.')}</div>
-        ) : null}
+        </div>
+      ) : null}
 
-        {auditIdle ? (
-          <HButton
-            onClick={runAudit}
-            style={{ padding: '10px 16px', border: '1px solid var(--alert)', borderRadius: 8, background: 'var(--surface)', color: 'var(--alert)', font: '600 13px Helvetica,Arial,sans-serif', cursor: 'pointer' }}
-            hover={{ background: 'var(--alert-soft)' }}
-          >{t('🔎 Tutarlılık denetimi', '🔎 Consistency audit')}</HButton>
-        ) : null}
-        {audit && audit.status === 'busy' ? (
-          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-            <Spinner size={14} track="var(--alert-border)" color="var(--alert)" />
-            <div style={{ font: '600 12px Helvetica,Arial,sans-serif', color: 'var(--alert)' }}>{t('Denetçi tüm vakayı uçtan uca inceliyor…', 'The auditor is reviewing the entire case end to end…')}</div>
-          </div>
-        ) : null}
-        {audit && audit.status === 'error' ? (
-          <div style={{ font: '12px Helvetica,Arial,sans-serif', color: 'var(--alert)' }}>{t('Denetim yapılamadı', 'Audit failed')}{audit && audit.errMsg ? ' (' + audit.errMsg + ')' : ''}{t(' — tekrar deneyin.', ' — try again.')}</div>
-        ) : null}
+      {/* Görünüm + çıktılar — yazdırmada gizli */}
+      <div data-noprint="1" className="pcx-rep-bar">
+        <div role="group" aria-label={t('Rapor görünümü', 'Report view')} className="pcx-rep-seg">
+          {VIEWS.map(([k, lb, tip]) => (
+            <button key={k} type="button" title={tip} aria-pressed={cfg.view === k} onClick={() => upd(n => { n.reportCfg.view = k; })}>{lb}</button>
+          ))}
+        </div>
+        <div className="pcx-rep-row">
+          <button type="button" className="pcx-rep-btn is-pri" onClick={() => window.print()}>{t('Yazdır / PDF', 'Print / PDF')}</button>
+          <button type="button" className="pcx-rep-btn" onClick={downloadDocx}>{t('Word indir', 'Download Word')}</button>
+          <button type="button" className="pcx-rep-btn" onClick={downloadHtml}>{t('HTML indir', 'Download HTML')}</button>
+          <button type="button" className="pcx-rep-btn" onClick={shareLink}>{t('Paylaşım linki', 'Share link')}</button>
+        </div>
       </div>
 
       {shareMsg ? (
-        <div data-noprint="1" style={{ background: 'var(--ok-soft)', border: '1px solid var(--ok-border)', borderRadius: 8, padding: '9px 13px', margin: '0 0 14px', font: '600 12.5px Helvetica,Arial,sans-serif', color: 'var(--ok-ink)' }}>✓ {shareMsg}</div>
+        <div data-noprint="1" role="status" className="pcx-rep-toast">✓ {shareMsg}</div>
       ) : null}
+
+      {/* YZ araçları */}
+      <section data-noprint="1" className="pcx-rep-tools" aria-label={t('Raporu güçlendir', 'Strengthen the report')}>
+        <div className="pcx-rep-tool">
+          <div>
+            <b>{t('Yönetici özeti', 'Executive summary')}</b>
+            <span>{t('YZ, çalışmanızdan raporun başına konacak kısa bir özet yazar.', 'AI writes a short summary of your case for the top of the report.')}</span>
+          </div>
+          {report && report.status === 'busy' ? (
+            <span className="pcx-rep-busy"><Spinner size={14} />{t('Hazırlanıyor…', 'Preparing…')}</span>
+          ) : rsIdle ? (
+            <button type="button" className="pcx-rep-btn" onClick={runReportSummary}>{report && report.status === 'done' ? t('Yeniden oluştur', 'Regenerate') : t('Özet oluştur', 'Generate summary')}</button>
+          ) : null}
+          {report && report.status === 'error' ? <span className="pcx-rep-err">{t('Özet oluşturulamadı', 'Summary failed')}{report.errMsg ? ' (' + report.errMsg + ')' : ''}{t('; tekrar deneyin.', '; try again.')}</span> : null}
+        </div>
+        <div className="pcx-rep-tool">
+          <div>
+            <b>{t('Tutarlılık denetimi', 'Consistency audit')}</b>
+            <span>{t('YZ, adımlar arasındaki çelişkileri ve kopuk halkaları bulur; paylaşmadan önce çalıştırın.', 'AI finds contradictions and broken links between steps; run it before sharing.')}</span>
+          </div>
+          {audit && audit.status === 'busy' ? (
+            <span className="pcx-rep-busy"><Spinner size={14} />{t('İnceleniyor…', 'Reviewing…')}</span>
+          ) : auditIdle ? (
+            <button type="button" className="pcx-rep-btn" onClick={runAudit}>{audit && audit.status === 'done' ? t('Yeniden denetle', 'Re-audit') : t('Denetle', 'Run audit')}</button>
+          ) : null}
+          {audit && audit.status === 'error' ? <span className="pcx-rep-err">{t('Denetim yapılamadı', 'Audit failed')}{audit.errMsg ? ' (' + audit.errMsg + ')' : ''}{t('; tekrar deneyin.', '; try again.')}</span> : null}
+        </div>
+      </section>
 
       {audit && audit.status === 'done' && (audit.text || '').trim() ? (
-        <div data-noprint="1" style={{ background: 'var(--alert-soft-2)', border: '1px solid var(--alert-border)', borderRadius: 10, padding: '16px 18px', margin: '0 0 18px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '0 0 10px' }}>
-            <div style={{ font: '700 12px Helvetica,Arial,sans-serif', color: 'var(--alert)', letterSpacing: '.6px' }}>{t('🔎 TUTARLILIK DENETİM RAPORU', '🔎 CONSISTENCY AUDIT REPORT')}</div>
-            <HButton onClick={runAudit} style={{ marginLeft: 'auto', padding: '5px 10px', border: '1px solid var(--alert-border)', borderRadius: 6, background: 'var(--surface)', color: 'var(--alert)', font: '600 11px Helvetica,Arial,sans-serif', cursor: 'pointer' }} hover={{ background: 'var(--alert-soft)' }}>{t('Yeniden denetle', 'Re-audit')}</HButton>
-            <HButton onClick={() => updC(cc => { delete cc.audit; })} style={{ border: 'none', background: 'transparent', color: 'var(--muted-2)', font: '700 14px/1 Helvetica,Arial,sans-serif', cursor: 'pointer' }} hover={{ color: 'var(--ink-3)' }}>×</HButton>
+        <section data-noprint="1" className="pcx-rep-audit">
+          <div className="pcx-rep-audit-head">
+            <b>{t('Tutarlılık denetimi sonucu', 'Consistency audit result')}</b>
+            <button type="button" className="pcx-rep-x" aria-label={t('Denetim sonucunu kapat', 'Dismiss audit result')} onClick={() => updC(cc => { delete cc.audit; })}>×</button>
           </div>
-          <div style={{ font: '13px/1.65 Helvetica,Arial,sans-serif', color: 'var(--ink)', whiteSpace: 'pre-wrap' }}>{audit.text}</div>
-        </div>
+          <div className="pcx-rep-audit-body">{audit.text}</div>
+        </section>
       ) : null}
 
-      <div data-noprint="1" style={{ display: 'flex', gap: 14, alignItems: 'center', flexWrap: 'wrap', background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 10, padding: '12px 16px', margin: '0 0 18px' }}>
-        <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
-          <div style={{ font: '700 10.5px Helvetica,Arial,sans-serif', color: 'var(--muted)', marginRight: 2 }}>{t('Görünüm:', 'View:')}</div>
-          {[['full', t('Tam rapor', 'Full report')], ['a3', t('A3 özeti', 'A3 summary')], ['map', t('Vaka haritası', 'Case map')]].map(([k, lb]) => (
-            <button
-              key={k}
-              onClick={() => upd(n => { n.reportCfg.view = k; })}
-              aria-pressed={cfg.view === k}
-              title={k === 'a3' ? t('Tek sayfalık Toyota A3 düzeni — A3 yatay yazdırılır', 'One-page Toyota A3 layout — prints on A3 landscape') : k === 'map' ? t('Verilerinizden türetilen bağlantı grafiği — kopuk düğümleri gösterir', 'Connection graph derived from your data — shows disconnected nodes') : t('Tüm bölümleriyle ayrıntılı rapor', 'Detailed report with all sections')}
-              style={{
-                padding: '6px 12px', borderRadius: 20,
-                border: '1px solid ' + (cfg.view === k ? 'var(--pri)' : 'var(--field-border)'),
-                background: cfg.view === k ? 'var(--pri)' : 'var(--surface)',
-                color: cfg.view === k ? 'var(--on-pri)' : 'var(--ink-3)',
-                font: '600 11.5px Helvetica,Arial,sans-serif', cursor: 'pointer'
-              }}
-            >{lb}</button>
-          ))}
-          <span style={{ width: 10 }} />
-          {cfg.view === 'full' ? <div style={{ font: '700 10.5px Helvetica,Arial,sans-serif', color: 'var(--muted)', marginRight: 2 }}>{t('Rapora dahil:', 'Included in report:')}</div> : null}
-          {cfg.view === 'full' ? SECTION_CHIPS(t).map(s => {
-            const active = cfg.sections[s.key] !== false;
-            return (
-              <button
-                key={s.key}
-                onClick={() => upd(n => { n.reportCfg.sections[s.key] = !(n.reportCfg.sections[s.key] !== false); })}
-                style={{
-                  padding: '6px 11px', borderRadius: 20,
-                  border: '1px solid ' + (active ? 'var(--pri)' : 'var(--field-border)'),
-                  background: active ? 'var(--pri)' : 'var(--surface)',
-                  color: active ? 'var(--on-pri)' : 'var(--muted)',
-                  font: '600 11.5px Helvetica,Arial,sans-serif', cursor: 'pointer'
-                }}
-              >{s.label}</button>
-            );
-          }) : <span style={{ font: '11.5px/1.5 Helvetica,Arial,sans-serif', color: 'var(--muted)' }}>{cfg.view === 'a3' ? t('A3 özeti sabit tek sayfa düzenidir; A3 yatay kâğıda yazdırın.', 'The A3 summary is a fixed one-page layout; print on A3 landscape paper.') : t('Vaka haritası verilerinizden otomatik türetilir; düğüme tıklayınca ilgili adım açılır.', 'The case map is derived automatically from your data; click a node to open the related step.')}</span>}
-        </div>
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center', flex: 1, minWidth: 240 }}>
-          <label style={{ flex: 'none', font: '600 11.5px Helvetica,Arial,sans-serif', color: 'var(--ink-3)' }}>{t('Şirket / birim:', 'Company / unit:')}</label>
-          <input
-            className="pcx-field-sm" value={cfg.company || ''}
-            onChange={e => upd(n => { n.reportCfg.company = e.target.value; })}
-            placeholder={t('Rapor başlığında görünür', 'Shown in the report header')}
-            style={{ flex: 1, boxSizing: 'border-box', padding: '7px 10px', border: '1px solid var(--field-border)', borderRadius: 6, font: '12.5px/1.4 Helvetica,Arial,sans-serif', color: 'var(--ink)', background: 'var(--surface)', outline: 'none' }}
-          />
-        </div>
-      </div>
+      {/* Rapor içeriği — yalnız tam raporda; varsayılan kapalı */}
+      {cfg.view === 'full' ? (
+        <details data-noprint="1" className="pcx-rep-config">
+          <summary>
+            <b>{t('Rapor içeriği', 'Report contents')}</b>
+            <span>{includedCount}/{sectionChips.length}{t(' bölüm dahil', ' sections included')}{cfg.company ? ' · ' + cfg.company : ''}</span>
+          </summary>
+          <div className="pcx-rep-config-body">
+            <div className="pcx-rep-checks">
+              {sectionChips.map(x => (
+                <label key={x.key}>
+                  <input type="checkbox" checked={cfg.sections[x.key] !== false} onChange={() => upd(n => { n.reportCfg.sections[x.key] = !(n.reportCfg.sections[x.key] !== false); })} />
+                  {x.label}
+                </label>
+              ))}
+            </div>
+            <label className="pcx-rep-company">
+              <span>{t('Şirket / birim (rapor başlığında görünür)', 'Company / unit (shown in the report header)')}</span>
+              <input className="pcx-field-sm" value={cfg.company || ''} onChange={e => upd(n => { n.reportCfg.company = e.target.value; })} placeholder={t('Örn. Lojistik Direktörlüğü', 'E.g. Logistics Directorate')} />
+            </label>
+          </div>
+        </details>
+      ) : (
+        <p data-noprint="1" className="pcx-rep-hint">{cfg.view === 'a3' ? t('A3 özeti sabit tek sayfa düzenidir; A3 yatay kâğıda yazdırın.', 'The A3 summary is a fixed one-page layout; print on A3 landscape paper.') : t('Vaka haritası verilerinizden otomatik türetilir; bir düğüme tıklayınca ilgili adım açılır.', 'The case map is derived automatically from your data; click a node to open the related step.')}</p>
+      )}
 
       {cfg.view === 'a3' ? (
         <>
