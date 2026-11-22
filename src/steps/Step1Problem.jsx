@@ -1,8 +1,7 @@
 import React from 'react';
 import { useStore } from '../lib/store.jsx';
 import { gapInfo, statementChecks } from '../lib/derive.js';
-import { Card, CardHead, GuidanceBox, MethodBox, HButton, RemoveButton, S, YZButton, AdvancedSection, useNarrow } from '../ui/primitives.jsx';
-import WelcomeCard from '../components/WelcomeCard.jsx';
+import { Card, CardHead, MethodBox, HButton, RemoveButton, S, YZButton, AdvancedSection, useNarrow } from '../ui/primitives.jsx';
 import { extractFileText } from '../lib/extract.js';
 
 const specRowsFor = t => [
@@ -12,7 +11,7 @@ const specRowsFor = t => [
   { key: 'buyukluk', label: t('Büyüklük', 'Magnitude'), phV: t('Ne kadar büyük, kaç adet/gün/%?', 'How big — how many units/days/%?'), phY: t('Olabileceği hâlde olmayan büyüklük?', 'A magnitude that could occur but does not?') }
 ];
 
-const questionsFor = t => [
+export const questionsFor = t => [
   t('Ne oldu? Hedef neydi, gerçekleşen ne?', 'What happened? What was the target, and what is the actual?'),
   t('Sapma nerede oluşuyor — hangi coğrafyada, ülkede, mağazada, depoda, departmanda, sistemde ya da kanalda?', 'Where does the deviation occur — in which geography, country, store, warehouse, department, system, or channel?'),
   t('Hangi zaman aralığında ya da dönemde?', 'In which time range or period?'),
@@ -78,8 +77,6 @@ export default function Step1Problem() {
 
   return (
     <div>
-      <WelcomeCard />
-      <GuidanceBox items={questionsFor(t)} />
 
       <Card>
         <CardHead
@@ -98,7 +95,7 @@ export default function Step1Problem() {
         />
         {aiReady ? (
           <div style={{ marginTop: 10 }}>
-            <div style={{ font: '700 10px Helvetica,Arial,sans-serif', color: 'var(--muted)', letterSpacing: '.8px', margin: '0 0 6px' }}>{t('İFADE KALİTE KONTROLÜ', 'STATEMENT QUALITY CHECK')}</div>
+            <div style={{ font: '700 10px Helvetica,Arial,sans-serif', color: 'var(--muted)', margin: '0 0 6px' }}>{t('İfade kalite kontrolü', 'Statement quality check')}</div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
               {statementChecks(p, lang).map((pc, i) => (
                 <div key={i} style={{ display: 'flex', gap: 6, alignItems: 'center', background: pc.bg, border: '1px solid ' + pc.border, borderRadius: 20, padding: '5px 11px 5px 8px' }}>

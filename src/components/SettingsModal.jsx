@@ -165,7 +165,7 @@ export default function SettingsModal() {
         </div>
 
         <div style={{ flex: 1, overflow: 'auto', padding: '14px 20px', display: 'flex', flexDirection: 'column', gap: 8 }}>
-          <div style={{ font: '700 10.5px Helvetica,Arial,sans-serif', color: 'var(--muted)', letterSpacing: '.8px' }}>{t('YZ SAĞLAYICI', 'AI PROVIDER')}</div>
+          <div style={{ font: '700 10.5px Helvetica,Arial,sans-serif', color: 'var(--muted)' }}>{t('YZ sağlayıcı', 'AI provider')}</div>
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
             {PROVIDERS(t).map(p => {
               const act = (A.provider || 'auto') === p.key;
@@ -239,7 +239,7 @@ export default function SettingsModal() {
           </div>
           {A.provider === 'ozel' ? (
             <div style={{ background: 'var(--pri-soft-2)', border: '1px solid var(--pri-border-4)', borderRadius: 8, padding: '12px 13px', display: 'flex', flexDirection: 'column', gap: 8, margin: '2px 0 4px' }}>
-              <div style={{ font: '700 10.5px Helvetica,Arial,sans-serif', color: 'var(--pri-soft-ink)', letterSpacing: '.8px' }}>{t('HAZIR PROFİLLER', 'PRESET PROFILES')}</div>
+              <div style={{ font: '700 10.5px Helvetica,Arial,sans-serif', color: 'var(--pri-soft-ink)' }}>{t('Hazır profiller', 'Preset profiles')}</div>
               <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                 {CUSTOM_PRESETS(t).map(p => (
                   <HButton
@@ -291,7 +291,7 @@ export default function SettingsModal() {
           <div style={{ font: '11px/1.5 Helvetica,Arial,sans-serif', color: 'var(--muted)', margin: '0 0 4px' }}>{t('Anahtarınız yalnızca bu tarayıcıda saklanır ve doğrudan seçtiğiniz sağlayıcıya gönderilir; hiçbir sunucuda tutulmaz. Model alanı "Otomatik" modda da geçerlidir: boş bırakırsanız sunucudaki varsayılan model kullanılır.', 'Your key is stored only in this browser and sent directly to the provider you choose; it is never kept on any server. The Model field also applies in "Automatic" mode: if left empty, the default model on the server is used.')}</div>
 
           <div style={{ borderTop: '1px solid var(--line-3)', margin: '2px 0 4px' }} />
-          <div style={{ font: '700 10.5px Helvetica,Arial,sans-serif', color: 'var(--muted)', letterSpacing: '.8px' }}>{t('MODEL ÜRETİM AYARLARI', 'MODEL GENERATION SETTINGS')}</div>
+          <div style={{ font: '700 10.5px Helvetica,Arial,sans-serif', color: 'var(--muted)' }}>{t('Model üretim ayarları', 'Model generation settings')}</div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6, margin: '0 0 4px' }}>
             <label style={{ font: '600 12px Helvetica,Arial,sans-serif', color: 'var(--ink-3)' }}>{t('Düşünme eforu', 'Reasoning effort')} <span style={{ fontWeight: 400, color: 'var(--muted)' }}>{t('(reasoning) — modelin cevaptan önce ne kadar akıl yürüteceği', '— how much the model reasons before answering')}</span></label>
@@ -342,7 +342,7 @@ export default function SettingsModal() {
           <div style={{ font: '11px/1.5 Helvetica,Arial,sans-serif', color: 'var(--muted)', margin: '0 0 4px' }}>{t("Yapılandırılmış çıktı (rehber kartları, rapor) için 0,3–0,7 arası önerilir; 1'in üzerinde model şemadan sapabilir. Bu ayarlar hem \"Otomatik\" modda hem de kendi anahtarınızla geçerlidir.", 'For structured output (coach cards, report), 0.3–0.7 is recommended; above 1 the model may deviate from the schema. These settings apply both in "Automatic" mode and with your own key.')}</div>
 
           <div style={{ borderTop: '1px solid var(--line-3)', margin: '2px 0 4px' }} />
-          <div style={{ font: '700 10.5px Helvetica,Arial,sans-serif', color: 'var(--muted)', letterSpacing: '.8px' }}>{t('YZ REHBER AYARLARI', 'AI COACH SETTINGS')}</div>
+          <div style={{ font: '700 10.5px Helvetica,Arial,sans-serif', color: 'var(--muted)' }}>{t('YZ rehber ayarları', 'AI coach settings')}</div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6, margin: '0 0 4px' }}>
             <label style={{ font: '600 12px Helvetica,Arial,sans-serif', color: 'var(--ink-3)' }}>{t('Rehberlik seviyesi', 'Coaching level')}</label>
@@ -380,7 +380,7 @@ export default function SettingsModal() {
           ))}
 
           <div style={{ borderTop: '1px solid var(--line-3)', margin: '2px 0 4px' }} />
-          <div style={{ font: '700 10.5px Helvetica,Arial,sans-serif', color: 'var(--muted)', letterSpacing: '.8px' }}>{t('KURUM PRENSİPLERİ', 'ORGANIZATION PRINCIPLES')}</div>
+          <div style={{ font: '700 10.5px Helvetica,Arial,sans-serif', color: 'var(--muted)' }}>{t('Kurum prensipleri', 'Organization principles')}</div>
           {principles.map((p, i) => (
             <div key={i} style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
               <div style={{ flex: 'none', width: 26, height: 26, borderRadius: '50%', background: 'var(--line-2)', color: 'var(--ink-4)', font: '700 11px/26px Helvetica,Arial,sans-serif', textAlign: 'center' }}>{i + 1}</div>
@@ -409,7 +409,7 @@ export default function SettingsModal() {
         </div>
 
         <div style={{ padding: '12px 20px', borderTop: '1px solid var(--line-3)', background: 'var(--surface-2)' }}>
-          <div style={{ font: '700 10.5px Helvetica,Arial,sans-serif', color: 'var(--muted)', letterSpacing: '.8px', margin: '0 0 8px' }}>{t('VERİ VE YEDEKLEME', 'DATA AND BACKUP')}</div>
+          <div style={{ font: '700 10.5px Helvetica,Arial,sans-serif', color: 'var(--muted)', margin: '0 0 8px' }}>{t('Veri ve yedekleme', 'Data and backup')}</div>
           <div style={{ background: 'var(--warn-soft)', border: '1px solid var(--warn-border)', borderRadius: 8, padding: '10px 12px', font: '12px/1.6 Helvetica,Arial,sans-serif', color: 'var(--warn-ink-3)', margin: '0 0 10px' }}>
             <strong>{t('Çalışmalarınız yalnızca bu tarayıcıda saklanır.', 'Your cases are stored only in this browser.')}</strong>{' '}
             {t('Hiçbir sunucuya gönderilmez ve otomatik yedeği yoktur. Tarayıcı verilerini temizlerseniz, gizli sekme kullanırsanız ya da başka bir cihaza geçerseniz çalışmalarınıza erişemezsiniz — düzenli olarak JSON yedeği alın.', 'Nothing is sent to any server and there is no automatic backup. If you clear browser data, use a private tab or switch to another device, you will lose access to your cases — take a JSON backup regularly.')}

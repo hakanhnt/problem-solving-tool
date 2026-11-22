@@ -72,7 +72,7 @@ export default function ThinkingCheck() {
 
         {scan && scan.status === 'done' ? (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            <div style={{ font: '700 10.5px Helvetica,Arial,sans-serif', color: 'var(--pri-soft-ink)', letterSpacing: '.8px' }}>{t('DÜŞÜNME YANILGISI TARAMASI', 'THINKING BIAS SCAN')}</div>
+            <div style={{ font: '700 10.5px Helvetica,Arial,sans-serif', color: 'var(--pri-soft-ink)' }}>{t('Düşünme yanılgısı taraması', 'Thinking bias scan')}</div>
             {scan.ozet ? <div style={{ font: '12.5px/1.6 Helvetica,Arial,sans-serif', color: 'var(--pri-ink-2)' }}>{scan.ozet}</div> : null}
             {(scan.items || []).map((it, i) => {
               const sev = SEVERITY[(it.ciddiyet || '').toLowerCase()] || SEVERITY.orta;
@@ -104,14 +104,14 @@ export default function ThinkingCheck() {
       {/* Meta katman + toplantı hamleleri + lider davranışları */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))', gap: 12, marginTop: 14 }}>
         <div style={{ border: '1px solid var(--line-2)', borderRadius: 8, background: 'var(--surface-2)', padding: '11px 13px' }}>
-          <div style={{ font: '700 10.5px Helvetica,Arial,sans-serif', color: 'var(--muted)', letterSpacing: '.8px', margin: '0 0 7px' }}>{t('DÜŞÜNME FARKINDALIĞI', 'THINKING AWARENESS')}</div>
+          <div style={{ font: '700 10.5px Helvetica,Arial,sans-serif', color: 'var(--muted)', margin: '0 0 7px' }}>{t('Düşünme farkındalığı', 'Thinking awareness')}</div>
           <ul style={{ margin: 0, padding: '0 0 0 16px', display: 'flex', flexDirection: 'column', gap: 4 }}>
             {metaQuestionsFor(lang).map((q, i) => <li key={i} style={{ font: '11.5px/1.5 Helvetica,Arial,sans-serif', color: 'var(--ink-3)' }}>{q}</li>)}
           </ul>
           <div style={{ font: '600 11.5px/1.5 Helvetica,Arial,sans-serif', color: 'var(--alert)', marginTop: 8 }}>{t('Kural: hızlı düşündüğünüzü fark ettiğiniz an yavaşlayın.', 'Rule: the moment you notice you are thinking fast, slow down.')}</div>
         </div>
         <div style={{ border: '1px solid var(--line-2)', borderRadius: 8, background: 'var(--surface-2)', padding: '11px 13px' }}>
-          <div style={{ font: '700 10.5px Helvetica,Arial,sans-serif', color: 'var(--muted)', letterSpacing: '.8px', margin: '0 0 7px' }}>{t('TOPLANTIDA MİKRO MÜDAHALELER', 'MICRO-INTERVENTIONS IN MEETINGS')}</div>
+          <div style={{ font: '700 10.5px Helvetica,Arial,sans-serif', color: 'var(--muted)', margin: '0 0 7px' }}>{t('Toplantıda mikro müdahaleler', 'Micro-interventions in meetings')}</div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
             {meetingMovesFor(lang).map((m, i) => (
               <div key={i}>
@@ -122,7 +122,7 @@ export default function ThinkingCheck() {
           </div>
         </div>
         <div style={{ border: '1px solid var(--line-2)', borderRadius: 8, background: 'var(--surface-2)', padding: '11px 13px' }}>
-          <div style={{ font: '700 10.5px Helvetica,Arial,sans-serif', color: 'var(--muted)', letterSpacing: '.8px', margin: '0 0 7px' }}>{t('LİDER DAVRANIŞLARI', 'LEADER BEHAVIORS')}</div>
+          <div style={{ font: '700 10.5px Helvetica,Arial,sans-serif', color: 'var(--muted)', margin: '0 0 7px' }}>{t('Lider davranışları', 'Leader behaviors')}</div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
             {leaderMovesFor(lang).map((m, i) => (
               <div key={i}>

@@ -1,8 +1,8 @@
 import React from 'react';
 import { useStore, verMeta } from '../lib/store.jsx';
-import { Card, GuidanceBox, MethodBox, AddButton, RemoveButton, VerifyBadge, YZButton, AdvancedSection, S } from '../ui/primitives.jsx';
+import { Card, MethodBox, AddButton, RemoveButton, VerifyBadge, YZButton, AdvancedSection, S } from '../ui/primitives.jsx';
 
-const QUESTIONS = t => [
+export const QUESTIONS = t => [
   t("O etkenin hangi alt bileşeni bozuk? İş sürücüsünün hangi alt bileşeninde problem var?", 'Which sub-component of that factor is broken? Which sub-component of the business driver has the problem?'),
   t("Etkisi en büyük iş sürücülerinin alt bileşenlerinin hangisinde sorun var?", 'Which sub-components of the highest-impact business drivers have a problem?'),
   t("Hangi KPI veya PI'larda, ya da SIPOC'a göre girdi kalitesinde bozukluk var?", 'Which KPIs or PIs show a deviation, or where is input quality broken per SIPOC?'),
@@ -25,7 +25,6 @@ export default function Step3Analysis() {
 
   return (
     <div>
-      <GuidanceBox items={QUESTIONS(t)} />
 
       <Card>
         <div style={{ ...S.cardTitle, margin: '0 0 4px' }}>{t('Alt Bileşen Analizi', 'Sub-component Analysis')}</div>

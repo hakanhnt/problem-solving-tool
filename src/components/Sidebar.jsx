@@ -116,32 +116,27 @@ export default function Sidebar({ onNavigate, onCollapse }) {
 
   return (
     <aside data-noprint="1" style={{ width: 288, flex: 'none', background: 'var(--surface)', borderRight: '1px solid var(--line-strong)', display: 'flex', flexDirection: 'column', overflowY: 'auto' }}>
-      <div style={{ position: 'relative', padding: onCollapse ? '18px 44px 14px 18px' : '18px 18px 14px', borderBottom: '1px solid var(--line-3)', background: 'linear-gradient(180deg,var(--brand-grad) 0%,var(--surface) 100%)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '14px 12px 12px 16px', borderBottom: '1px solid var(--line-3)' }}>
+        <div style={{ flex: 1, minWidth: 0 }}><Logo size={30} wordSize={15} /></div>
         {onCollapse ? (
           <HButton
             onClick={onCollapse}
             aria-label={t('Kenar çubuğunu gizle', 'Hide sidebar')} title={t('Kenar çubuğunu gizle', 'Hide sidebar')}
             aria-expanded="true"
-            style={{ position: 'absolute', top: 10, right: 10, width: 28, height: 28, border: '1px solid var(--field-border)', borderRadius: 7, background: 'var(--surface)', color: 'var(--ink-3)', font: '700 14px/1 Helvetica,Arial,sans-serif', cursor: 'pointer' }}
+            style={{ flex: 'none', width: 28, height: 28, border: '1px solid var(--field-border)', borderRadius: 7, background: 'var(--surface)', color: 'var(--ink-3)', font: '700 14px/1 Helvetica,Arial,sans-serif', cursor: 'pointer' }}
             hover={{ background: 'var(--surface-4)' }}
           >«</HButton>
         ) : null}
-        <Logo sub={t('Problemi tanımlayın, kök nedeni doğrulayın, doğru kararı uygulayın.', 'Define the problem, verify the root cause, execute the right decision.')} />
-        <div className="pcx-brand-chips" style={{ display: 'flex', gap: 5, flexWrap: 'wrap', marginTop: 11 }}>
-          {[t('8 adımlık akış', '8-step flow'), t('YZ destekli', 'AI-assisted'), t('Alan bağımsız', 'Domain-agnostic')].map(chip => (
-            <span key={chip} style={{ font: '600 10px Helvetica,Arial,sans-serif', color: 'var(--pri-soft-ink)', background: 'var(--pri-soft)', border: '1px solid var(--pri-border-5)', borderRadius: 20, padding: '3px 8px' }}>{chip}</span>
-          ))}
-        </div>
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '14px 16px 6px' }}>
-        <div style={{ flex: 1, font: '700 10.5px Helvetica,Arial,sans-serif', color: 'var(--muted)', letterSpacing: '.8px' }}>{t('ÇALIŞMALAR', 'CASES')}</div>
+        <div style={{ flex: 1, font: '700 12px Helvetica,Arial,sans-serif', color: 'var(--ink-3)' }}>{t('Çalışmalar', 'Cases')}</div>
         <HButton
           onClick={() => { upd(n => { n.dashOpen = true; }); if (onNavigate) onNavigate(); }}
           title={t('Vaka panosu — tüm çalışmaların durumu tek ekranda', 'Case dashboard — status of all cases on one screen')}
           style={{ flex: 'none', padding: '5px 10px', border: '1px solid var(--pri-border)', borderRadius: 6, background: 'var(--surface)', color: 'var(--pri)', font: '600 11px Helvetica,Arial,sans-serif', cursor: 'pointer' }}
           hover={{ background: 'var(--pri-soft)' }}
-        >📊 {t('Pano', 'Dashboard')}</HButton>
+        >{t('Pano', 'Dashboard')}</HButton>
         <HButton
           onClick={() => setTplOpen(true)}
           style={{ flex: 'none', padding: '5px 10px', border: '1px solid var(--pri)', borderRadius: 6, background: 'var(--pri)', color: 'var(--on-pri)', font: '600 11px Helvetica,Arial,sans-serif', cursor: 'pointer' }}
@@ -208,7 +203,7 @@ export default function Sidebar({ onNavigate, onCollapse }) {
       ) : (<>
       <div style={{ padding: '12px 16px 8px' }}>
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, margin: '0 0 6px' }}>
-          <div style={{ flex: 1, font: '700 10.5px Helvetica,Arial,sans-serif', color: 'var(--muted)', letterSpacing: '.8px' }}>{t('ÇALIŞMA İLERLEMESİ', 'CASE PROGRESS')}</div>
+          <div style={{ flex: 1, font: '700 12px Helvetica,Arial,sans-serif', color: 'var(--ink-3)' }}>{t('İlerleme', 'Progress')}</div>
           <div style={{ font: '700 11px Helvetica,Arial,sans-serif', color: doneCount === 8 ? 'var(--ok-ink)' : 'var(--pri)' }}>{doneCount}/8</div>
         </div>
         <div style={{ display: 'flex', gap: 3 }} role="img" aria-label={t('8 adımdan ' + doneCount + ' adımda içerik var', 'Content in ' + doneCount + ' of 8 steps')}>
@@ -342,30 +337,17 @@ export default function Sidebar({ onNavigate, onCollapse }) {
         </div>
       ) : null}
 
-      {/* Alt blok — kompakt: kısa ekranlarda adım navigasyonuna yer bırakır */}
+      {/* Alt blok — tek satır ayarlar + kısa veri notu; adım listesine yer bırakır */}
       <div style={{ padding: '10px 16px 12px', borderTop: '1px solid var(--line-3)', display: 'flex', flexDirection: 'column', gap: 8 }}>
-        {eff === 'ornek' || eff === 'ornek2' ? (
-          <HButton
-            onClick={() => { if (confirm(t('Örnek çalışma ilk haline döndürülecek. Emin misiniz?', 'The example case will be reset to its original state. Are you sure?'))) upd(n => { if (eff === 'ornek2') n.cases.ornek2 = exampleCase2(); else n.cases.ornek = exampleCase(n.lang); }); }}
-            style={{ padding: '5px 10px', border: '1px solid var(--field-border)', borderRadius: 6, background: 'var(--surface)', color: 'var(--ink-3)', font: '600 11.5px Helvetica,Arial,sans-serif', cursor: 'pointer' }}
-            hover={{ background: 'var(--surface-4)' }}
-          >↺ {t('Örnek çalışmayı sıfırla', 'Reset example case')}</HButton>
-        ) : null}
-
-        {/* Sıra 1: dil + tema */}
-        <div style={{ display: 'flex', gap: 8 }}>
-          <div role="group" aria-label="Dil / Language" style={{ flex: 1, display: 'flex', gap: 0, border: '1px solid var(--field-border)', borderRadius: 6, overflow: 'hidden' }}>
-            {[['tr', 'Türkçe'], ['en', 'English']].map(([k, lb]) => (
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          <div role="group" aria-label="Dil / Language" style={{ display: 'flex', border: '1px solid var(--field-border)', borderRadius: 6, overflow: 'hidden' }}>
+            {[['tr', 'TR'], ['en', 'EN']].map(([k, lb]) => (
               <button
                 key={k} type="button"
                 onClick={() => setLang(k)}
                 aria-pressed={lang === k}
-                style={{
-                  flex: 1, padding: '5px 8px', border: 'none', cursor: 'pointer',
-                  background: lang === k ? 'var(--pri)' : 'var(--surface)',
-                  color: lang === k ? 'var(--on-pri)' : 'var(--ink-3)',
-                  font: '600 11.5px Helvetica,Arial,sans-serif'
-                }}
+                aria-label={k === 'tr' ? 'Türkçe' : 'English'}
+                style={{ padding: '4px 9px', border: 'none', cursor: 'pointer', background: lang === k ? 'var(--pri)' : 'var(--surface)', color: lang === k ? 'var(--on-pri)' : 'var(--ink-3)', font: '600 11.5px Helvetica,Arial,sans-serif' }}
               >{lb}</button>
             ))}
           </div>
@@ -373,45 +355,45 @@ export default function Sidebar({ onNavigate, onCollapse }) {
             onClick={toggleTheme}
             title={state.theme === 'dark' ? t('Aydınlık temaya geç', 'Switch to light theme') : t('Karanlık temaya geç', 'Switch to dark theme')}
             aria-label={state.theme === 'dark' ? t('Aydınlık temaya geç', 'Switch to light theme') : t('Karanlık temaya geç', 'Switch to dark theme')}
-            style={{ flex: 'none', display: 'flex', alignItems: 'center', gap: 6, padding: '5px 10px', border: '1px solid var(--field-border)', borderRadius: 6, background: 'var(--surface)', color: 'var(--ink-3)', font: '600 12px Helvetica,Arial,sans-serif', cursor: 'pointer' }}
+            style={{ flex: 'none', width: 30, height: 26, border: '1px solid var(--field-border)', borderRadius: 6, background: 'var(--surface)', color: 'var(--ink-3)', font: '14px/1 Helvetica,Arial,sans-serif', cursor: 'pointer' }}
             hover={{ background: 'var(--surface-4)' }}
-          >
-            <span aria-hidden="true" style={{ font: '13px/1 Helvetica,Arial,sans-serif' }}>{state.theme === 'dark' ? '☀' : '☾'}</span>
-            <span style={{ display: 'flex', alignItems: 'center', width: 26, height: 14, borderRadius: 20, background: state.theme === 'dark' ? 'var(--pri)' : 'var(--line-strong)', padding: 2, boxSizing: 'border-box', transition: 'background .15s' }}>
-              <span style={{ width: 10, height: 10, borderRadius: '50%', background: state.theme === 'dark' ? 'var(--on-pri)' : 'var(--surface)', marginLeft: state.theme === 'dark' ? 12 : 0, transition: 'margin-left .15s' }} />
-            </span>
-          </HButton>
-        </div>
-
-        {/* Sıra 2: rehber + tanıtım + ayarlar */}
-        <div style={{ display: 'flex', gap: 8 }}>
-          <HA
-            href={'/rehber.html' + (state.theme === 'dark' ? '?tema=koyu' : '')} target="_blank" rel="noreferrer"
-            title={t('Kullanım Rehberi', 'User Guide')} aria-label={t('Kullanım Rehberi', 'User Guide')}
-            style={{ flex: 1, boxSizing: 'border-box', padding: '6px 4px', border: '1px solid var(--field-border)', borderRadius: 6, background: 'var(--surface)', color: 'var(--ink-3)', font: '600 11.5px Helvetica,Arial,sans-serif', textDecoration: 'none', textAlign: 'center', whiteSpace: 'nowrap' }}
-            hover={{ background: 'var(--surface-4)' }}
-          >📖 {t('Rehber', 'Guide')}</HA>
-          <HButton
-            onClick={reopenIntro}
-            title={t('Tanıtım ekranı', 'Intro screen')} aria-label={t('Tanıtım ekranı', 'Intro screen')}
-            style={{ flex: 1, padding: '6px 4px', border: '1px solid var(--field-border)', borderRadius: 6, background: 'var(--surface)', color: 'var(--ink-3)', font: '600 11.5px Helvetica,Arial,sans-serif', cursor: 'pointer', whiteSpace: 'nowrap' }}
-            hover={{ background: 'var(--surface-4)' }}
-          >🏠 {t('Tanıtım', 'Intro')}</HButton>
+          >{state.theme === 'dark' ? '☀' : '☾'}</HButton>
+          <div style={{ flex: 1 }} />
           <HButton
             onClick={() => { upd(n => { n.showSettings = true; }); if (onNavigate) onNavigate(); }}
-            title={t('Ayarlar · Kurum prensipleri', 'Settings · Company principles')} aria-label={t('Ayarlar · Kurum prensipleri', 'Settings · Company principles')}
-            style={{ flex: 1, padding: '6px 4px', border: '1px solid var(--field-border)', borderRadius: 6, background: 'var(--surface)', color: 'var(--ink-3)', font: '600 11.5px Helvetica,Arial,sans-serif', cursor: 'pointer', whiteSpace: 'nowrap' }}
-            hover={{ background: 'var(--surface-4)' }}
-          >⚙ {t('Ayarlar', 'Settings')}</HButton>
+            title={t('Ayarlar ve kurum prensipleri', 'Settings and company principles')}
+            style={{ padding: '4px 2px', border: 'none', background: 'transparent', color: 'var(--ink-3)', font: '600 12px Helvetica,Arial,sans-serif', cursor: 'pointer', textDecoration: 'none' }}
+            hover={{ color: 'var(--pri)' }}
+          >{t('Ayarlar', 'Settings')}</HButton>
+        </div>
+        <div style={{ display: 'flex', gap: 14, alignItems: 'center', flexWrap: 'wrap' }}>
+          <HA
+            href={'/rehber.html' + (state.theme === 'dark' ? '?tema=koyu' : '')} target="_blank" rel="noreferrer"
+            style={{ padding: '4px 2px', border: 'none', background: 'transparent', color: 'var(--ink-3)', font: '600 12px Helvetica,Arial,sans-serif', cursor: 'pointer', textDecoration: 'none' }}
+            hover={{ color: 'var(--pri)' }}
+          >{t('Kullanım rehberi', 'User guide')}</HA>
+          <HButton onClick={reopenIntro} style={{ padding: '4px 2px', border: 'none', background: 'transparent', color: 'var(--ink-3)', font: '600 12px Helvetica,Arial,sans-serif', cursor: 'pointer', textDecoration: 'none' }} hover={{ color: 'var(--pri)' }}>{t('Tanıtım', 'Intro')}</HButton>
+          {eff === 'ornek' || eff === 'ornek2' ? (
+            <HButton
+              onClick={() => { if (confirm(t('Örnek çalışma ilk haline döndürülecek. Emin misiniz?', 'The example case will be reset to its original state. Are you sure?'))) upd(n => { if (eff === 'ornek2') n.cases.ornek2 = exampleCase2(); else n.cases.ornek = exampleCase(n.lang); }); }}
+              style={{ padding: '4px 2px', border: 'none', background: 'transparent', color: 'var(--ink-3)', font: '600 12px Helvetica,Arial,sans-serif', cursor: 'pointer', textDecoration: 'none' }}
+              hover={{ color: 'var(--pri)' }}
+            >{t('Örneği sıfırla', 'Reset example')}</HButton>
+          ) : null}
         </div>
         {state.saveError ? (
           <div role="alert" style={{ font: '11.5px/1.5 Helvetica,Arial,sans-serif', color: 'var(--alert)', background: 'var(--alert-soft)', border: '1px solid var(--alert-border)', borderRadius: 6, padding: '7px 9px' }}>
             ⚠ {state.saveError}
           </div>
         ) : null}
-        <div style={{ font: '11px/1.5 Helvetica,Arial,sans-serif', color: 'var(--muted-2)' }}>
-          {t('Girdileriniz ', 'Your inputs are stored ')}<strong>{t('yalnızca bu tarayıcıda', 'only in this browser')}</strong>{t(' saklanır — sunucuya gönderilmez, otomatik yedeği yoktur.', ' — nothing is sent to a server, and there is no automatic backup.')}
-          {backupStale ? <span style={{ color: 'var(--warn-ink)' }}>{t(" Yedek almadınız; Ayarlar'dan JSON yedeği indirin.", ' No backup yet; download a JSON backup from Settings.')}</span> : null}
+        <div style={{ font: '11.5px/1.5 Helvetica,Arial,sans-serif', color: 'var(--muted-2)' }}>
+          {backupStale ? (
+            <button
+              type="button"
+              onClick={() => { upd(n => { n.showSettings = true; }); if (onNavigate) onNavigate(); }}
+              style={{ padding: 0, border: 'none', background: 'none', cursor: 'pointer', textAlign: 'left', font: 'inherit', color: 'var(--warn-ink)' }}
+            >{t('Veriler yalnızca bu tarayıcıda. Henüz yedek almadınız; yedeklemek için tıklayın.', 'Data lives only in this browser. No backup yet; click to back up.')}</button>
+          ) : t('Veriler yalnızca bu tarayıcıda saklanır.', 'Data is stored only in this browser.')}
         </div>
       </div>
     </aside>

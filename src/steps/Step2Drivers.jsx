@@ -1,9 +1,9 @@
 import React from 'react';
 import { useStore, verMeta } from '../lib/store.jsx';
 import { driverMap } from '../lib/derive.js';
-import { Card, GuidanceBox, MethodBox, AddButton, RemoveButton, VerifyBadge, YZButton, S } from '../ui/primitives.jsx';
+import { Card, MethodBox, AddButton, RemoveButton, VerifyBadge, YZButton, S } from '../ui/primitives.jsx';
 
-const QUESTIONS = t => [
+export const QUESTIONS = t => [
   t('Bu sonucu hangi ana etkenler sürüklüyor? Hangi ana etkenler sonucu oluşturuyor?', 'Which main factors drive this outcome? Which main factors produce the result?'),
   t("Hangi iş sürücülerinde (business driver) sapma olabilir?", 'Which business drivers might be deviating?'),
   t('Hangi süreçlerde sorun olabilir? Hangi ana iş sürücüsü bozuk?', 'Which processes might have a problem? Which main business driver is broken?'),
@@ -18,7 +18,6 @@ export default function Step2Drivers() {
 
   return (
     <div>
-      <GuidanceBox items={QUESTIONS(t)} />
 
       <Card>
         <div style={{ ...S.cardTitle, margin: '0 0 4px' }}>{t('Ana İş Sürücüleri', 'Main Business Drivers')}</div>

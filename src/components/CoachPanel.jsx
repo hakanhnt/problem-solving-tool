@@ -34,7 +34,7 @@ export default function CoachPanel() {
 
   if (step >= 2 && step <= 6 && !aiReady) {
     return (
-      <div style={{ background: 'var(--warn-soft-3)', border: '1px solid var(--warn-border-3)', borderRadius: 10, padding: '14px 18px', margin: '0 0 20px', font: '13px/1.55 Helvetica,Arial,sans-serif', color: 'var(--warn-ink-2)' }}>
+      <div style={{ font: '13px/1.6 Helvetica,Arial,sans-serif', color: 'var(--ink-3)' }}>
         {t("Rehberin sizi probleminize göre yönlendirebilmesi için önce", 'For the coach to guide you based on your problem, write')}{' '}
         <a href="#" onClick={e => { e.preventDefault(); goStep(1); }} style={{ color: 'var(--pri)', fontWeight: 700 }}>{t("Adım 1'de problem tanımınızı", 'your problem definition in Step 1')}</a>{' '}
         {t("yazın. Tanım girildikten sonra rehber bu adım için aday girdiler önerecek ve doğrulamanız için sizi yönlendirecek.", 'first. Once the definition is entered, the coach will suggest candidate inputs for this step and guide you through validating them.')}
@@ -52,13 +52,9 @@ export default function CoachPanel() {
   const done = status === 'done';
 
   return (
-    <div style={{ background: 'var(--pri-soft-2)', border: '1px solid var(--pri-border)', borderRadius: 12, margin: '0 0 22px', overflow: 'hidden' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 18px', background: 'var(--pri-soft-3)', borderBottom: '1px solid var(--pri-border-3)' }}>
-        <div style={{ flex: 'none', width: 22, height: 22, borderRadius: '50%', background: 'var(--pri)', color: 'var(--on-pri)', font: '700 10px/22px Helvetica,Arial,sans-serif', textAlign: 'center' }}>{t('R', 'C')}</div>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ font: '700 13px Helvetica,Arial,sans-serif', color: 'var(--pri-ink)' }}>{t('Rehber · Probleminize göre bu adımı birlikte dolduralım', 'Coach · Let\'s fill in this step together based on your problem')}</div>
-          <div style={{ font: '600 10.5px Helvetica,Arial,sans-serif', color: 'var(--warn-ink)', marginTop: 2 }}>{t('Taslak / hipotez — veriyle doğrulayın', 'Draft / hypothesis — validate with data')}</div>
-        </div>
+    <div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, minHeight: 28, margin: '0 0 10px' }}>
+        <div style={{ flex: 1, minWidth: 0, font: '12.5px/1.5 Helvetica,Arial,sans-serif', color: 'var(--warn-ink)' }}>{t('Rehberin önerileri taslaktır; eklemeden önce veriyle doğrulayın.', 'The coach’s suggestions are drafts; verify them with data before adding.')}</div>
         {busy ? (
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginLeft: 'auto' }}>
             <Spinner size={14} border={2} track="var(--pri-border-3)" />
@@ -81,7 +77,7 @@ export default function CoachPanel() {
         {error ? t('Öneriler hazırlanamadı: ', 'Suggestions could not be prepared: ') + (ck.errMsg || t('bilinmeyen hata', 'unknown error')) + t('. Tekrar deneyebilirsiniz.', '. You can try again.') : null}
       </div>
 
-      <div style={{ padding: '14px 18px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
         {idle ? (
           <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
             <div style={{ font: '13px/1.55 Helvetica,Arial,sans-serif', color: 'var(--pri-ink-2)', flex: 1, minWidth: 240 }}>
@@ -184,7 +180,7 @@ export default function CoachPanel() {
                           {t('Bu öneri mevcut metninizin ', 'This suggestion ')}<strong>{t('üzerine yazar', 'overwrites')}</strong>{t('. Kabul ederseniz Ctrl+Z ya da "Geri al" ile eski hâline dönebilirsiniz.', ' your current text. If you accept it, you can restore the previous version with Ctrl+Z or "Undo".')}
                         </div>
                         <div>
-                          <div style={{ font: '700 10px Helvetica,Arial,sans-serif', color: 'var(--muted)', letterSpacing: '.6px', margin: '0 0 4px' }}>{t('ŞU ANKİ METNİNİZ', 'YOUR CURRENT TEXT')}</div>
+                          <div style={{ font: '700 10px Helvetica,Arial,sans-serif', color: 'var(--muted)', margin: '0 0 4px' }}>{t('Şu anki metniniz', 'Your current text')}</div>
                           <div style={{ font: '12.5px/1.6 Helvetica,Arial,sans-serif', color: 'var(--ink-3)', background: 'var(--surface-2)', border: '1px solid var(--line-2)', borderRadius: 6, padding: '8px 10px', whiteSpace: 'pre-wrap' }}>{current}</div>
                         </div>
                         <div>
@@ -242,7 +238,7 @@ export default function CoachPanel() {
 
             {(ck.questions || []).length ? (
               <div style={{ background: 'var(--surface)', border: '1px solid var(--pri-border-4)', borderRadius: 8, padding: '12px 14px' }}>
-                <div style={{ font: '700 10.5px Helvetica,Arial,sans-serif', color: 'var(--pri-soft-ink)', letterSpacing: '.8px', margin: '0 0 8px' }}>{t('DOĞRULAMAK İÇİN KENDİNİZE / PAYDAŞLARINIZA SORUN', 'ASK YOURSELF / YOUR STAKEHOLDERS TO VALIDATE')}</div>
+                <div style={{ font: '700 10.5px Helvetica,Arial,sans-serif', color: 'var(--pri-soft-ink)', margin: '0 0 8px' }}>{t('Doğrulamak için kendinize / paydaşlarınıza sorun', 'Ask yourself / your stakeholders to validate')}</div>
                 <ul style={{ margin: 0, padding: '0 0 0 18px', display: 'flex', flexDirection: 'column', gap: 5 }}>
                   {ck.questions.map((q, i) => <li key={i} style={{ font: '12.5px/1.5 Helvetica,Arial,sans-serif', color: 'var(--pri-ink-2)' }}>{q}</li>)}
                 </ul>

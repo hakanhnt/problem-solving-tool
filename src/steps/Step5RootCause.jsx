@@ -2,7 +2,7 @@ import React from 'react';
 import { useStore, verMeta } from '../lib/store.jsx';
 import { fishboneCatsFor, whyPlaceholdersFor } from '../lib/defaults.js';
 import { rcStatusesFor } from '../lib/derive.js';
-import { Card, GuidanceBox, MethodBox, AddButton, RemoveButton, VerifyBadge, YZButton, Badge, AdvancedSection, S, useNarrow } from '../ui/primitives.jsx';
+import { Card, MethodBox, AddButton, RemoveButton, VerifyBadge, YZButton, Badge, AdvancedSection, S, useNarrow } from '../ui/primitives.jsx';
 
 const STATUS_COLORS = {
   hipotez: { bg: 'var(--warn-soft)', border: 'var(--warn-border)', ink: 'var(--warn-ink)' },
@@ -13,7 +13,7 @@ const STATUS_COLORS = {
   elendi: { bg: 'var(--surface-4)', border: 'var(--line-2)', ink: 'var(--muted)' }
 };
 
-const questionsFor = t => [
+export const questionsFor = t => [
   t('Bu sapmalar neden oluşuyor? (5 kez "neden?" sordum mu?)', 'Why do these deviations occur? (Did I ask "why?" five times?)'),
   t('Kök nedeni dışarıda, paydaşta, ekipte aramak yerine önce kendimizde aradık mı?', 'Did we look for the root cause in ourselves first, rather than in outsiders, stakeholders or the team?'),
   t('Ben neyi farklı yapsaydım bu sonuç olmazdı?', 'What could I have done differently to prevent this outcome?'),
@@ -36,7 +36,6 @@ export default function Step5RootCause() {
 
   return (
     <div>
-      <GuidanceBox items={questionsFor(t)} />
 
       <Card>
         <div style={{ ...S.cardTitle, margin: '0 0 4px' }}>{t('5 Neden Analizi', '5 Whys analysis')}</div>
@@ -169,7 +168,7 @@ export default function Step5RootCause() {
                 </div>
 
                 <div>
-                  <div style={{ font: '600 11px Helvetica,Arial,sans-serif', color: 'var(--ink-3)', letterSpacing: '.4px', margin: '0 0 8px' }}>{t('İLGİLİ KURUM PRENSİPLERİ', 'RELATED COMPANY PRINCIPLES')}</div>
+                  <div style={{ font: '600 11px Helvetica,Arial,sans-serif', color: 'var(--ink-3)', margin: '0 0 8px' }}>{t('İlgili kurum prensipleri', 'Related company principles')}</div>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                     {principles.map((p, pi) => {
                       const sel = (rc.principles || []).includes(pi);
@@ -197,7 +196,7 @@ export default function Step5RootCause() {
                 </div>
 
                 <div>
-                  <div style={{ font: '600 11px Helvetica,Arial,sans-serif', color: 'var(--ink-3)', letterSpacing: '.4px', margin: '0 0 8px' }}>{t('DOĞRULAMA DURUMU', 'VERIFICATION STATUS')}</div>
+                  <div style={{ font: '600 11px Helvetica,Arial,sans-serif', color: 'var(--ink-3)', margin: '0 0 8px' }}>{t('Doğrulama durumu', 'Verification status')}</div>
                   <div role="radiogroup" aria-label={t('KN', 'RC') + (i + 1) + t(' doğrulama durumu', ' verification status')} style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                     {rcStatuses.map(st => {
                       const sel = (rc.status || 'hipotez') === st.key;
@@ -261,7 +260,7 @@ export default function Step5RootCause() {
 
                 <div style={{ display: 'grid', gridTemplateColumns: narrow ? '1fr' : '1fr 1fr', gap: 10 }}>
                   <div>
-                    <label style={{ display: 'block', font: '600 11px Helvetica,Arial,sans-serif', color: 'var(--ink-3)', letterSpacing: '.4px', margin: '0 0 6px' }}>{t('KANIT / VERİ KAYNAĞI', 'EVIDENCE / DATA SOURCE')}</label>
+                    <label style={{ display: 'block', font: '600 11px Helvetica,Arial,sans-serif', color: 'var(--ink-3)', margin: '0 0 6px' }}>{t('Kanıt / veri kaynağı', 'Evidence / data source')}</label>
                     <textarea
                       className="pcx-field" value={rc.evidence || ''} onChange={inp('rootCauses', i, 'evidence')}
                       placeholder={t('Bu nedeni destekleyen veri — rapor, kayıt, gözlem…', 'Data supporting this cause — report, record, observation…')}
@@ -285,7 +284,7 @@ export default function Step5RootCause() {
                     />
                   </div>
                   <div>
-                    <label style={{ display: 'block', font: '600 11px Helvetica,Arial,sans-serif', color: 'var(--ink-3)', letterSpacing: '.4px', margin: '0 0 6px' }}>{t('TEST SONUCU', 'TEST RESULT')}</label>
+                    <label style={{ display: 'block', font: '600 11px Helvetica,Arial,sans-serif', color: 'var(--ink-3)', margin: '0 0 6px' }}>{t('Test sonucu', 'Test result')}</label>
                     <textarea
                       className="pcx-field" value={rc.testResult || ''} onChange={inp('rootCauses', i, 'testResult')}
                       placeholder={t('Test yapıldıysa sonucu — hipotezi destekledi mi, çürüttü mü?', 'If tested, the outcome — did it support or refute the hypothesis?')}
@@ -305,7 +304,7 @@ export default function Step5RootCause() {
                 <VerifyBadge meta={vm} onClick={() => updC(cc => { cc.rootCauses[i].verified = !cc.rootCauses[i].verified; })} />
 
                 <div>
-                  <label style={{ display: 'block', font: '600 11px Helvetica,Arial,sans-serif', color: 'var(--ink-3)', letterSpacing: '.4px', margin: '0 0 6px' }}>{t('YETKİNLİK GELİŞİM ALANI', 'COMPETENCY DEVELOPMENT AREA')}</label>
+                  <label style={{ display: 'block', font: '600 11px Helvetica,Arial,sans-serif', color: 'var(--ink-3)', margin: '0 0 6px' }}>{t('Yetkinlik gelişim alanı', 'Competency development area')}</label>
                   <textarea
                     className="pcx-field" value={rc.competency} onChange={inp('rootCauses', i, 'competency')}
                     placeholder={t("Örn. süreç yönetimi ve 'önemli olanı ölç' yetkinliği", "E.g. process management and the 'measure what matters' competency")}

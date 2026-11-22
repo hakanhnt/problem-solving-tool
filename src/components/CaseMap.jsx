@@ -21,8 +21,8 @@ export default function CaseMap({ c, lang = 'tr', onNavigate }) {
   const NODE_H = 56;
 
   const headers = [
-    t('KPI', 'KPI'), t('İŞ SÜRÜCÜLERİ', 'BUSINESS DRIVERS'), t('BULGULAR', 'FINDINGS'),
-    t('KÖK NEDENLER', 'ROOT CAUSES'), t('KARAR', 'DECISION'), t('AKSİYONLAR', 'ACTIONS'), t('İZLEME', 'TRACKING')
+    t('KPI', 'KPI'), t('İş sürücüleri', 'Business drivers'), t('Bulgular', 'Findings'),
+    t('Kök nedenler', 'Root causes'), t('Karar', 'Decision'), t('Aksiyonlar', 'Actions'), t('İzleme', 'Tracking')
   ];
 
   const path = e => {

@@ -6,7 +6,7 @@ import { fmtNum } from '../lib/i18n.js';
 import { THINKING_METHOD_INFO } from '../lib/thinking.js';
 import { decisionMatrix, isOverdue, timingAdvice } from '../lib/derive.js';
 import ThinkingCheck from '../components/ThinkingCheck.jsx';
-import { Card, CardHead, GuidanceBox, MethodBox, AddButton, RemoveButton, YZButton, Badge, HButton, Spinner, AdvancedSection, S, useNarrow } from '../ui/primitives.jsx';
+import { Card, CardHead, MethodBox, AddButton, RemoveButton, YZButton, Badge, HButton, Spinner, AdvancedSection, S, useNarrow } from '../ui/primitives.jsx';
 
 /**
  * Seçilen düşünme yönteminin karşı çalıştığı yanılgı ve ekip soruları.
@@ -38,7 +38,7 @@ function MethodQuestions({ method }) {
   );
 }
 
-const questionsFor = t => [
+export const questionsFor = t => [
   t('Nasıl çözeceğiz, ne yapacağız? Yerine göre doğru düşünme yöntemlerini kullanarak alternatifler ürettim mi?', 'How will we solve it, what will we do? Did I generate alternatives using the right thinking methods for the situation?'),
   t('Kısıtları ve riskleri dikkate alarak karar kriterlerini belirledim mi?', 'Did I set the decision criteria considering constraints and risks?'),
   t('Alternatifleri kriterlere göre yarıştırdım mı?', 'Did I race the alternatives against the criteria?'),
@@ -85,7 +85,6 @@ export default function Step6Countermeasures() {
 
   return (
     <div>
-      <GuidanceBox items={questionsFor(t)} />
 
       {/* Geçici önlem (8D-D3) */}
       <Card>
@@ -360,7 +359,7 @@ export default function Step6Countermeasures() {
                   ))}
                 </div>
                 <div style={{ marginTop: 8 }}>
-                  <label style={{ display: 'block', font: '600 10.5px Helvetica,Arial,sans-serif', color: 'var(--muted)', letterSpacing: '.4px', margin: '0 0 4px' }}>{t('PUANLAMA KAYNAĞI / DAYANAĞI', 'SCORING SOURCE / BASIS')}</label>
+                  <label style={{ display: 'block', font: '600 10.5px Helvetica,Arial,sans-serif', color: 'var(--muted)', margin: '0 0 4px' }}>{t('Puanlama kaynağı / dayanağı', 'Scoring source / basis')}</label>
                   <input
                     className="pcx-field-sm" value={cr.source || ''} onChange={inp('criteria', i, 'source')}
                     placeholder={t('Puanlar neye dayanıyor? Örn. pilot sonuçları, efor tahmini, uzman görüşü…', 'What are the scores based on? E.g. pilot results, effort estimate, expert opinion…')}
@@ -478,7 +477,7 @@ export default function Step6Countermeasures() {
           ) : null}
           <div style={{ overflowX: 'auto' }}>
             <div style={{ display: 'flex', gap: 8, margin: '0 0 8px', minWidth: 560 }}>
-              <div style={{ flex: 1, minWidth: 140, font: '700 11px Helvetica,Arial,sans-serif', color: 'var(--ink-3)', letterSpacing: '.4px' }}>{t('ALTERNATİF', 'ALTERNATIVE')}</div>
+              <div style={{ flex: 1, minWidth: 140, font: '700 11px Helvetica,Arial,sans-serif', color: 'var(--ink-3)' }}>{t('Alternatif', 'Alternative')}</div>
               {M.head.map((mh, i) => {
                 const cr = c.criteria[i] || {};
                 const tip = [mh.name, mh.yon === 'dusuk' ? t('(düşük iyi)', '(lower is better)') : t('(yüksek iyi)', '(higher is better)'), cr.d1 ? '1 = ' + cr.d1 : '', cr.d3 ? '3 = ' + cr.d3 : '', cr.d5 ? '5 = ' + cr.d5 : '', cr.source ? t('Kaynak: ', 'Source: ') + cr.source : ''].filter(Boolean).join('\n');
@@ -603,9 +602,9 @@ export default function Step6Countermeasures() {
         />
 
         {/* Karar öncesi zihin kontrolü — üç soruya da yanıt verilince işaretlenir */}
-        <div data-noprint="1" style={{ background: '#fbf7f3', border: '1px solid #e5d9cd', borderRadius: 8, padding: '12px 14px', margin: '0 0 12px' }}>
-          <div style={{ font: '700 10.5px Helvetica,Arial,sans-serif', color: '#8c6a35', letterSpacing: '.5px', margin: '0 0 8px' }}>
-            {t('KARAR ALMADAN ÖNCE KENDİNİZE SORUN — üçünü de yanıtladıysanız işaretleyin', 'ASK YOURSELF BEFORE DECIDING — check each once you have answered all three')}
+        <div data-noprint="1" style={{ background: 'var(--warn-soft)', border: '1px solid var(--warn-border)', borderRadius: 8, padding: '12px 14px', margin: '0 0 12px' }}>
+          <div style={{ font: '700 12.5px Helvetica,Arial,sans-serif', color: 'var(--warn-ink)', margin: '0 0 8px' }}>
+            {t('Karar almadan önce kendinize sorun. Yanıtladığınız soruları işaretleyin.', 'Ask yourself before deciding. Tick each question once you have answered it.')}
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             {preCheckItemsFor(lang).map(q => {
@@ -615,12 +614,12 @@ export default function Step6Countermeasures() {
                   key={q.key} type="button"
                   onClick={() => updC(cc => { cc.precheck = cc.precheck || { p1: false, p2: false, p3: false }; cc.precheck[q.key] = !cc.precheck[q.key]; })}
                   aria-pressed={on}
-                  style={{ display: 'flex', gap: 10, alignItems: 'flex-start', textAlign: 'left', width: '100%', background: '#fff', border: '1px solid #ecdfd0', borderRadius: 8, padding: '9px 11px', cursor: 'pointer', font: 'inherit' }}
+                  style={{ display: 'flex', gap: 10, alignItems: 'flex-start', textAlign: 'left', width: '100%', background: 'var(--surface)', border: '1px solid var(--warn-border-2)', borderRadius: 8, padding: '9px 11px', cursor: 'pointer', font: 'inherit' }}
                 >
-                  <span aria-hidden="true" style={{ flex: 'none', width: 18, height: 18, borderRadius: 4, border: on ? 'none' : '1px solid #ddcdb8', background: on ? '#35506e' : '#fff', color: '#fff', font: '700 12px/18px Helvetica,Arial,sans-serif', textAlign: 'center', marginTop: 1 }}>{on ? '✓' : ''}</span>
+                  <span aria-hidden="true" style={{ flex: 'none', width: 18, height: 18, borderRadius: 4, border: on ? 'none' : '1px solid var(--field-border)', background: on ? 'var(--pri)' : 'var(--surface)', color: 'var(--on-pri)', font: '700 12px/18px Helvetica,Arial,sans-serif', textAlign: 'center', marginTop: 1 }}>{on ? '✓' : ''}</span>
                   <span style={{ flex: 1, minWidth: 0 }}>
-                    <span style={{ display: 'block', font: '600 12.5px/1.5 Helvetica,Arial,sans-serif', color: '#4a453e' }}>{q.soru}</span>
-                    <span style={{ display: 'block', font: '11px/1.4 Helvetica,Arial,sans-serif', color: '#8a857c', marginTop: 2 }}>{q.not}</span>
+                    <span style={{ display: 'block', font: '600 12.5px/1.5 Helvetica,Arial,sans-serif', color: 'var(--ink-2)' }}>{q.soru}</span>
+                    <span style={{ display: 'block', font: '11px/1.4 Helvetica,Arial,sans-serif', color: 'var(--muted)', marginTop: 2 }}>{q.not}</span>
                   </span>
                 </button>
               );
@@ -761,7 +760,7 @@ export default function Step6Countermeasures() {
           {(c.decision.redTeam || '').trim() ? (
             <div>
               <div style={{ background: 'var(--surface-2)', border: '1px solid var(--line-2)', borderRadius: 8, padding: '10px 13px', margin: '0 0 12px' }}>
-                <div style={{ font: '700 10.5px Helvetica,Arial,sans-serif', color: 'var(--muted)', letterSpacing: '.5px', margin: '0 0 4px' }}>{t('KARARA BAĞLANAN İTİRAZLAR', 'OBJECTIONS ATTACHED TO THE DECISION')}</div>
+                <div style={{ font: '700 10.5px Helvetica,Arial,sans-serif', color: 'var(--muted)', margin: '0 0 4px' }}>{t('Karara bağlanan itirazlar', 'Objections attached to the decision')}</div>
                 <div style={{ font: '12px/1.55 Helvetica,Arial,sans-serif', color: 'var(--ink-3)', whiteSpace: 'pre-wrap' }}>{c.decision.redTeam}</div>
               </div>
               <label style={S.label}>{t('İtirazlara yanıtımız', 'Our answer to the objections')}</label>
@@ -903,7 +902,7 @@ export default function Step6Countermeasures() {
             <table style={{ borderCollapse: 'collapse', width: '100%', minWidth: 760 }}>
               <thead>
                 <tr>
-                  {[t('HATA TÜRÜ', 'FAILURE MODE'), t('ETKİSİ', 'EFFECT'), t('NEDENİ', 'CAUSE'), t('Ş', 'S'), 'O', t('T', 'D'), 'RPN', t('ÖNLEM', 'MEASURE'), ''].map((h, i) => (
+                  {[t('Hata türü', 'Failure mode'), t('Etkisi', 'Effect'), t('Nedeni', 'Cause'), t('Ş', 'S'), 'O', t('T', 'D'), 'RPN', t('Önlem', 'Measure'), ''].map((h, i) => (
                     <th key={i} style={{ padding: '5px 7px', border: '1px solid var(--line)', font: '700 10px Helvetica,Arial,sans-serif', color: 'var(--ink-3)', background: 'var(--surface-2)', textAlign: 'left', letterSpacing: '.4px' }}>{h}</th>
                   ))}
                 </tr>
@@ -1131,25 +1130,25 @@ export default function Step6Countermeasures() {
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: narrow ? '1fr 1fr' : '1.4fr 1fr 1fr .7fr .7fr', gap: 10 }}>
                     <div>
-                      <label style={{ display: 'block', font: '600 11px Helvetica,Arial,sans-serif', color: 'var(--ink-3)', margin: '0 0 4px' }}>{t('SORUMLU', 'OWNER')}</label>
+                      <label style={{ display: 'block', font: '600 11px Helvetica,Arial,sans-serif', color: 'var(--ink-3)', margin: '0 0 4px' }}>{t('Sorumlu', 'Owner')}</label>
                       <input className="pcx-field-sm" value={a.owner} onChange={inp('actions', i, 'owner')} placeholder={t('Rol / kişi', 'Role / person')} aria-label={t((i + 1) + '. aksiyonun sorumlusu', 'Action ' + (i + 1) + ' owner')} style={S.inputSm} />
                     </div>
                     <div>
-                      <label style={{ display: 'block', font: '600 11px Helvetica,Arial,sans-serif', color: 'var(--ink-3)', margin: '0 0 4px' }}>{t('BAŞLANGIÇ', 'START')}</label>
+                      <label style={{ display: 'block', font: '600 11px Helvetica,Arial,sans-serif', color: 'var(--ink-3)', margin: '0 0 4px' }}>{t('Başlangıç', 'Start')}</label>
                       <input className="pcx-field-sm" type="date" value={a.startDate || ''} onChange={inp('actions', i, 'startDate')} aria-label={t((i + 1) + '. aksiyonun başlangıç tarihi', 'Action ' + (i + 1) + ' start date')} style={S.inputSm} />
                     </div>
                     <div>
-                      <label style={{ display: 'block', font: '600 11px Helvetica,Arial,sans-serif', color: 'var(--ink-3)', margin: '0 0 4px' }}>{t('TERMİN', 'DUE DATE')}</label>
+                      <label style={{ display: 'block', font: '600 11px Helvetica,Arial,sans-serif', color: 'var(--ink-3)', margin: '0 0 4px' }}>{t('Termin', 'Due date')}</label>
                       <input className="pcx-field-sm" type="date" value={a.dueDate || ''} onChange={inp('actions', i, 'dueDate')} aria-label={t((i + 1) + '. aksiyonun termin tarihi', 'Action ' + (i + 1) + ' due date')} style={{ ...S.inputSm, borderColor: late ? 'var(--alert)' : undefined }} />
                     </div>
                     <div>
-                      <label style={{ display: 'block', font: '600 11px Helvetica,Arial,sans-serif', color: 'var(--ink-3)', margin: '0 0 4px' }}>{t('ETKİ (1-5)', 'IMPACT (1-5)')}</label>
+                      <label style={{ display: 'block', font: '600 11px Helvetica,Arial,sans-serif', color: 'var(--ink-3)', margin: '0 0 4px' }}>{t('Etki (1-5)', 'Impact (1-5)')}</label>
                       <select value={a.etki || ''} onChange={inp('actions', i, 'etki')} aria-label={t((i + 1) + '. aksiyonun etkisi', 'Action ' + (i + 1) + ' impact')} style={S.select}>
                         <option value="">—</option>{[1, 2, 3, 4, 5].map(v => <option key={v} value={String(v)}>{v}</option>)}
                       </select>
                     </div>
                     <div>
-                      <label style={{ display: 'block', font: '600 11px Helvetica,Arial,sans-serif', color: 'var(--ink-3)', margin: '0 0 4px' }}>{t('EFOR (1-5)', 'EFFORT (1-5)')}</label>
+                      <label style={{ display: 'block', font: '600 11px Helvetica,Arial,sans-serif', color: 'var(--ink-3)', margin: '0 0 4px' }}>{t('Efor (1-5)', 'Effort (1-5)')}</label>
                       <select value={a.efor || ''} onChange={inp('actions', i, 'efor')} aria-label={t((i + 1) + '. aksiyonun eforu', 'Action ' + (i + 1) + ' effort')} style={S.select}>
                         <option value="">—</option>{[1, 2, 3, 4, 5].map(v => <option key={v} value={String(v)}>{v}</option>)}
                       </select>
@@ -1178,7 +1177,7 @@ export default function Step6Countermeasures() {
                       </select>
                     </div>
                     <div>
-                      <label style={{ display: 'block', font: '600 11px Helvetica,Arial,sans-serif', color: 'var(--ink-3)', margin: '0 0 4px' }}>{t('ÖNCELİK', 'PRIORITY')}</label>
+                      <label style={{ display: 'block', font: '600 11px Helvetica,Arial,sans-serif', color: 'var(--ink-3)', margin: '0 0 4px' }}>{t('Öncelik', 'Priority')}</label>
                       <select value={a.priority || ''} onChange={inp('actions', i, 'priority')} aria-label={t((i + 1) + '. aksiyonun önceliği', 'Action ' + (i + 1) + ' priority')} style={S.select}>
                         <option value="">{t('Etki/efora göre otomatik', 'Automatic from impact/effort')}</option>
                         <option value="yuksek">{t('Yüksek — hemen', 'High — do now')}</option>
@@ -1188,7 +1187,7 @@ export default function Step6Countermeasures() {
                     </div>
                   </div>
                   <div>
-                    <label style={{ display: 'block', font: '600 11px Helvetica,Arial,sans-serif', color: 'var(--ink-3)', margin: '0 0 4px' }}>{t('BAŞARI ÖLÇÜTÜ', 'SUCCESS CRITERION')}</label>
+                    <label style={{ display: 'block', font: '600 11px Helvetica,Arial,sans-serif', color: 'var(--ink-3)', margin: '0 0 4px' }}>{t('Başarı ölçütü', 'Success criterion')}</label>
                     <input
                       className="pcx-field-sm" value={a.successCriteria || ''} onChange={inp('actions', i, 'successCriteria')}
                       placeholder={t('Ne olursa bu aksiyon başarılı sayılır? (ölçülebilir)', 'What makes this action a success? (measurable)')}

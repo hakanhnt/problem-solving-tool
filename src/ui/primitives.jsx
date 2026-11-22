@@ -58,10 +58,10 @@ export function HDiv({ style, hover, children, ...rest }) {
 
 export const S = {
   card: { background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 10, padding: '18px 20px', margin: '0 0 16px' },
-  cardTitle: { font: '700 15px Helvetica,Arial,sans-serif', color: 'var(--ink)' },
+  cardTitle: { font: "700 semi-condensed 17px/1.3 'Archivo Variable',Helvetica,Arial,sans-serif", color: 'var(--ink)' },
   cardSub: { font: '12px/1.5 Helvetica,Arial,sans-serif', color: 'var(--muted)', margin: '0 0 8px' },
   label: { display: 'block', font: '600 12px Helvetica,Arial,sans-serif', color: 'var(--ink-3)', margin: '0 0 6px' },
-  microLabel: { font: '700 10.5px Helvetica,Arial,sans-serif', color: 'var(--muted)', letterSpacing: '.8px' },
+  microLabel: { font: '700 12px Helvetica,Arial,sans-serif', color: 'var(--muted)' },
   input: { width: '100%', boxSizing: 'border-box', padding: '9px 11px', border: '1px solid var(--field-border)', borderRadius: 6, font: '14px/1.45 Helvetica,Arial,sans-serif', color: 'var(--ink)', background: 'var(--surface)', outline: 'none' },
   inputSm: { width: '100%', boxSizing: 'border-box', padding: '8px 10px', border: '1px solid var(--field-border)', borderRadius: 6, font: '12.5px/1.4 Helvetica,Arial,sans-serif', color: 'var(--ink)', background: 'var(--surface)', outline: 'none' },
   textarea: { width: '100%', boxSizing: 'border-box', padding: '9px 11px', border: '1px solid var(--field-border)', borderRadius: 6, font: '13px/1.45 Helvetica,Arial,sans-serif', color: 'var(--ink)', background: 'var(--surface)', outline: 'none', resize: 'vertical' },
@@ -121,7 +121,7 @@ const METHOD_PREF_KEY = 'pcx_method_open';
 export function MethodBox({ children, margin }) {
   const { t } = useStore();
   const [open, setOpen] = useState(() => {
-    try { return localStorage.getItem(METHOD_PREF_KEY) !== '0'; } catch (e) { return true; }
+    try { return localStorage.getItem(METHOD_PREF_KEY) === '1'; } catch (e) { return false; }
   });
   const toggle = () => setOpen(o => {
     const v = !o;
@@ -177,19 +177,6 @@ export function AdvancedSection({ id, title, sub, children, defaultOpen }) {
         <span style={{ flex: 'none', font: '600 11px Helvetica,Arial,sans-serif', color: 'var(--pri)' }}>{open ? t('Gizle', 'Hide') : t('Aç', 'Open')}</span>
       </button>
       {open ? <div style={{ marginTop: 14 }}>{children}</div> : null}
-    </div>
-  );
-}
-
-/** Mavi "KENDİNİZE / PAYDAŞLARINIZA SORUN" kutusu. */
-export function GuidanceBox({ items, margin }) {
-  const { t } = useStore();
-  return (
-    <div style={{ background: 'var(--pri-soft)', border: '1px solid var(--pri-border-6)', borderRadius: 10, padding: '16px 18px', margin: margin || '0 0 20px' }}>
-      <div style={{ font: '700 11px Helvetica,Arial,sans-serif', color: 'var(--pri)', letterSpacing: '.8px', margin: '0 0 8px' }}>{t('KENDİNİZE / PAYDAŞLARINIZA SORUN', 'ASK YOURSELF / YOUR STAKEHOLDERS')}</div>
-      <ul style={{ margin: 0, padding: '0 0 0 18px', display: 'flex', flexDirection: 'column', gap: 5 }}>
-        {items.map((t, i) => <li key={i} style={{ font: '13px/1.5 Helvetica,Arial,sans-serif', color: 'var(--pri-ink-2)' }}>{t}</li>)}
-      </ul>
     </div>
   );
 }

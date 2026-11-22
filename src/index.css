@@ -257,3 +257,18 @@ summary:focus-visible,
   /* Vaka haritası kâğıt genişliğine sığacak şekilde ölçeklenir (bileşen --pz değerini hesaplar) */
   [data-casemap-fit]{zoom:var(--pz,1)}
 }
+
+/* Başlık yazı tipi (Tanıtım sayfasıyla ortak) ve adım iskeleti */
+.pcx-display { font-family: 'Archivo Variable', Helvetica, Arial, sans-serif; font-weight: 720; font-stretch: 86%; letter-spacing: -.005em; }
+
+.pcx-status { flex: none; display: inline-flex; align-items: center; margin-top: 4px; padding: 6px 11px; border-radius: 20px; border: 1px solid; cursor: pointer; font: 600 12.5px Helvetica, Arial, sans-serif; }
+.pcx-status.is-ok { color: var(--ok-ink); background: var(--ok-soft); border-color: var(--ok-border); }
+.pcx-status.is-warn { color: var(--warn-ink); background: var(--warn-soft); border-color: var(--warn-border); }
+
+.pcx-pill { display: inline-flex; align-items: center; gap: 7px; padding: 7px 13px; border-radius: 20px; border: 1px solid var(--field-border); background: var(--surface); color: var(--ink-3); font: 600 13px Helvetica, Arial, sans-serif; cursor: pointer; }
+.pcx-pill:hover { background: var(--surface-4); }
+.pcx-pill.is-pri { border-color: var(--pri-border); color: var(--pri); }
+.pcx-pill.is-open { background: var(--pri-soft); border-color: var(--pri); color: var(--pri-ink); }
+.pcx-pill-mark { color: var(--pri); font-size: 12px; }
+.pcx-helper-panel { margin-top: 10px; padding: 16px 18px; border: 1px solid var(--line-2); border-radius: 12px; background: var(--surface-2); }
+.pcx-pill:focus-visible, .pcx-status:focus-visible { outline: 2px solid var(--pri); outline-offset: 2px; }

@@ -1,10 +1,10 @@
 import React from 'react';
 import { useStore, verMeta } from '../lib/store.jsx';
-import { Card, GuidanceBox, MethodBox, AddButton, RemoveButton, VerifyBadge, YZButton, Badge, S } from '../ui/primitives.jsx';
+import { Card, MethodBox, AddButton, RemoveButton, VerifyBadge, YZButton, Badge, S } from '../ui/primitives.jsx';
 import { paretoData } from '../lib/derive.js';
 import { fmtNum } from '../lib/i18n.js';
 
-const questionsFor = t => [
+export const questionsFor = t => [
   t('Ölçülmüş, kanıtlı sapmalar neler?', 'What are the measured, evidenced deviations?'),
   t('Ölçülmüş ve doğrulanmış problem bulguları neler?', 'What are the measured and verified problem findings?'),
   t('Hangi sapmalar verilerle doğrulandı?', 'Which deviations were verified with data?'),
@@ -22,7 +22,6 @@ export default function Step4Findings() {
 
   return (
     <div>
-      <GuidanceBox items={questionsFor(t)} margin="0 0 16px" />
 
       <div style={{ background: 'var(--warn-soft-2)', border: '1px solid var(--warn-border-2)', borderRadius: 8, padding: '12px 14px', margin: '0 0 16px', font: '12.5px/1.6 Helvetica,Arial,sans-serif', color: 'var(--warn-ink-3)' }}>
         <strong>{t('Unutmayın:', 'Remember:')}</strong> {t('Problem başka şeydir, problem bulgusu başka şeydir, kök neden başka şeydir. Bulgu, veriye dayalı ölçülmüş spesifik bir sapmadır; kök neden bu sapmanın altında yatan sebeptir.', 'The problem, the problem finding, and the root cause are different things. A finding is a specific, measured, data-based deviation; the root cause is the reason underlying that deviation.')}
@@ -55,7 +54,7 @@ export default function Step4Findings() {
                   />
                   <div style={{ flex: 'none' }}>
                     <label htmlFor={'pcx-share-' + i} style={{ display: 'block', font: '600 10.5px Helvetica,Arial,sans-serif', color: 'var(--muted)', letterSpacing: '.4px', margin: '0 0 3px' }}>
-                      {t('SAPMAYA KATKI', 'CONTRIBUTION TO GAP')}{(c.problem.unit || '').trim() ? ' (' + c.problem.unit.trim() + ')' : ''}
+                      {t('Sapmaya katkı', 'Contribution to gap')}{(c.problem.unit || '').trim() ? ' (' + c.problem.unit.trim() + ')' : ''}
                     </label>
                     <input
                       id={'pcx-share-' + i}

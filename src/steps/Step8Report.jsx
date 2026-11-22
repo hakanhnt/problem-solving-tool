@@ -147,7 +147,7 @@ export default function Step8Report() {
 
       <div data-noprint="1" style={{ display: 'flex', gap: 14, alignItems: 'center', flexWrap: 'wrap', background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 10, padding: '12px 16px', margin: '0 0 18px' }}>
         <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
-          <div style={{ font: '700 10.5px Helvetica,Arial,sans-serif', color: 'var(--muted)', letterSpacing: '.6px', marginRight: 2 }}>{t('GÖRÜNÜM:', 'VIEW:')}</div>
+          <div style={{ font: '700 10.5px Helvetica,Arial,sans-serif', color: 'var(--muted)', marginRight: 2 }}>{t('Görünüm:', 'View:')}</div>
           {[['full', t('Tam rapor', 'Full report')], ['a3', t('A3 özeti', 'A3 summary')], ['map', t('Vaka haritası', 'Case map')]].map(([k, lb]) => (
             <button
               key={k}
@@ -164,7 +164,7 @@ export default function Step8Report() {
             >{lb}</button>
           ))}
           <span style={{ width: 10 }} />
-          {cfg.view === 'full' ? <div style={{ font: '700 10.5px Helvetica,Arial,sans-serif', color: 'var(--muted)', letterSpacing: '.6px', marginRight: 2 }}>{t('RAPORA DAHİL:', 'INCLUDED IN REPORT:')}</div> : null}
+          {cfg.view === 'full' ? <div style={{ font: '700 10.5px Helvetica,Arial,sans-serif', color: 'var(--muted)', marginRight: 2 }}>{t('Rapora dahil:', 'Included in report:')}</div> : null}
           {cfg.view === 'full' ? SECTION_CHIPS(t).map(s => {
             const active = cfg.sections[s.key] !== false;
             return (

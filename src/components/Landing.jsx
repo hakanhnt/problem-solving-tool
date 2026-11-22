@@ -41,7 +41,7 @@ function markEntered(hide) {
 
 const SAMPLE = k => k === 'ornek' || k === 'ornek2';
 
-// Akışın dört evresi ve kapsadıkları adımlar (WelcomeCard ile aynı gruplama).
+// Akışın dört evresi ve kapsadıkları adımlar.
 const PHASES = [[1], [2, 3, 4, 5], [6], [7, 8]];
 
 export default function Landing({ onEnter }) {

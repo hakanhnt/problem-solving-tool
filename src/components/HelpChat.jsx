@@ -120,7 +120,7 @@ export default function HelpChat() {
                 <div style={{ font: '12.5px/1.6 Helvetica,Arial,sans-serif', color: 'var(--ink-4)' }}>
                   {t('Metodoloji, yöntemler ya da uygulamanın kullanımı hakkında istediğinizi sorun. Çalışmanızdaki girdileri değerlendirmem gerekiyorsa, ilgili adım sayfasının altındaki ', 'Ask anything about the methodology, the methods, or how to use the app. If you need your inputs evaluated, use the ')}<strong>{t('YZ Asistan', 'AI Assistant')}</strong>{t("'ı kullanın — ben girdilerinizi görmem, yöntemi öğretirim.", ' at the bottom of the relevant step page — I do not see your inputs; I teach the method.')}
                 </div>
-                <div style={{ font: '700 10.5px Helvetica,Arial,sans-serif', color: 'var(--muted)', letterSpacing: '.6px', marginTop: 4 }}>{t('ÖRNEK SORULAR', 'EXAMPLE QUESTIONS')}</div>
+                <div style={{ font: '700 10.5px Helvetica,Arial,sans-serif', color: 'var(--muted)', marginTop: 4 }}>{t('Örnek sorular', 'Example questions')}</div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                   {STARTERS.map(([qtr, qen]) => {
                     const q = t(qtr, qen);

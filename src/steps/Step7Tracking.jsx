@@ -1,10 +1,10 @@
 import React from 'react';
 import { useStore } from '../lib/store.jsx';
 import { trackingBars, trackingGapText, isOverdue } from '../lib/derive.js';
-import { Card, GuidanceBox, MethodBox, AddButton, RemoveButton, HButton, Spinner, S } from '../ui/primitives.jsx';
+import { Card, MethodBox, AddButton, RemoveButton, HButton, Spinner, S } from '../ui/primitives.jsx';
 import { DAILY_HABITS } from '../lib/thinking.js';
 
-const QUESTIONS = t => [
+export const QUESTIONS = t => [
   t('Aksiyonlar gerçekten ilerliyor mu, yoksa sadece listede mi duruyor?', 'Are the actions actually moving forward, or just sitting on the list?'),
   t('KPI trendi hedefe kapanıyor mu? Kapanmıyorsa kök neden mi, karşı önlem mi yanlıştı?', 'Is the KPI trend closing toward the target? If not, was the root cause or the countermeasure wrong?'),
   t('Sonuç iyi diye kararı doğru mu sayıyorum — süreç de doğru muydu? (sonuç yanlılığı)', 'Am I calling the decision right just because the outcome is good — was the process right too? (outcome bias)'),
@@ -40,7 +40,6 @@ export default function Step7Tracking() {
 
   return (
     <div>
-      <GuidanceBox items={QUESTIONS(t)} />
 
       {(cont.action || '').trim() ? (
         <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap', background: cont.removed ? 'var(--ok-soft)' : 'var(--warn-soft)', border: '1px solid ' + (cont.removed ? 'var(--ok-border)' : 'var(--warn-border)'), borderRadius: 10, padding: '12px 16px', margin: '0 0 16px' }}>
@@ -159,13 +158,13 @@ export default function Step7Tracking() {
                 {tc.yorum ? <div style={{ font: '12.5px/1.6 Helvetica,Arial,sans-serif', color: 'var(--ink)' }}>{tc.yorum}</div> : null}
                 {(tc.uyarilar || []).length ? (
                   <div>
-                    <div style={{ font: '700 10.5px Helvetica,Arial,sans-serif', color: 'var(--warn-ink)', letterSpacing: '.6px', margin: '0 0 4px' }}>{t('ERKEN UYARILAR', 'EARLY WARNINGS')}</div>
+                    <div style={{ font: '700 10.5px Helvetica,Arial,sans-serif', color: 'var(--warn-ink)', margin: '0 0 4px' }}>{t('Erken uyarılar', 'Early warnings')}</div>
                     <ul style={{ margin: 0, padding: '0 0 0 18px' }}>{tc.uyarilar.map((u, i) => <li key={i} style={{ font: '12px/1.55 Helvetica,Arial,sans-serif', color: 'var(--warn-ink-3)' }}>{u}</li>)}</ul>
                   </div>
                 ) : null}
                 {(tc.oneriler || []).length ? (
                   <div>
-                    <div style={{ font: '700 10.5px Helvetica,Arial,sans-serif', color: 'var(--pri-soft-ink)', letterSpacing: '.6px', margin: '0 0 4px' }}>{t('ÖNERİLEN SONRAKİ ADIMLAR', 'SUGGESTED NEXT STEPS')}</div>
+                    <div style={{ font: '700 10.5px Helvetica,Arial,sans-serif', color: 'var(--pri-soft-ink)', margin: '0 0 4px' }}>{t('Önerilen sonraki adımlar', 'Suggested next steps')}</div>
                     <ul style={{ margin: 0, padding: '0 0 0 18px' }}>{tc.oneriler.map((o, i) => <li key={i} style={{ font: '12px/1.55 Helvetica,Arial,sans-serif', color: 'var(--ink-3)' }}>{o}</li>)}</ul>
                   </div>
                 ) : null}
@@ -186,7 +185,7 @@ export default function Step7Tracking() {
                 {tc.siklik ? <div style={{ font: '12.5px/1.6 Helvetica,Arial,sans-serif', color: 'var(--ink)' }}><strong>{t('Ölçüm sıklığı:', 'Measurement frequency:')}</strong> {tc.siklik}</div> : null}
                 {(tc.donemler || []).length ? (
                   <div>
-                    <div style={{ font: '700 10.5px Helvetica,Arial,sans-serif', color: 'var(--pri-soft-ink)', letterSpacing: '.6px', margin: '0 0 5px' }}>{t('ÖNERİLEN DÖNEM SATIRLARI', 'SUGGESTED PERIOD ROWS')}</div>
+                    <div style={{ font: '700 10.5px Helvetica,Arial,sans-serif', color: 'var(--pri-soft-ink)', margin: '0 0 5px' }}>{t('Önerilen dönem satırları', 'Suggested period rows')}</div>
                     <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                       {tc.donemler.map((d, i) => <span key={i} style={{ font: '600 11.5px Helvetica,Arial,sans-serif', color: 'var(--pri-ink)', background: 'var(--pri-soft)', border: '1px solid var(--pri-border-5)', borderRadius: 20, padding: '4px 11px' }}>{d}</span>)}
                     </div>
@@ -373,7 +372,7 @@ export default function Step7Tracking() {
         <textarea className="pcx-field" value={(c.retro && c.retro.lessons) || ''} onChange={inp('retro', 'lessons')} style={{ ...S.textarea, minHeight: 64 }} />
 
         <div style={{ border: '1px solid var(--line-2)', borderRadius: 8, background: 'var(--surface-2)', padding: '11px 13px', marginTop: 14 }}>
-          <div style={{ font: '700 10.5px Helvetica,Arial,sans-serif', color: 'var(--muted)', letterSpacing: '.8px', margin: '0 0 7px' }}>{t('DÖNGÜYÜ AYAKTA TUTAN GÜNLÜK ALIŞKANLIKLAR', 'DAILY HABITS THAT KEEP THE LOOP ALIVE')}</div>
+          <div style={{ font: '700 10.5px Helvetica,Arial,sans-serif', color: 'var(--muted)', margin: '0 0 7px' }}>{t('Döngüyü ayakta tutan günlük alışkanlıklar', 'Daily habits that keep the loop alive')}</div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 10 }}>
             {DAILY_HABITS.map((h, i) => {
               const e = DAILY_HABITS_EN[i] || h;
