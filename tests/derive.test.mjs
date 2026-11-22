@@ -230,3 +230,19 @@ test('caseMaturity: hedef karşılandı + retrospektif → KPI ile doğrulandı'
   };
   assert.equal(caseMaturity(c).key, 'dogrulandi');
 });
+
+// ---- Adım 8: boş çalışma "tamam" sayılmamalı (izlenecek bir şey yoksa izlenebilirlik boşluğu da yoktur)
+test('Adım 8: boş çalışmada ölçüt eksik; problem ve kök neden varsa raporlanacak içerik tamam', () => {
+  const empty = { problem: { statement: '' }, findings: [], rootCauses: [], actions: [], tracking: [] };
+  const ckEmpty = stepChecklist(empty, 8);
+  assert.ok(ckEmpty.missing > 0, 'boş çalışmada Adım 8 eksik görünmeli');
+
+  const filled = {
+    problem: problem(),
+    findings: [{ text: 'B1', evidence: 'kayıt' }],
+    rootCauses: [{ text: 'KN1', findings: [0], status: 'dogrulandi' }],
+    actions: [], tracking: []
+  };
+  const item = stepChecklist(filled, 8).items.find(i => /içerik/i.test(i.label));
+  assert.ok(item && item.ok, 'problem ifadesi ve kök neden varken içerik ölçütü karşılanmalı');
+});

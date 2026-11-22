@@ -416,6 +416,10 @@ export function stepChecklist(c, step, lang) {
     add(T('En az 1 KPI ölçümü girildi', 'At least 1 KPI measurement entered'), (c.tracking || []).some(t => num(t.value) !== null));
     add(T('Retrospektif yazıldı', 'Retrospective written'), Object.values(c.retro || {}).some(v => (v || '').trim()));
   } else {
+    // Boş çalışmada izlenecek bir şey olmadığından izlenebilirlik boşluğu da çıkmaz;
+    // adımın "tamam" sayılması için önce raporlanacak içerik gerekir.
+    const hasContent = ((c.problem || {}).statement || '').trim() && (c.rootCauses || []).some(r => (r.text || '').trim());
+    add(T('Raporlanacak içerik var (problem ifadesi ve en az 1 kök neden)', 'There is content to report (problem statement and at least 1 root cause)'), hasContent);
     add(T('İzlenebilirlik sorunları giderildi', 'Traceability issues resolved'), traceability(c).issues.length === 0);
   }
   return { items, missing: items.filter(i => !i.ok).length };
