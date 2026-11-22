@@ -1,62 +1,79 @@
-// Vaka panosu: tüm çalışmaların durumu tek ekranda — olgunluk, güven,
-// KPI farkı, aksiyon ilerlemesi ve geciken işler. Karta tıklayınca çalışma açılır.
+// Vaka panosu: tüm çalışmaların durumu tek ekranda. Her kart "sıradaki adımı"
+// gösterir ve tek tıkla oraya götürür; geciken aksiyonlar kartların altında,
+// çalışmaya göre gruplu ve katlanabilir bir bölümde durur. Kullanıcının kendi
+// çalışmaları örneklerden önce listelenir.
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useStore } from '../lib/store.jsx';
 import { stepsFor } from '../lib/defaults.js';
 import { gapInfo, caseMaturity, confidenceScore, stepChecklist, isOverdue, trackingGapText } from '../lib/derive.js';
-import { HButton } from '../ui/primitives.jsx';
 
 const VERIFIED_RC = ['dogrulandi', 'test-edildi', 'destekleniyor'];
+const SAMPLE = k => k === 'ornek' || k === 'ornek2';
 
-const MATURITY_STYLE = {
-  dogrulandi: { ink: 'var(--ok-ink)', bg: 'var(--ok-soft)', border: 'var(--ok-border)' },
-  izleme: { ink: 'var(--pri-ink)', bg: 'var(--pri-soft)', border: 'var(--pri-border-5)' },
-  uygulama: { ink: 'var(--pri-ink)', bg: 'var(--pri-soft)', border: 'var(--pri-border-5)' },
-  analiz: { ink: 'var(--pri-ink)', bg: 'var(--pri-soft)', border: 'var(--pri-border-5)' },
-  kanit: { ink: 'var(--warn-ink)', bg: 'var(--warn-soft)', border: 'var(--warn-border)' },
-  taslak: { ink: 'var(--muted)', bg: 'var(--surface-4)', border: 'var(--line-strong)' },
-  bos: { ink: 'var(--muted)', bg: 'var(--surface-4)', border: 'var(--line-strong)' }
+const TONE = {
+  dogrulandi: 'ok', izleme: 'pri', uygulama: 'pri', analiz: 'pri', kanit: 'warn', taslak: 'mute', bos: 'mute'
 };
 
-/** Kart ve pano özetleri için bir çalışmanın türetilmiş durumu. */
-function casePack(cc, lang) {
+function daysLate(due) {
+  const d = new Date(due + 'T00:00:00');
+  if (isNaN(d)) return 0;
+  return Math.max(0, Math.floor((Date.now() - d.getTime()) / 86400000));
+}
+
+/** Kartın türetilmiş durumu ve sıradaki adım önerisi. */
+function casePack(cc, lang, t) {
+  const steps = stepsFor(lang);
   const g = gapInfo(cc.problem || {}, lang);
   const actions = (cc.actions || []).filter(a => (a.text || '').trim());
   const overdue = actions.filter(a => isOverdue(a));
   const rcs = (cc.rootCauses || []).filter(r => (r.text || '').trim());
+  const checks = [1, 2, 3, 4, 5, 6, 7, 8].map(n => stepChecklist(cc, n, lang));
+  const okSteps = checks.map((ck, i) => (ck.missing === 0 ? i + 1 : 0)).filter(Boolean);
+  const empty = !((cc.problem || {}).statement || '').trim();
+
+  let next;
+  if (cc.mode === 'quick') {
+    next = { step: null, label: t('Hızlı çözüme devam et', 'Continue the quick solve'), note: '' };
+  } else if (overdue.length) {
+    next = { step: 7, label: t('Geciken aksiyonları güncelle', 'Update overdue actions'), note: t('Adım 7 · ', 'Step 7 · ') + steps[6].title };
+  } else {
+    const n = checks.findIndex(ck => ck.missing > 0) + 1;
+    next = n
+      ? { step: n, label: empty ? t('Problemi tanımlayarak başla', 'Start by defining the problem') : t('Devam et: ', 'Continue: ') + steps[n - 1].title, note: t('Adım ', 'Step ') + n + ' · ' + checks[n - 1].missing + t(' ölçüt eksik', ' criteria missing') }
+      : { step: 8, label: t('Raporu aç', 'Open the report'), note: t('Tüm adımların ölçütleri tamam', 'All steps meet their criteria') };
+  }
+
   return {
-    g,
+    g, empty, next, okSteps, actions, overdue, rcs,
     maturity: caseMaturity(cc, lang),
     conf: confidenceScore(cc, lang),
-    okSteps: [1, 2, 3, 4, 5, 6, 7, 8].filter(n => stepChecklist(cc, n, lang).missing === 0),
-    actions,
-    overdue,
     doneActions: actions.filter(a => a.status === 'tamam'),
-    rcs,
     verifiedRcs: rcs.filter(r => VERIFIED_RC.includes(r.status || 'hipotez')),
     decisionSet: !!(((cc.decision || {}).choice) || '').trim(),
     trackText: (cc.tracking || []).length ? trackingGapText(cc, lang) : ''
   };
 }
 
-function Tile({ label, value, ink }) {
+function Fact({ label, value, tone }) {
   return (
-    <div style={{ flex: '1 1 130px', minWidth: 130, background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 10, padding: '12px 14px' }}>
-      <div style={{ font: '700 24px/1.1 Helvetica,Arial,sans-serif', color: ink || 'var(--ink)' }}>{value}</div>
-      <div style={{ font: '600 11px/1.4 Helvetica,Arial,sans-serif', color: 'var(--muted)', marginTop: 3 }}>{label}</div>
+    <div className="pcx-dash-fact">
+      <dt>{label}</dt>
+      <dd className={tone ? 'is-' + tone : ''}>{value}</dd>
     </div>
   );
 }
 
 export default function Dashboard() {
   const { state, upd, ensureCoach, t, lang } = useStore();
+  const steps = stepsFor(lang);
   const pct = v => (lang === 'en' ? v + '%' : '%' + v);
+  const [overdueOpen, setOverdueOpen] = useState(false);
 
   const caseKeys = Object.keys(state.cases);
-  const caseRank = k => (k === 'ornek' ? 0 : k === 'ornek2' ? 1 : 2);
-  caseKeys.sort((a, b) => caseRank(a) - caseRank(b));
-  const packs = caseKeys.map(k => ({ key: k, c: state.cases[k], p: casePack(state.cases[k], lang) }));
+  const rank = k => (SAMPLE(k) ? (k === 'ornek' ? 1 : 2) : 0);
+  caseKeys.sort((a, b) => rank(a) - rank(b));
+  const packs = caseKeys.map(k => ({ key: k, c: state.cases[k], p: casePack(state.cases[k], lang, t) }));
 
   const totOverdue = packs.reduce((n, x) => n + x.p.overdue.length, 0);
   const totVerified = packs.filter(x => x.p.maturity.key === 'dogrulandi').length;
@@ -71,119 +88,124 @@ export default function Dashboard() {
     setTimeout(() => ensureCoach(), 60);
   };
 
+  const showOverdue = () => {
+    setOverdueOpen(true);
+    setTimeout(() => { const el = document.getElementById('pcx-overdue'); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 30);
+  };
+
   return (
-    <div data-dash="1" style={{ maxWidth: 1080, margin: '0 auto', padding: '30px 32px 70px' }}>
-      <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap', margin: '0 0 6px' }}>
-        <h1 style={{ flex: 1, minWidth: 220, margin: 0, font: '700 24px/1.2 Helvetica,Arial,sans-serif', color: 'var(--ink)' }}>{t('📊 Vaka Panosu', '📊 Case Dashboard')}</h1>
-        <HButton
-          onClick={() => upd(n => { n.dashOpen = false; })}
-          style={{ flex: 'none', padding: '9px 14px', border: '1px solid var(--field-border)', borderRadius: 8, background: 'var(--surface)', color: 'var(--ink-3)', font: '600 12.5px Helvetica,Arial,sans-serif', cursor: 'pointer' }}
-          hover={{ background: 'var(--surface-4)' }}
-        >{t('← Çalışmaya dön', '← Back to case')}</HButton>
-      </div>
-      <div style={{ font: '13px/1.6 Helvetica,Arial,sans-serif', color: 'var(--muted)', margin: '0 0 18px' }}>
-        {t('Tüm çalışmalarınızın metodolojik durumu tek ekranda. Bir karta tıklayarak o çalışmayı açabilirsiniz.', 'The methodological status of all your cases on one screen. Click a card to open that case.')}
-      </div>
-
-      {/* Özet kutucukları */}
-      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', margin: '0 0 16px' }}>
-        <Tile label={t('Toplam çalışma', 'Total cases')} value={packs.length} />
-        <Tile label={t('Uygulama / izlemede', 'Implementing / tracking')} value={totActive} ink="var(--pri)" />
-        <Tile label={t('KPI ile doğrulanan', 'Verified with KPI')} value={totVerified} ink={totVerified ? 'var(--ok-ink)' : 'var(--ink)'} />
-        <Tile label={t('Geciken aksiyon', 'Overdue actions')} value={totOverdue} ink={totOverdue ? 'var(--alert)' : 'var(--ok-ink)'} />
-      </div>
-
-      {/* Geciken aksiyonlar — vakalar arası tek liste */}
-      {totOverdue > 0 ? (
-        <div style={{ background: 'var(--alert-soft-2)', border: '1px solid var(--alert-border)', borderRadius: 10, padding: '13px 16px', margin: '0 0 18px' }}>
-          <div style={{ font: '700 11.5px Helvetica,Arial,sans-serif', color: 'var(--alert)', letterSpacing: '.5px', margin: '0 0 8px' }}>{t('⏰ GECİKEN AKSİYONLAR', '⏰ OVERDUE ACTIONS')}</div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-            {packs.flatMap(x => x.p.overdue.map((a, i) => (
-              <button
-                key={x.key + '-' + i} type="button"
-                onClick={() => openCase(x.key, 7)}
-                title={t('"' + (x.c.name || x.key) + '" çalışmasında izleme adımını aç', 'Open the tracking step in "' + (x.c.name || x.key) + '"')}
-                style={{ display: 'flex', gap: 10, alignItems: 'baseline', flexWrap: 'wrap', textAlign: 'left', width: '100%', border: 'none', background: 'transparent', padding: '4px 2px', borderRadius: 6, cursor: 'pointer', font: 'inherit' }}
-              >
-                <span style={{ flex: 'none', font: '600 11px Helvetica,Arial,sans-serif', color: 'var(--pri)', maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{x.c.name || x.key}</span>
-                <span style={{ flex: '1 1 240px', minWidth: 0, font: '12px/1.4 Helvetica,Arial,sans-serif', color: 'var(--ink)' }}>{a.text}</span>
-                <span style={{ flex: 'none', font: '11px Helvetica,Arial,sans-serif', color: 'var(--muted)' }}>{(a.owner || '').trim() || t('sorumlu yok', 'no owner')}</span>
-                <span style={{ flex: 'none', font: '700 11px Helvetica,Arial,sans-serif', color: 'var(--alert)' }}>{a.dueDate} ⏰</span>
-              </button>
-            )))}
-          </div>
+    <div data-dash="1" className="pcx-dash">
+      <div className="pcx-dash-head">
+        <div style={{ flex: 1, minWidth: 240 }}>
+          <h1 className="pcx-display" style={{ margin: 0, fontSize: 30, lineHeight: 1.12, color: 'var(--ink)' }}>{t('Vaka Panosu', 'Case Dashboard')}</h1>
+          <p className="pcx-dash-summary">
+            {packs.length}{t(' çalışma', ' cases')}
+            <span aria-hidden="true"> / </span>{totActive}{t(' uygulamada veya izlemede', ' implementing or tracking')}
+            <span aria-hidden="true"> / </span>{totVerified}{t(' KPI ile doğrulandı', ' verified with KPI')}
+            {totOverdue ? (
+              <>
+                <span aria-hidden="true"> / </span>
+                <button type="button" className="pcx-dash-link is-alert" onClick={showOverdue}>{totOverdue}{t(' geciken aksiyon', ' overdue actions')}</button>
+              </>
+            ) : null}
+          </p>
         </div>
-      ) : null}
+        <button type="button" className="pcx-dash-btn" onClick={() => upd(n => { n.dashOpen = false; })}>{t('Çalışmaya dön', 'Back to case')}</button>
+      </div>
 
-      {/* Vaka kartları */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 12 }}>
+      <div className="pcx-dash-grid">
         {packs.map(({ key, c: cc, p }) => {
-          const ms = MATURITY_STYLE[p.maturity.key] || MATURITY_STYLE.taslak;
           const active = state.activeCase === key;
+          const tone = cc.mode === 'quick' ? 'pri' : (TONE[p.maturity.key] || 'mute');
           return (
-            <button
-              key={key} type="button"
-              onClick={() => openCase(key)}
-              aria-label={t('Çalışmayı aç: ', 'Open case: ') + (cc.name || key)}
-              style={{
-                textAlign: 'left', font: 'inherit', cursor: 'pointer',
-                background: 'var(--surface)', border: '1px solid ' + (active ? 'var(--pri-border)' : 'var(--line)'),
-                borderRadius: 10, padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 9
-              }}
-            >
-              <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
-                <div style={{ flex: 1, minWidth: 0, font: '700 14px/1.3 Helvetica,Arial,sans-serif', color: 'var(--ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{cc.name || key}</div>
-                {cc.mode === 'quick'
-                  ? <span style={{ flex: 'none', font: '600 10px Helvetica,Arial,sans-serif', color: 'var(--pri-ink)', background: 'var(--pri-soft)', border: '1px solid var(--pri-border-5)', borderRadius: 20, padding: '3px 8px' }}>⚡ {t('Hızlı çözüm', 'Quick solve')}</span>
-                  : <span style={{ flex: 'none', font: '600 10px Helvetica,Arial,sans-serif', color: ms.ink, background: ms.bg, border: '1px solid ' + ms.border, borderRadius: 20, padding: '3px 8px' }}>{p.maturity.label}</span>}
+            <article key={key} className={'pcx-dash-card' + (active ? ' is-active' : '')} aria-label={cc.name || key}>
+              <header className="pcx-dash-card-head">
+                <h2 className="pcx-dash-name" title={cc.name || key}>{cc.name || key}</h2>
+                <span className={'pcx-dash-chip is-' + tone}>{cc.mode === 'quick' ? t('Hızlı çözüm', 'Quick solve') : p.maturity.label}</span>
+              </header>
+              <div className="pcx-dash-meta">
+                {SAMPLE(key) ? t('Örnek çalışma', 'Example case') : t('Sizin çalışmanız', 'Your case')}
+                {active ? t(' · şu an açık', ' · open now') : ''}
               </div>
 
-              {/* 8 adımlık mini ilerleme — hızlı çözüm vakalarında anlamsız, gizlenir */}
-              {cc.mode !== 'quick' ? (
-                <div style={{ display: 'flex', gap: 3 }} role="img" aria-label={t('8 adımdan ' + p.okSteps.length + ' adımın ölçütleri tamam', p.okSteps.length + ' of 8 steps meet their criteria')}>
+              {cc.mode !== 'quick' && !p.empty ? (
+                <div className="pcx-dash-steps" role="img" aria-label={t('8 adımdan ' + p.okSteps.length + ' adımın ölçütleri tamam', p.okSteps.length + ' of 8 steps meet their criteria')}>
                   {[1, 2, 3, 4, 5, 6, 7, 8].map(n => (
-                    <div key={n} title={n + '. ' + stepsFor(lang)[n - 1].title} style={{ flex: 1, height: 4, borderRadius: 2, background: p.okSteps.includes(n) ? 'var(--ok)' : 'var(--line)' }} />
+                    <span key={n} title={n + '. ' + steps[n - 1].title} className={p.okSteps.includes(n) ? 'is-ok' : (p.next.step === n ? 'is-next' : '')} />
                   ))}
+                  <b>{p.okSteps.length}/8</b>
                 </div>
               ) : null}
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 4, font: '11.5px/1.5 Helvetica,Arial,sans-serif', color: 'var(--ink-3)' }}>
+              <div className="pcx-dash-kpi">
                 {cc.mode === 'quick' ? (
                   (cc.problem.statement || '').trim()
-                    ? <div style={{ color: 'var(--ink-3)', overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>{cc.problem.statement}</div>
-                    : <div style={{ color: 'var(--muted)' }}>{t('Sorun tanımı girilmemiş.', 'No problem definition entered.')}</div>
+                    ? <span className="pcx-dash-clamp">{cc.problem.statement}</span>
+                    : <span className="is-muted">{t('Sorun henüz yazılmadı.', 'No problem written yet.')}</span>
                 ) : p.g.hasGap ? (
-                  <div>
-                    <strong>{(cc.problem.kpiName || 'KPI')}:</strong>{' '}
-                    <span style={{ color: p.g.good ? 'var(--ok-ink)' : 'var(--alert)', fontWeight: 700 }}>{p.g.kpiGapText}</span>
-                  </div>
-                ) : <div style={{ color: 'var(--muted)' }}>{t('KPI farkı girilmemiş.', 'No KPI gap entered.')}</div>}
-                {p.trackText ? <div style={{ color: 'var(--muted)' }}>{p.trackText}</div> : null}
-                <div>
-                  {t('Aksiyon: ', 'Actions: ')}{p.actions.length ? p.doneActions.length + '/' + p.actions.length + t(' tamam', ' done') : t('planlanmadı', 'not planned')}
-                  {p.overdue.length ? <span style={{ color: 'var(--alert)', fontWeight: 700 }}> · {p.overdue.length}{t(' gecikti ⏰', ' overdue ⏰')}</span> : null}
-                </div>
-                {cc.mode !== 'quick' ? (
-                  <div style={{ color: 'var(--muted)' }}>
-                    {t('Kök neden: ', 'Root causes: ')}{p.rcs.length ? p.verifiedRcs.length + '/' + p.rcs.length + t(' doğrulanmış', ' verified') : t('yazılmamış', 'not written')}
-                    {' · '}{t('Karar: ', 'Decision: ')}{p.decisionSet ? t('verildi', 'made') : t('bekliyor', 'pending')}
-                  </div>
-                ) : null}
+                  <>
+                    <span className="is-muted">{cc.problem.kpiName || 'KPI'}</span>
+                    <strong className={p.g.good ? 'is-ok' : 'is-alert'}>{p.g.kpiGapText}</strong>
+                  </>
+                ) : <span className="is-muted">{p.empty ? t('Henüz başlanmadı. İlk adımda hedef ile gerçekleşen arasındaki farkı yazacaksınız.', 'Not started yet. In the first step you will write down the gap between target and actual.') : t('KPI farkı girilmedi.', 'No KPI gap entered.')}</span>}
               </div>
 
-              <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 'auto', paddingTop: 2 }}>
-                {cc.mode !== 'quick' ? <span style={{
-                  flex: 'none', font: '700 10px Helvetica,Arial,sans-serif', borderRadius: 10, padding: '2px 7px',
-                  color: p.conf.total >= 80 ? 'var(--ok-ink)' : p.conf.total >= 50 ? 'var(--pri-ink)' : 'var(--warn-ink)',
-                  background: p.conf.total >= 80 ? 'var(--ok-soft)' : p.conf.total >= 50 ? 'var(--pri-soft)' : 'var(--warn-soft)',
-                  border: '1px solid ' + (p.conf.total >= 80 ? 'var(--ok-border)' : p.conf.total >= 50 ? 'var(--pri-border-5)' : 'var(--warn-border)')
-                }}>{t('Güven: ', 'Confidence: ')}{pct(p.conf.total)}</span> : null}
-                <span style={{ marginLeft: 'auto', font: '600 11.5px Helvetica,Arial,sans-serif', color: 'var(--pri)' }}>{active ? t('Açık çalışma →', 'Currently open →') : t('Aç →', 'Open →')}</span>
-              </div>
-            </button>
+              {!p.empty || cc.mode === 'quick' ? (
+                <dl className="pcx-dash-facts">
+                  <Fact
+                    label={t('Aksiyonlar', 'Actions')}
+                    value={p.actions.length ? p.doneActions.length + '/' + p.actions.length + (p.overdue.length ? t(', ' + p.overdue.length + ' gecikti', ', ' + p.overdue.length + ' overdue') : '') : t('Planlanmadı', 'Not planned')}
+                    tone={p.overdue.length ? 'alert' : ''}
+                  />
+                  {cc.mode !== 'quick' ? (
+                    <>
+                      <Fact label={t('Kök neden', 'Root causes')} value={p.rcs.length ? p.verifiedRcs.length + '/' + p.rcs.length + t(' doğrulandı', ' verified') : t('Yazılmadı', 'Not written')} />
+                      <Fact label={t('Karar', 'Decision')} value={p.decisionSet ? t('Verildi', 'Made') : t('Bekliyor', 'Pending')} />
+                      <Fact label={t('Güven', 'Confidence')} value={pct(p.conf.total)} tone={p.conf.total >= 80 ? 'ok' : p.conf.total >= 50 ? '' : 'warn'} />
+                    </>
+                  ) : null}
+                </dl>
+              ) : null}
+              {p.trackText ? <div className="pcx-dash-track">{p.trackText}</div> : null}
+
+              <footer className="pcx-dash-card-foot">
+                <button type="button" className="pcx-dash-cta" onClick={() => openCase(key, p.next.step)}>{p.next.label}</button>
+                {p.next.note ? <span className="pcx-dash-note">{p.next.note}</span> : null}
+              </footer>
+            </article>
           );
         })}
       </div>
+
+      {totOverdue > 0 ? (
+        <section id="pcx-overdue" className="pcx-dash-overdue">
+          <button type="button" className="pcx-dash-overdue-toggle" aria-expanded={overdueOpen} aria-controls="pcx-overdue-list" onClick={() => setOverdueOpen(o => !o)}>
+            <span>{t('Geciken aksiyonlar', 'Overdue actions')} <span className="pcx-dash-count">{totOverdue}</span></span>
+            <span aria-hidden="true" style={{ fontSize: 11, color: 'var(--muted)' }}>{overdueOpen ? '▲' : '▼'}</span>
+          </button>
+          {overdueOpen ? (
+            <div id="pcx-overdue-list">
+              {packs.filter(x => x.p.overdue.length).map(x => (
+                <div key={x.key} className="pcx-dash-og">
+                  <div className="pcx-dash-og-head">
+                    <span>{x.c.name || x.key}</span>
+                    <button type="button" className="pcx-dash-link" onClick={() => openCase(x.key, 7)}>{t('İzleme adımında aç', 'Open in tracking step')}</button>
+                  </div>
+                  <ul>
+                    {x.p.overdue.map((a, i) => (
+                      <li key={i}>
+                        <span className="pcx-dash-og-text">{a.text}</span>
+                        <span className="pcx-dash-og-owner">{(a.owner || '').trim() || t('Sorumlu yok', 'No owner')}</span>
+                        <span className="pcx-dash-og-late">{t(daysLate(a.dueDate) + ' gün gecikti', daysLate(a.dueDate) + ' days late')}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+          ) : null}
+        </section>
+      ) : null}
     </div>
   );
 }
