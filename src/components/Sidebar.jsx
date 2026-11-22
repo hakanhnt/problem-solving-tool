@@ -3,7 +3,7 @@ import { useStore } from '../lib/store.jsx';
 import { blankCase, exampleCase, exampleCase2, stepsFor, caseTemplatesFor } from '../lib/defaults.js';
 import { stepChecklist, caseMaturity, triageAdvice } from '../lib/derive.js';
 import { HButton, HA } from '../ui/primitives.jsx';
-import Logo from '../ui/Logo.jsx';
+import Logo, { LogoMark } from '../ui/Logo.jsx';
 
 /** Aktif çalışmanın hangi adımlarında içerik var — ilerleme göstergesi için. */
 function stepDone(c, n) {
@@ -18,7 +18,48 @@ function stepDone(c, n) {
   return !!((c.report && (c.report.text || '').trim()) || (c.audit && (c.audit.text || '').trim()));
 }
 
-export default function Sidebar({ onNavigate }) {
+/** Kenar çubuğu gizliyken kalan ince şerit: geri açma düğmesi ve adımlara hızlı erişim. */
+export function SidebarRail({ onExpand }) {
+  const { c, step, goStep, lang, t } = useStore();
+  const steps = stepsFor(lang);
+  return (
+    <aside data-noprint="1" aria-label={t('Daraltılmış kenar çubuğu', 'Collapsed sidebar')} style={{ width: 52, flex: 'none', background: 'var(--surface)', borderRight: '1px solid var(--line-strong)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, padding: '12px 0', overflowY: 'auto' }}>
+      <LogoMark size={30} />
+      <HButton
+        onClick={onExpand}
+        aria-label={t('Kenar çubuğunu göster', 'Show sidebar')} title={t('Kenar çubuğunu göster', 'Show sidebar')}
+        aria-expanded="false"
+        style={{ flex: 'none', width: 32, height: 32, margin: '4px 0 8px', border: '1px solid var(--field-border)', borderRadius: 8, background: 'var(--surface)', color: 'var(--ink-3)', font: '700 14px/1 Helvetica,Arial,sans-serif', cursor: 'pointer' }}
+        hover={{ background: 'var(--surface-4)' }}
+      >»</HButton>
+      {c.mode === 'quick' ? null : (
+        <nav aria-label={t('Çalışma adımları', 'Case steps')} style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          {steps.map((s, i) => {
+            const n = i + 1, active = step === n;
+            const ok = stepChecklist(c, n, lang).missing === 0;
+            return (
+              <button
+                key={n} type="button"
+                onClick={() => goStep(n)}
+                aria-current={active ? 'step' : undefined}
+                aria-label={t(n + '. adım: ', 'Step ' + n + ': ') + s.title}
+                title={n + '. ' + s.title}
+                style={{
+                  width: 28, height: 28, borderRadius: '50%', border: 'none', cursor: 'pointer', padding: 0,
+                  background: active ? 'var(--pri)' : (ok ? 'var(--ok-soft-2)' : 'var(--line-2)'),
+                  color: active ? 'var(--on-pri)' : (ok ? 'var(--ok)' : 'var(--ink-4)'),
+                  font: '700 11.5px/28px Helvetica,Arial,sans-serif', textAlign: 'center'
+                }}
+              >{!active && ok ? '✓' : n}</button>
+            );
+          })}
+        </nav>
+      )}
+    </aside>
+  );
+}
+
+export default function Sidebar({ onNavigate, onCollapse }) {
   const { state, eff, c, step, upd, goStep, ensureCoach, toggleTheme, lang, setLang, t } = useStore();
   const steps = stepsFor(lang);
   const doneSteps = [1, 2, 3, 4, 5, 6, 7, 8].filter(n => stepDone(c, n));
@@ -74,7 +115,16 @@ export default function Sidebar({ onNavigate }) {
 
   return (
     <aside data-noprint="1" style={{ width: 288, flex: 'none', background: 'var(--surface)', borderRight: '1px solid var(--line-strong)', display: 'flex', flexDirection: 'column', overflowY: 'auto' }}>
-      <div style={{ padding: '18px 18px 14px', borderBottom: '1px solid var(--line-3)', background: 'linear-gradient(180deg,var(--brand-grad) 0%,var(--surface) 100%)' }}>
+      <div style={{ position: 'relative', padding: onCollapse ? '18px 44px 14px 18px' : '18px 18px 14px', borderBottom: '1px solid var(--line-3)', background: 'linear-gradient(180deg,var(--brand-grad) 0%,var(--surface) 100%)' }}>
+        {onCollapse ? (
+          <HButton
+            onClick={onCollapse}
+            aria-label={t('Kenar çubuğunu gizle', 'Hide sidebar')} title={t('Kenar çubuğunu gizle', 'Hide sidebar')}
+            aria-expanded="true"
+            style={{ position: 'absolute', top: 10, right: 10, width: 28, height: 28, border: '1px solid var(--field-border)', borderRadius: 7, background: 'var(--surface)', color: 'var(--ink-3)', font: '700 14px/1 Helvetica,Arial,sans-serif', cursor: 'pointer' }}
+            hover={{ background: 'var(--surface-4)' }}
+          >«</HButton>
+        ) : null}
         <Logo sub={t('Problemi tanımlayın, kök nedeni doğrulayın, doğru kararı uygulayın.', 'Define the problem, verify the root cause, execute the right decision.')} />
         <div className="pcx-brand-chips" style={{ display: 'flex', gap: 5, flexWrap: 'wrap', marginTop: 11 }}>
           {[t('8 adımlık akış', '8-step flow'), t('YZ destekli', 'AI-assisted'), t('Alan bağımsız', 'Domain-agnostic')].map(chip => (

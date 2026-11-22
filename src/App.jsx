@@ -3,7 +3,7 @@ import { useStore } from './lib/store.jsx';
 import { parseShareHash } from './lib/share.js';
 import SharedView from './components/SharedView.jsx';
 import { stepsFor } from './lib/defaults.js';
-import Sidebar from './components/Sidebar.jsx';
+import Sidebar, { SidebarRail } from './components/Sidebar.jsx';
 import Dashboard from './components/Dashboard.jsx';
 import QuickCase from './components/QuickCase.jsx';
 import Landing from './components/Landing.jsx';
@@ -36,6 +36,14 @@ export default function App() {
   });
   const narrow = useNarrow();
   const [drawer, setDrawer] = useState(false);
+  // Geniş ekranda kenar çubuğu gizlenebilir; tercih tarayıcıda hatırlanır.
+  const [navHidden, setNavHidden] = useState(() => {
+    try { return localStorage.getItem('pcx_nav_hidden') === '1'; } catch (e) { return false; }
+  });
+  const toggleNav = hide => {
+    setNavHidden(hide);
+    try { localStorage.setItem('pcx_nav_hidden', hide ? '1' : '0'); } catch (e) { /* gizli mod */ }
+  };
 
   // Klavye kısayolları: Ctrl/Cmd+Z geri al, Ctrl/Cmd+←/→ adım gezinme.
   // Yazı alanlarında tarayıcının kendi geri alması bozulmaz.
@@ -119,8 +127,10 @@ export default function App() {
             </div>
           </div>
         ) : null
+      ) : navHidden ? (
+        <SidebarRail onExpand={() => toggleNav(false)} />
       ) : (
-        <Sidebar />
+        <Sidebar onCollapse={() => toggleNav(true)} />
       )}
 
       {state.dashOpen ? (
