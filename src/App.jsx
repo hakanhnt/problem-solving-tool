@@ -6,7 +6,7 @@ import { stepsFor } from './lib/defaults.js';
 import Sidebar, { SidebarRail } from './components/Sidebar.jsx';
 import Dashboard from './components/Dashboard.jsx';
 import QuickCase from './components/QuickCase.jsx';
-import Landing from './components/Landing.jsx';
+import Landing, { introShouldShow } from './components/Landing.jsx';
 import CoachPanel from './components/CoachPanel.jsx';
 import StepHeader from './components/StepHeader.jsx';
 import MindCheck from './components/MindCheck.jsx';
@@ -31,9 +31,7 @@ export default function App() {
   const { state, c, step, mainRef, goStep, undoLast, t, lang } = useStore();
   const STEPS = stepsFor(lang);
   const [shared, setShared] = useState(() => parseShareHash(location.hash));
-  const [introSeen, setIntroSeen] = useState(() => {
-    try { return localStorage.getItem('pcx_intro_v1') === '1'; } catch (e) { return true; }
-  });
+  const [introSeen, setIntroSeen] = useState(() => !introShouldShow());
   const narrow = useNarrow();
   const [drawer, setDrawer] = useState(false);
   // Geniş ekranda kenar çubuğu gizlenebilir; tercih tarayıcıda hatırlanır.
@@ -79,10 +77,7 @@ export default function App() {
 
   if (!introSeen) {
     return (
-      <Landing onEnter={() => {
-        try { localStorage.setItem('pcx_intro_v1', '1'); } catch (e) { /* gizli mod */ }
-        setIntroSeen(true);
-      }} />
+      <Landing onEnter={() => setIntroSeen(true)} />
     );
   }
 

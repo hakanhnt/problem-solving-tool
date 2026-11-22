@@ -1,7 +1,9 @@
-// Açılış ekranı: ilk ziyarette uygulamanın ne olduğunu ve neler yapabildiğini
-// tek sayfada anlatır. "Görüldü" bilgisi vaka verisinden AYRI bir anahtarda
-// tutulur (pcx_intro_v1) — yedek al/geri yükle akışını etkilemez.
-// Paylaşım linkleri bu ekranı atlar (App.jsx'te SharedView önceliklidir).
+// Açılış ekranı: uygulamanın ne olduğunu ve neler yapabildiğini tek sayfada
+// anlatır. Uygulama her yeni sekmede/pencerede açıldığında gösterilir (sayfa
+// yenilemede tekrar gelmez); kullanıcı "Bir daha gösterme" ile kapatabilir.
+// Bu bilgiler vaka verisinden AYRI anahtarlarda tutulur — yedek al/geri yükle
+// akışını etkilemez. Paylaşım linkleri bu ekranı atlar (App.jsx'te SharedView
+// önceliklidir).
 
 import React from 'react';
 import { useStore } from '../lib/store.jsx';
@@ -9,9 +11,35 @@ import { stepsFor } from '../lib/defaults.js';
 import { LogoMark } from '../ui/Logo.jsx';
 import { HButton } from '../ui/primitives.jsx';
 
+const HIDE_KEY = 'pcx_intro_hide';   // localStorage: "bir daha gösterme"
+const SEEN_KEY = 'pcx_intro_seen';   // sessionStorage: bu oturumda uygulamaya girildi
+const FORCE_KEY = 'pcx_intro_force'; // sessionStorage: 🏠 Tanıtım düğmesiyle istendi
+
+const read = (store, k) => { try { return store.getItem(k) === '1'; } catch (e) { return false; } };
+
+/** Açılışta Tanıtım gösterilmeli mi? */
+export function introShouldShow() {
+  return read(sessionStorage, FORCE_KEY) || (!read(sessionStorage, SEEN_KEY) && !read(localStorage, HIDE_KEY));
+}
+
+/** 🏠 Tanıtım düğmesi: "bir daha gösterme" seçilmiş olsa da ekranı açar. */
+export function reopenIntro() {
+  try { sessionStorage.setItem(FORCE_KEY, '1'); } catch (e) { /* gizli mod */ }
+  location.reload();
+}
+
+function markEntered(hide) {
+  try {
+    sessionStorage.setItem(SEEN_KEY, '1');
+    sessionStorage.removeItem(FORCE_KEY);
+    if (hide) localStorage.setItem(HIDE_KEY, '1'); else localStorage.removeItem(HIDE_KEY);
+  } catch (e) { /* gizli mod */ }
+}
+
 export default function Landing({ onEnter }) {
   const { lang, t, setLang, upd } = useStore();
   const steps = stepsFor(lang);
+  const [hide, setHide] = React.useState(() => read(localStorage, HIDE_KEY));
 
   const FEATURES = [
     { icon: '🧭', title: t('8 adımlı rehberli akış', 'A guided 8-step flow'), desc: t('Problem tanımından çalışma raporuna: Toyota A3/PDCA disipliniyle, her adımda tamamlanma ölçütleri ve yöntem açıklamalarıyla ilerlersiniz.', 'From problem definition to the case report: you move with Toyota A3/PDCA discipline, completion criteria and method notes at every step.') },
@@ -26,6 +54,7 @@ export default function Landing({ onEnter }) {
 
   const enter = openExample => {
     if (openExample) upd(n => { if (n.cases.ornek) { n.activeCase = 'ornek'; n.step = 1; } });
+    markEntered(hide);
     onEnter();
   };
 
@@ -68,6 +97,10 @@ export default function Landing({ onEnter }) {
               hover={{ background: 'var(--pri-soft)' }}
             >{t('Önce örnek çalışmaları incele', 'Explore the example cases first')}</HButton>
           </div>
+          <label style={{ display: 'inline-flex', gap: 7, alignItems: 'center', marginTop: 14, font: '12.5px Helvetica,Arial,sans-serif', color: 'var(--muted)', cursor: 'pointer' }}>
+            <input type="checkbox" checked={hide} onChange={e => setHide(e.target.checked)} style={{ margin: 0, cursor: 'pointer' }} />
+            {t('Bir daha gösterme — açılışta doğrudan uygulamaya gir', 'Don’t show again — open straight into the app')}
+          </label>
         </div>
 
         {/* 8 adım şeridi */}

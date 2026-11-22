@@ -4,6 +4,7 @@ import { blankCase, exampleCase, exampleCase2, stepsFor, caseTemplatesFor } from
 import { stepChecklist, caseMaturity, triageAdvice } from '../lib/derive.js';
 import { HButton, HA } from '../ui/primitives.jsx';
 import Logo, { LogoMark } from '../ui/Logo.jsx';
+import { reopenIntro } from './Landing.jsx';
 
 /** Aktif çalışmanın hangi adımlarında içerik var — ilerleme göstergesi için. */
 function stepDone(c, n) {
@@ -391,7 +392,7 @@ export default function Sidebar({ onNavigate, onCollapse }) {
             hover={{ background: 'var(--surface-4)' }}
           >📖 {t('Rehber', 'Guide')}</HA>
           <HButton
-            onClick={() => { try { localStorage.removeItem('pcx_intro_v1'); } catch (e) { /* gizli mod */ } location.reload(); }}
+            onClick={reopenIntro}
             title={t('Tanıtım ekranı', 'Intro screen')} aria-label={t('Tanıtım ekranı', 'Intro screen')}
             style={{ flex: 1, padding: '6px 4px', border: '1px solid var(--field-border)', borderRadius: 6, background: 'var(--surface)', color: 'var(--ink-3)', font: '600 11.5px Helvetica,Arial,sans-serif', cursor: 'pointer', whiteSpace: 'nowrap' }}
             hover={{ background: 'var(--surface-4)' }}
