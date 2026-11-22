@@ -1,15 +1,18 @@
-// Açılış ekranı: uygulamanın ne olduğunu ve neler yapabildiğini tek sayfada
+// Açılış ekranı: uygulamanın ne olduğunu ve neden işe yaradığını tek sayfada
 // anlatır. Uygulama her yeni sekmede/pencerede açıldığında gösterilir (sayfa
 // yenilemede tekrar gelmez); kullanıcı "Bir daha gösterme" ile kapatabilir.
 // Bu bilgiler vaka verisinden AYRI anahtarlarda tutulur — yedek al/geri yükle
 // akışını etkilemez. Paylaşım linkleri bu ekranı atlar (App.jsx'te SharedView
-// önceliklidir).
+// önceliklidir). Görsel dil Landing.css'te; kahramandaki vaka gösterimi
+// LandingDemo.jsx'te.
 
 import React from 'react';
+import '@fontsource-variable/archivo/wdth.css';
+import './Landing.css';
 import { useStore } from '../lib/store.jsx';
 import { stepsFor } from '../lib/defaults.js';
-import { LogoMark } from '../ui/Logo.jsx';
-import { HButton } from '../ui/primitives.jsx';
+import { LogoMark, Wordmark } from '../ui/Logo.jsx';
+import LandingDemo from './LandingDemo.jsx';
 
 const HIDE_KEY = 'pcx_intro_hide';   // localStorage: "bir daha gösterme"
 const SEEN_KEY = 'pcx_intro_seen';   // sessionStorage: bu oturumda uygulamaya girildi
@@ -36,106 +39,176 @@ function markEntered(hide) {
   } catch (e) { /* gizli mod */ }
 }
 
+const SAMPLE = k => k === 'ornek' || k === 'ornek2';
+
+// Akışın dört evresi ve kapsadıkları adımlar (WelcomeCard ile aynı gruplama).
+const PHASES = [[1], [2, 3, 4, 5], [6], [7, 8]];
+
 export default function Landing({ onEnter }) {
   const { lang, t, setLang, upd } = useStore();
   const steps = stepsFor(lang);
   const [hide, setHide] = React.useState(() => read(localStorage, HIDE_KEY));
 
-  const FEATURES = [
-    { icon: '🧭', title: t('8 adımlı rehberli akış', 'A guided 8-step flow'), desc: t('Problem tanımından çalışma raporuna: Toyota A3/PDCA disipliniyle, her adımda tamamlanma ölçütleri ve yöntem açıklamalarıyla ilerlersiniz.', 'From problem definition to the case report: you move with Toyota A3/PDCA discipline, completion criteria and method notes at every step.') },
-    { icon: '⚡', title: t('Triyaj ve Hızlı Çözüm', 'Triage and Quick Solve'), desc: t('Her problem aynı derinliği hak etmez: fayda/maliyet triyajı doğru akışı önerir. 15-20 dakikalık sorunlar tek ekranda çözülür; derinleşirse tek tıkla tam akışa terfi eder — girdiler kayıpsız taşınır.', 'Not every problem deserves the same depth: a benefit/cost triage suggests the right flow. 15-20 minute problems are solved on one screen; if they run deeper, one click promotes them to the full flow — entries carry over losslessly.') },
-    { icon: '🧰', title: t('Kanıtlanmış yöntem seti', 'A proven method set'), desc: t('5 Neden, balık kılçığı, SIPOC, VAR/YOK (Kepner-Tregoe), Pareto, ağırlıklı karar matrisi, pre-mortem, FMEA ve kuvvet alanı analizi — tek akışın içinde, birbirine bağlı.', '5 Whys, fishbone, SIPOC, IS / IS-NOT (Kepner-Tregoe), Pareto, weighted decision matrix, pre-mortem, FMEA and force field analysis — inside one connected flow.') },
-    { icon: '⚖️', title: t('Karar disiplini', 'Decision discipline'), desc: t('Karar zamanlaması (ASAP/ALAP + durma işareti), "ve sonra ne olacak?" (ikinci basamak), dış görünüm ve izlemede tetik çizgileri — karar yalnız doğru değil, doğru zamanda ve yan etkileri düşünülmüş olur.', 'Decision timing (ASAP/ALAP + a stop signal), "and then what?" (second-order effects), the outside view and tripwires in tracking — decisions come out not just right, but on time and with side effects considered.') },
-    { icon: '🤖', title: t('YZ rehber ve asistan', 'AI coach and assistant'), desc: t('Her adımda probleminize özgü öneri taslakları, pre-mortem senaryoları, benzer vaka sentezi ve kararınızı çürütmeye çalışan Şeytanın Avukatı. Öneriler hipotezdir — doğrulama rozetiyle gelir, yazdıklarınız asla ezilmez.', "Step-specific suggestion drafts, pre-mortem scenarios, similar-case synthesis and a Devil's Advocate that tries to refute your decision. Suggestions are hypotheses — they carry a verification badge, and your own text is never overwritten.") },
-    { icon: '🧠', title: t('Zihin Kontrolü', 'Mind Check'), desc: t('Her adımda o adımda en sık düşülen bilişsel yanılgılar, panzehir soruları ve ekibinize soracağınız doğru sorular elinizin altında.', 'At every step: the biases you are most prone to right there, antidote questions, and the right questions to ask your team.') },
-    { icon: '🕸', title: t('Vaka haritası ve raporlar', 'Case map and reports'), desc: t('Verinizden türeyen bağlantı haritası kopuk halkaları gösterir; A3 tek sayfa özeti, grafikleriyle basılan tam rapor (kılçık, Pareto, kuvvet alanı), vaka panosu ve salt-okunur paylaşım linki.', 'A connection map derived from your data reveals broken links; an A3 one-pager, a full report that prints with its charts (fishbone, Pareto, force field), a case dashboard and a read-only share link.') },
-    { icon: '🔒', title: t('Verileriniz sizde kalır', 'Your data stays with you'), desc: t('Tüm girdiler yalnızca bu tarayıcıda saklanır; sunucuya gönderilmez. Türkçe/İngilizce çift dil, açık/koyu tema, JSON yedekleme, PDF/Word/Excel referans yükleme.', 'All input is stored only in this browser; nothing is sent to a server. Turkish/English bilingual, light/dark theme, JSON backup, PDF/Word/Excel reference upload.') }
-  ];
-
+  // Örnek vaka → ilk örnek; kendi problemi → açık çalışma örnekse kullanıcının ilk kendi çalışması.
   const enter = openExample => {
-    if (openExample) upd(n => { if (n.cases.ornek) { n.activeCase = 'ornek'; n.step = 1; } });
+    upd(n => {
+      if (openExample) {
+        if (n.cases.ornek) { n.activeCase = 'ornek'; n.step = 1; }
+      } else if (SAMPLE(n.activeCase)) {
+        const own = Object.keys(n.cases).find(k => !SAMPLE(k));
+        if (own) { n.activeCase = own; n.step = 1; }
+      }
+      n.dashOpen = false;
+    });
     markEntered(hide);
     onEnter();
   };
 
+  const phaseNames = [t('Tanımla', 'Define'), t('Analiz et', 'Analyze'), t('Karar ver', 'Decide'), t('İzle ve paylaş', 'Track and share')];
+
+  const TRAPS = [
+    {
+      trap: t('Toplantı bir çözümle başlıyor.', 'The meeting starts with a solution.'),
+      fix: t('İlk adımda rehber, problem ifadenizdeki çözüm ve suçlama dilini ayıklar. Geriye hedef ile gerçekleşen arasındaki ölçülmüş fark kalır; herkes aynı problemi konuşur.',
+        'In the first step the coach strips solution and blame language out of your problem statement. What remains is the measured gap between target and actual, so everyone talks about the same problem.')
+    },
+    {
+      trap: t('İlk bulgu kök neden sanılıyor.', 'The first finding is mistaken for the root cause.'),
+      fix: t('Problem, bulgu ve kök neden ayrı tutulur. 5 Neden, balık kılçığı ve VAR/YOK analiziyle kurulan her kök neden, bir test planı ve sonucuyla doğrulanmadan kesinleşmez.',
+        'Problem, finding and root cause are kept apart. Each root cause you build with 5 Whys, a fishbone or IS / IS-NOT stays open until a test plan and its result confirm it.')
+    },
+    {
+      trap: t('Karar veriliyor, sonra unutuluyor.', 'A decision is made, then forgotten.'),
+      fix: t('Alternatifler kriterlerle yarışır, gerekçe yazılır. Aksiyonlar sahip ve tarihle izlenir; KPI trendi ve tetik çizgileri kararın tutup tutmadığını gösterir.',
+        'Alternatives compete on weighted criteria and the rationale is written down. Actions are tracked with owners and dates; the KPI trend and tripwires show whether the decision is holding.')
+    }
+  ];
+
+  const ctas = (
+    <div className="pl-ctas">
+      <button type="button" className="pl-btn pl-btn-pri" onClick={() => enter(false)}>{t('Kendi problemimle başla', 'Start with my own problem')}</button>
+      <button type="button" className="pl-btn pl-btn-sec" onClick={() => enter(true)}>{t('Örnek vakayı incele', 'Explore the example case')}</button>
+    </div>
+  );
+
   return (
-    <div data-app-root="1" style={{ minHeight: '100vh', background: 'var(--bg)', overflow: 'auto' }}>
-      <div style={{ maxWidth: 980, margin: '0 auto', padding: '28px 24px 60px' }}>
-        {/* Üst şerit: dil seçimi */}
-        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 0, marginBottom: 8 }}>
-          <div role="group" aria-label="Dil / Language" style={{ display: 'flex', border: '1px solid var(--field-border)', borderRadius: 6, overflow: 'hidden' }}>
+    <div data-app-root="1" className="pl">
+      <div className="pl-wrap">
+        <header className="pl-top">
+          <div className="pl-brand"><LogoMark size={32} /><Wordmark size={17} /></div>
+          <div className="pl-lang" role="group" aria-label="Dil / Language">
             {[['tr', 'Türkçe'], ['en', 'English']].map(([k, lb]) => (
-              <button key={k} type="button" onClick={() => setLang(k)} aria-pressed={lang === k}
-                style={{ padding: '6px 12px', border: 'none', cursor: 'pointer', background: lang === k ? 'var(--pri)' : 'var(--surface)', color: lang === k ? 'var(--on-pri)' : 'var(--ink-3)', font: '600 11.5px Helvetica,Arial,sans-serif' }}
-              >{lb}</button>
+              <button key={k} type="button" onClick={() => setLang(k)} aria-pressed={lang === k}>{lb}</button>
             ))}
           </div>
-        </div>
+        </header>
 
-        {/* Kahraman bölümü */}
-        <div style={{ textAlign: 'center', padding: '26px 0 30px' }}>
-          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 14 }}><LogoMark size={64} /></div>
-          <h1 style={{ margin: 0, font: '700 34px/1.2 Helvetica,Arial,sans-serif', color: 'var(--ink)' }}>
-            Problem<span style={{ color: 'var(--pri)' }}>Lab</span>
-          </h1>
-          <div style={{ font: '600 15px/1.5 Helvetica,Arial,sans-serif', color: 'var(--pri-soft-ink)', marginTop: 6 }}>
-            {t('Problemi tanımlayın, kök nedeni doğrulayın, doğru kararı uygulayın.', 'Define the problem, verify the root cause, execute the right decision.')}
+        <section className="pl-hero">
+          <div>
+            <h1 className="pl-h1">{t('Çözmeden önce doğru problemi bulun.', 'Find the right problem before you fix it.')}</h1>
+            <p className="pl-lede">
+              {t('ProblemLab, “şunu yapalım” diye başlayan toplantıları ölçülmüş bir probleme, veriyle sınanmış bir kök nedene ve takip edilen bir karara dönüştürür. Sekiz adım boyunca bir rehber yanınızda; hangi alanda çalışırsanız çalışın.',
+                'ProblemLab turns meetings that start with “let’s just do X” into a measured problem, a root cause tested against data, and a decision you actually track. A coach walks you through eight steps, whatever field you work in.')}
+            </p>
+            {ctas}
+            <p className="pl-fine">{t('Hesap gerekmez. Girdileriniz yalnızca bu tarayıcıda kalır.', 'No account needed. Your input stays in this browser.')}</p>
+            <label className="pl-check">
+              <input type="checkbox" checked={hide} onChange={e => setHide(e.target.checked)} />
+              {t('Bir daha gösterme, açılışta doğrudan uygulamaya gir', 'Don’t show this again; open straight into the app')}
+            </label>
           </div>
-          <p style={{ maxWidth: 640, margin: '14px auto 0', font: '14.5px/1.7 Helvetica,Arial,sans-serif', color: 'var(--ink-3)' }}>
-            {t('ProblemLab, bir iş problemini — hangi alanda olursa olsun — kanıtlanmış problem çözme metodolojisiyle uçtan uca çözdüren, YZ destekli bir çalışma aracıdır. Varsayımları veriden ayırır, kök nedeni doğrulatır, kararınızı sınar ve sonucu KPI ile takip ettirir. İçindeki iki dolu örnek vaka, yöntemi baştan sona gösterir.',
-              'ProblemLab is an AI-assisted workbench that takes a business problem — in any domain — end to end through a proven problem-solving methodology. It separates assumptions from data, makes you verify the root cause, stress-tests your decision, and tracks the outcome against the KPI. Two fully worked example cases show the method end to end.')}
-          </p>
-          <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap', marginTop: 22 }}>
-            <HButton
-              onClick={() => enter(false)}
-              style={{ padding: '12px 26px', border: '1px solid var(--pri)', borderRadius: 9, background: 'var(--pri)', color: 'var(--on-pri)', font: '700 14px Helvetica,Arial,sans-serif', cursor: 'pointer' }}
-              hover={{ background: 'var(--pri-hover)' }}
-            >{t('Hemen başla →', 'Get started →')}</HButton>
-            <HButton
-              onClick={() => enter(true)}
-              style={{ padding: '12px 22px', border: '1px solid var(--pri-border)', borderRadius: 9, background: 'var(--surface)', color: 'var(--pri)', font: '600 14px Helvetica,Arial,sans-serif', cursor: 'pointer' }}
-              hover={{ background: 'var(--pri-soft)' }}
-            >{t('Önce örnek çalışmaları incele', 'Explore the example cases first')}</HButton>
-          </div>
-          <label style={{ display: 'inline-flex', gap: 7, alignItems: 'center', marginTop: 14, font: '12.5px Helvetica,Arial,sans-serif', color: 'var(--muted)', cursor: 'pointer' }}>
-            <input type="checkbox" checked={hide} onChange={e => setHide(e.target.checked)} style={{ margin: 0, cursor: 'pointer' }} />
-            {t('Bir daha gösterme — açılışta doğrudan uygulamaya gir', 'Don’t show again — open straight into the app')}
-          </label>
-        </div>
+          <LandingDemo onOpenExample={() => enter(true)} />
+        </section>
+      </div>
 
-        {/* 8 adım şeridi */}
-        <div style={{ background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 12, padding: '16px 18px', marginBottom: 18 }}>
-          <div style={{ font: '700 10.5px Helvetica,Arial,sans-serif', color: 'var(--muted)', letterSpacing: '.8px', marginBottom: 10 }}>{t('8 ADIMDA UÇTAN UCA', 'END TO END IN 8 STEPS')}</div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 8 }}>
-            {steps.map((s, i) => (
-              <div key={i} style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
-                <span aria-hidden="true" style={{ flex: 'none', width: 20, height: 20, borderRadius: '50%', background: 'var(--pri-soft)', color: 'var(--pri)', font: '700 10.5px/20px Helvetica,Arial,sans-serif', textAlign: 'center' }}>{i + 1}</span>
-                <div style={{ minWidth: 0 }}>
-                  <div style={{ font: '600 12px/1.35 Helvetica,Arial,sans-serif', color: 'var(--ink)' }}>{s.title}</div>
-                  <div style={{ font: '10.5px/1.4 Helvetica,Arial,sans-serif', color: 'var(--muted)' }}>{s.sub}</div>
+      <section className="pl-sec">
+        <div className="pl-wrap pl-sec-grid">
+          <div>
+            <h2 className="pl-h2">{t('Çözümler neden tutmuyor?', 'Why fixes don’t stick')}</h2>
+            <p className="pl-sec-lede">{t('Çoğu problem yanlış yöntemden değil, atlanan bir adımdan dolayı geri döner. ProblemLab bu adımları atlatmaz.', 'Most problems come back not because of a bad method but because a step was skipped. ProblemLab won’t let you skip them.')}</p>
+          </div>
+          <ul className="pl-traps">
+            {TRAPS.map((x, i) => (
+              <li key={i} className="pl-trap">
+                <p className="pl-trap-t">{x.trap}</p>
+                <p className="pl-trap-f">{x.fix}</p>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+
+      <section className="pl-sec">
+        <div className="pl-wrap">
+          <h2 className="pl-h2">{t('Sekiz adım, dört evre', 'Eight steps, four phases')}</h2>
+          <p className="pl-sec-lede" style={{ maxWidth: '40em' }}>{t('Her adımın tamamlanma ölçütleri ve yöntem açıklaması var. Eksik kalan ölçüt, ilerlemeden önce size gösterilir.', 'Every step has completion criteria and a method note. Anything still missing is shown to you before you move on.')}</p>
+          <div className="pl-phases">
+            {PHASES.map((nums, pi) => (
+              <div key={pi} className="pl-phase">
+                <div className="pl-phase-h">
+                  <b>{phaseNames[pi]}</b>
+                  <span>{nums.length > 1 ? t('Adım ', 'Steps ') + nums[0] + '–' + nums[nums.length - 1] : t('Adım ', 'Step ') + nums[0]}</span>
                 </div>
+                <ol className="pl-steps">
+                  {nums.map(n => (
+                    <li key={n} className="pl-step">
+                      <span className="pl-step-n">{n}</span>
+                      <span><b>{steps[n - 1].title}</b><small>{steps[n - 1].sub}</small></span>
+                    </li>
+                  ))}
+                </ol>
               </div>
             ))}
           </div>
+          <p className="pl-quick">
+            {t('Her problem sekiz adımı hak etmez. Fayda ve maliyet triyajı küçük sorunları 15–20 dakikalık hızlı çözüme yönlendirir; sorun derinleşirse girdiğiniz her şey tam akışa taşınır.',
+              'Not every problem deserves eight steps. A benefit and cost triage sends small issues to a 15–20 minute quick solve; if the issue runs deeper, everything you entered carries over to the full flow.')}
+          </p>
         </div>
+      </section>
 
-        {/* Özellik kartları */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 12, marginBottom: 20 }}>
-          {FEATURES.map((f, i) => (
-            <div key={i} style={{ background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 12, padding: '15px 17px' }}>
-              <div style={{ font: '20px/1 Helvetica,Arial,sans-serif', marginBottom: 8 }} aria-hidden="true">{f.icon}</div>
-              <div style={{ font: '700 13.5px/1.4 Helvetica,Arial,sans-serif', color: 'var(--ink)', marginBottom: 5 }}>{f.title}</div>
-              <div style={{ font: '12.5px/1.6 Helvetica,Arial,sans-serif', color: 'var(--ink-4)' }}>{f.desc}</div>
+      <section className="pl-sec">
+        <div className="pl-wrap pl-ai">
+          <div>
+            <h2 className="pl-h2">{t('Yapay zekâ önerir, siz doğrularsınız.', 'AI suggests. You verify.')}</h2>
+            <p>{t('Rehber, probleminize özgü taslaklar hazırlar: iş sürücüleri, olası nedenler, pre-mortem senaryoları, kararınızı çürütmeye çalışan bir şeytanın avukatı. Her öneri bir hipotez olarak gelir ve siz veriyle doğrulayana kadar işaretli kalır. Yazdığınız hiçbir şeyin üzerine yazılmaz.',
+              'The coach drafts suggestions specific to your problem: business drivers, possible causes, pre-mortem scenarios, a devil’s advocate that tries to break your decision. Every suggestion arrives as a hypothesis and stays flagged until you verify it with data. Nothing you wrote is ever overwritten.')}</p>
+            <p>{t('Her adımda, o adımda en sık düşülen bilişsel yanılgılar ve ekibinize sorulacak sorular da elinizin altında.', 'At every step, the cognitive biases most likely to catch you there, and the questions to ask your team, are one click away.')}</p>
+          </div>
+          <div>
+            <div className="pl-sugg" role="group" aria-label={t('Örnek: YZ önerileri ve doğrulama durumu', 'Example: AI suggestions and their verification status')}>
+              <div className="pl-sugg-row">
+                <span className="pl-yz" aria-hidden="true">YZ</span>
+                <span>{t('Evrak hazırlığı, booking → yükleme süresini uzatıyor olabilir.', 'Document preparation may be stretching booking → loading.')}</span>
+                <span className="pl-tag">{t('Doğrulanmadı', 'Not verified')}</span>
+              </div>
+              <div className="pl-sugg-row">
+                <span className="pl-yz ok" aria-hidden="true">YZ</span>
+                <span>{t('Gümrükte beyanname açılışı hedefin 4 gün üzerinde.', 'Customs declaration filing runs 4 days over target.')}</span>
+                <span className="pl-tag ok">{t('Veriyle doğrulandı', 'Verified with data')}</span>
+              </div>
             </div>
-          ))}
+            <p className="pl-methods">
+              {t('İçindeki yöntemler: 5 Neden, balık kılçığı, SIPOC, VAR/YOK (Kepner-Tregoe), Pareto, ağırlıklı karar matrisi, pre-mortem, FMEA ve kuvvet alanı analizi. Hepsi aynı vakanın verisine bağlı; birinde yazdığınız diğerine akar.',
+                'Methods inside: 5 Whys, fishbone, SIPOC, IS / IS-NOT (Kepner-Tregoe), Pareto, weighted decision matrix, pre-mortem, FMEA and force field analysis. All of them share one case’s data; what you write in one flows into the next.')}
+            </p>
+          </div>
         </div>
+      </section>
 
-        {/* Alt not */}
-        <div style={{ textAlign: 'center', font: '11.5px/1.6 Helvetica,Arial,sans-serif', color: 'var(--muted)' }}>
-          {t('Girdileriniz yalnızca bu tarayıcıda saklanır — hesap gerekmez, sunucuya veri gönderilmez. Bu ekrana kenar çubuğundaki "Tanıtım" bağlantısından her zaman dönebilirsiniz.',
-            'Your input is stored only in this browser — no account needed, no data sent to a server. You can return to this screen anytime via the "Intro" link in the sidebar.')}
+      <section className="pl-end">
+        <div className="pl-wrap">
+          <h2 className="pl-h2">{t('Masanızdaki problemi bugün tanımlayın.', 'Define the problem on your desk today.')}</h2>
+          <ul className="pl-facts">
+            <li>{t('Hesap ve kurulum gerekmez', 'No account or install')}</li>
+            <li>{t('Veriler yalnızca bu tarayıcıda', 'Data stays in this browser')}</li>
+            <li>{t('JSON yedek, PDF ve Word rapor', 'JSON backup, PDF and Word reports')}</li>
+            <li>{t('Türkçe ve İngilizce', 'Turkish and English')}</li>
+          </ul>
+          {ctas}
+          <p className="pl-foot">{t('Bu ekrana kenar çubuğundaki Tanıtım düğmesinden her zaman dönebilirsiniz.', 'You can come back to this screen any time from the Intro button in the sidebar.')}</p>
         </div>
-      </div>
+      </section>
     </div>
   );
 }
