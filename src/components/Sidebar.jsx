@@ -368,7 +368,7 @@ export default function Sidebar({ onNavigate, onCollapse }) {
         </div>
         <div style={{ display: 'flex', gap: 14, alignItems: 'center', flexWrap: 'wrap' }}>
           <HA
-            href={'/rehber.html' + (state.theme === 'dark' ? '?tema=koyu' : '')} target="_blank" rel="noreferrer"
+            href={(lang === 'en' ? '/guide.html' : '/rehber.html') + (state.theme === 'dark' ? '?tema=koyu' : '')} target="_blank" rel="noreferrer"
             style={{ padding: '4px 2px', border: 'none', background: 'transparent', color: 'var(--ink-3)', font: '600 12px Helvetica,Arial,sans-serif', cursor: 'pointer', textDecoration: 'none' }}
             hover={{ color: 'var(--pri)' }}
           >{t('Kullanım rehberi', 'User guide')}</HA>

@@ -205,7 +205,7 @@ src/
   components/              Sidebar · CoachPanel · AssistantChat · SettingsModal · ThinkingCheck
   steps/                   Step1…Step8
   ui/primitives.jsx        tasarım token'ları ve ortak öğeler (hover/focus davranışı dahil)
-public/rehber.html         yazdırılabilir kullanım rehberi (A4)
+rehber.html · guide.html   kullanım rehberi TR / EN (ayrı Vite sayfaları; src/guide/)
 netlify/                   edge-functions/ai.js · functions/ai.js · functions/fetch-ref.js
 docs/screenshots/          README görselleri
 project/ · chats/          kaynak prototip ve tasarım oturumu dökümleri (referans)

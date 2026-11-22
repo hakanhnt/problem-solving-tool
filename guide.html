@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>User guide · ProblemLab</title>
+<meta name="description" content="ProblemLab user guide: screens, the eight-step flow, the AI coach, settings and frequently asked questions.">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<script>
+  // The page follows the app theme: the link arrives with ?tema=koyu, otherwise the system preference applies.
+  (function () {
+    var q = new URLSearchParams(location.search).get('tema');
+    var dark = q ? q === 'koyu' : (window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches);
+    document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+  })();
+</script>
+<script type="module" src="/src/guide/rehber.js"></script>
+</head>
+<body class="g">
+<a class="g-skip" href="#content">Skip to content</a>
+
+<header class="g-bar">
+  <a class="g-brand" href="/" aria-label="Open the ProblemLab app">
+    <svg width="28" height="28" viewBox="0 0 32 32" aria-hidden="true">
+      <rect width="32" height="32" rx="8" fill="#35506e"/>
+      <g transform="translate(4 4)">
+        <path d="M6.4 15.4H17.6L19.5 19C20.1 20.2 19.4 21.2 18.1 21.2H5.9C4.6 21.2 3.9 20.2 4.5 19L6.4 15.4Z" fill="#8fb0d4"/>
+        <path d="M9.6 3.4V9.1L4.5 19C3.9 20.2 4.6 21.2 5.9 21.2H18.1C19.4 21.2 20.1 20.2 19.5 19L14.4 9.1V3.4" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+        <path d="M8.1 3.4H15.9" stroke="#fff" stroke-width="1.9" stroke-linecap="round"/>
+      </g>
+    </svg>
+    <span>Problem<b>Lab</b></span>
+  </a>
+  <span class="g-bar-title">User guide</span>
+  <button type="button" class="g-btn g-toc-toggle" aria-expanded="false" aria-controls="g-toc">Contents</button>
+  <a class="g-btn g-lang" href="/rehber.html" hreflang="tr" lang="tr" data-lang-switch>Türkçe</a>
+  <button type="button" class="g-btn" data-print>Print</button>
+  <a class="g-btn is-pri" href="/">Open the app</a>
+</header>
+
+<div class="g-wrap">
+<nav id="g-toc" class="g-toc" aria-label="Contents">
+  <ol>
+    <li><a href="#start">The first ten minutes</a></li>
+    <li><a href="#principles">Principles of the method</a></li>
+    <li><a href="#screen">Screen layout</a></li>
+    <li><a href="#dashboard">Case dashboard</a></li>
+    <li><a href="#steps">The eight steps</a>
+      <ol class="g-toc-steps">
+        <li><a href="#triage">Triage and quick solve</a></li>
+        <li><a href="#step-1">1. Problem definition</a></li>
+        <li><a href="#step-2">2. Business driver mapping</a></li>
+        <li><a href="#step-3">3. Business driver analysis</a></li>
+        <li><a href="#step-4">4. Problem findings</a></li>
+        <li><a href="#step-5">5. Root cause analysis</a></li>
+        <li><a href="#step-6">6. Countermeasures and decision</a></li>
+        <li><a href="#step-7">7. Tracking and retrospective</a></li>
+        <li><a href="#step-8">8. Case report</a></li>
+      </ol>
+    </li>
+    <li><a href="#ai">The AI coach</a></li>
+    <li><a href="#settings">Settings</a></li>
+    <li><a href="#thinking">Thinking methods</a></li>
+    <li><a href="#faq">Frequently asked questions</a></li>
+  </ol>
+</nav>
+
+<main id="content" class="g-main">
+  <header class="g-hero">
+    <h1>User guide</h1>
+    <p class="g-lead">ProblemLab takes a business problem through eight steps, from a measured gap to a lasting solution. This guide explains the screens, the steps and how to work with the AI coach.</p>
+    <p class="g-meta">Version 4, November 2026</p>
+  </header>
+
+  <section id="start">
+    <h2>The first ten minutes</h2>
+    <ol class="g-start">
+      <li><b>Explore the example case.</b> Open <em>Example Case</em> from the <em>Cases</em> list in the sidebar and move through the steps. You will see what a completed case looks like at each step. The second example case (GDA stock compliance) uses every advanced tool.</li>
+      <li><b>Open your own case.</b> Press <em>New</em>, answer the three-question triage if you like, then pick a template or <em>Quick solve</em>.</li>
+      <li><b>Write the problem in one sentence.</b> In Step 1, write what happened, where and by how much, and enter the target and actual values. Leave out solutions and causes.</li>
+      <li><b>Get suggestions from the coach and verify them.</b> The <em>Coach</em> in the toolbar prepares candidate inputs for your problem. Take the ones that fit with <em>Add to form</em>; every suggestion stays a hypothesis until you verify it.</li>
+      <li><b>Watch the status chip.</b> The chip in the step header shows how many criteria are missing; click it to see the list. Move on once the criteria are met.</li>
+    </ol>
+  </section>
+
+  <section id="principles">
+    <h2>Principles of the method</h2>
+    <p>The tool works in any field: logistics, marketing, technology, operations, HR, finance. The aim is not to fill in forms but to learn sound thinking techniques by applying them to your own problem.</p>
+    <dl class="g-principles">
+      <div><dt>A problem, a finding and a root cause are different things.</dt><dd>A problem is a measured gap; a finding is a sub-gap proven with data; a root cause is the systemic reason underneath them.</dd></div>
+      <div><dt>Define first, analyze next, solve last.</dt><dd>Solutions are not discussed in Steps 1–4; alternatives are generated only after the root cause is found.</dd></div>
+      <div><dt>Look for the root cause in your own house first.</dt><dd>The analysis focuses on gaps in your own processes, measurement and capabilities instead of blaming outside parties.</dd></div>
+      <div><dt>AI suggests, you verify.</dt><dd>Every coach suggestion is a hypothesis and must be verified with data and with the people who do the work.</dd></div>
+      <div><dt>The cycle does not end with the decision.</dt><dd>Actions get owners and the KPI is tracked. If it does not close on the target, go back to the root cause analysis, and tie what you learn into the standard (PDCA).</dd></div>
+    </dl>
+  </section>
+
+  <section id="screen">
+    <h2>Screen layout</h2>
+    <figure class="g-map">
+      <div class="g-map-app" aria-hidden="true">
+        <div class="g-map-side"><i>1</i><span class="w60"></span><span class="w80"></span><span class="w70"></span><span class="gap"></span><span class="w50 is-on"></span><span class="w80"></span><span class="w70"></span><span class="w60"></span></div>
+        <div class="g-map-main">
+          <div class="g-map-head"><i>2</i><span class="w30"></span><span class="w50 is-big"></span><span class="chip"></span></div>
+          <div class="g-map-tool"><i>3</i><span class="pill"></span><span class="pill"></span><span class="pill"></span></div>
+          <div class="g-map-form"><i>4</i><span class="field"></span><span class="field is-short"></span><span class="field"></span></div>
+          <div class="g-map-chat"><i>5</i><span class="w70"></span></div>
+        </div>
+      </div>
+      <figcaption>The parts of a step page. The numbers match the list below.</figcaption>
+    </figure>
+    <ol class="g-keys">
+      <li><b>Sidebar.</b> The case list (open, rename, delete, undo), the <em>Dashboard</em> and <em>New</em> buttons, the progress and maturity indicator, and the list of the eight steps. At the bottom are the language switch (TR/EN), theme, <em>Settings</em>, <em>User guide</em> and <em>Intro</em> links. The « button in the header collapses the sidebar to a thin strip of step numbers, and the app remembers your choice. On narrow screens the sidebar opens from the menu button.</li>
+      <li><b>Step header.</b> The step number, title and status chip. The chip shows how many criteria are missing, or <em>✓ Criteria met</em> when all are done. Click it to open the criteria list.</li>
+      <li><b>Toolbar.</b> <em>Coach</em>, <em>Mind Check</em> and <em>Questions to ask</em>. Only one panel is open at a time; the coach opens by itself while it prepares suggestions.</li>
+      <li><b>Step form.</b> The fields of the step. Core fields come first; advanced analysis tools sit in expandable cards below. Long text fields can be enlarged by dragging their bottom edge.</li>
+      <li><b>AI Assistant.</b> A free-form chat at the bottom of the page, in the role of that step's expert.</li>
+    </ol>
+    <h3>Intro, language and saving</h3>
+    <ul>
+      <li><b>The intro screen</b> appears once in each new browser tab. Turn it off with <em>Don’t show this again</em>, and reopen it any time from the <em>Intro</em> link in the sidebar.</li>
+      <li><b>Language</b> switches between Turkish and English in one click. Your inputs stay as they are; the example cases are translated as long as you have not edited them. In English mode the AI also answers in English.</li>
+      <li><b>Saving</b> is automatic and happens only in this browser. Close the page, open it again and continue where you left off. For backups use <a href="#set-data">Settings › Data and backup</a>.</li>
+    </ul>
+  </section>
+
+  <section id="dashboard">
+    <h2>Case dashboard</h2>
+    <p>The <em>Dashboard</em> button in the sidebar shows all your cases on one screen. Your own cases are listed before the examples. Each card shows the maturity status, a progress line for the eight steps, the KPI gap and summaries of actions, root causes, decision and confidence.</p>
+    <p>The card's button names the next job and takes you straight to that step: <em>Start by defining the problem</em> on an empty case, <em>Continue</em> on a step with missing criteria, <em>Update overdue actions</em> when actions are late, and <em>Open the report</em> when everything is done.</p>
+    <p>If the summary line shows a number of overdue actions, click it: the actions are listed grouped by case, with their owner and how many days late they are.</p>
+  </section>
+
+  <section id="steps">
+    <h2>The eight steps</h2>
+    <p>The status chip in each step header checks the <em>Done when</em> criteria below. The criteria measure the minimum the method requires, not how many fields are filled; the maturity indicator in the sidebar looks at evidence, verification and KPI confirmation.</p>
+
+    <section id="triage" class="g-step">
+      <h3>Before you start: triage and quick solve</h3>
+      <p>Not every problem deserves the same depth. The triage in the <em>New case</em> window asks three questions: the time and resources a root-cause solution needs, the benefit it brings and the time pressure. Based on your answers it suggests the full flow, a quick solve, delegating, or a deliberate wait.</p>
+      <p><b>Quick solve</b> is a single screen for 15–20 minute problems: a short definition, the factor driving the problem, three "whys", a countermeasure, an owner and a due date. If the problem turns out deeper than expected, <em>Promote to the full flow</em> moves the case into the eight steps without losing anything: the definition goes to Step 1, the factor to Step 2, the whys to Step 5 and the countermeasure to Step 7.</p>
+    </section>
+
+    <section id="step-1" class="g-step">
+      <h3><span class="g-n">1</span>Problem definition</h3>
+      <p class="g-step-lead">A measurable answer to "what happened?": one statement with no solution, cause or blame in it.</p>
+      <div class="g-done"><b>Done when</b><ul data-step="1"><li>Problem statement written</li><li>Target and actual entered</li><li>KPI direction selected</li></ul></div>
+      <p>Enter the dimensions (location or unit, period, breakdown) and the KPI gap. The quality chips under the statement give instant feedback; <em>Refine my statement</em> in the coach panel has the coach rewrite your statement to fit the method. You cannot move to later steps until a problem statement is written.</p>
+      <details class="g-more">
+        <summary>Advanced tools: IS / IS-NOT, change analysis, references</summary>
+        <p>The <b>IS / IS-NOT specification</b> (Kepner-Tregoe) draws the boundaries of the problem: where, when and in which breakdown it occurs, and where it could occur but does not. The true root cause must explain both sides; in Step 5 candidates are tested against this.</p>
+        <p><b>Change analysis</b> asks the classic question for deviation problems: what changed when the deviation began?</p>
+        <p>In the <b>References</b> card you can add reports, data, notes, links or files (.pdf, .docx, .xlsx, .csv, .txt). The coach draws on them in every step and cites them as R1, R2. With <em>✎ Open</em> you can read a reference, edit its title and text, and delete irrelevant parts; summaries of long texts refresh after editing.</p>
+      </details>
+    </section>
+
+    <section id="step-2" class="g-step">
+      <h3><span class="g-n">2</span>Business driver mapping</h3>
+      <p class="g-step-lead">List the main factors driving the result so that they are mutually exclusive and collectively exhaustive (MECE).</p>
+      <div class="g-done"><b>Done when</b><ul data-step="2"><li>At least 2 business drivers defined</li><li>AI suggestions verified</li></ul></div>
+      <p>The coach suggests candidate business drivers for your problem; take the ones that fit with <em>Add to form</em> and edit them with your own observations. Check your suspicions with the people who do the work and on site, not at a desk.</p>
+    </section>
+
+    <section id="step-3" class="g-step">
+      <h3><span class="g-n">3</span>Business driver analysis</h3>
+      <p class="g-step-lead">Break the most influential drivers into subcomponents and use process metrics to find where the problem sits.</p>
+      <div class="g-done"><b>Done when</b><ul data-step="3"><li>At least 1 subcomponent analyzed</li></ul></div>
+      <p>Fill in <b>SIPOC</b> rows for the problematic process steps: supplier, input, process, output, customer. Defects in input quality usually become visible here.</p>
+    </section>
+
+    <section id="step-4" class="g-step">
+      <h3><span class="g-n">4</span>Problem findings</h3>
+      <p class="g-step-lead">Drop the assumptions: each finding is a specific gap that has been measured and proven with data.</p>
+      <div class="g-done"><b>Done when</b><ul data-step="4"><li>At least 1 measured finding</li><li>Every finding has an evidence source</li><li>Contributions to the gap entered (Pareto)</li></ul></div>
+      <p>Verify the coach's finding hypotheses with your own data and enter the numbers yourself. If you enter each finding's <em>contribution to the gap</em>, the app draws a Pareto chart and you start the root cause analysis from the biggest contributor. No solutions are proposed in this step.</p>
+    </section>
+
+    <section id="step-5" class="g-step">
+      <h3><span class="g-n">5</span>Root cause analysis</h3>
+      <p class="g-step-lead">Go from symptom to systemic cause; the chain should end in a gap in process, system or capability, not in a person.</p>
+      <div class="g-done"><b>Done when</b><ul data-step="5"><li>At least 1 root cause written</li><li>Root causes linked to findings</li><li>At least one supported by data / verified</li></ul></div>
+      <p>Start from the most critical finding and build a <b>5 Whys</b> chain. The <b>fishbone</b> categories (people, method, system, input, measurement, environment) organize possible causes. Map each root cause to the relevant organization principles, note the capability to develop and record its verification status: hypothesis, supported by data, tested, verified.</p>
+      <details class="g-more">
+        <summary>Advanced tools: alternative branches, test plan</summary>
+        <p>Open <b>alternative cause branches</b> when needed; for example, "why are operator errors high?" becomes a separate chain. A branch not supported by data is closed, with its elimination documented.</p>
+        <p>The root cause should explain the IS / IS-NOT pattern from Step 1, and a test plan and the expected KPI impact should be written down.</p>
+      </details>
+    </section>
+
+    <section id="step-6" class="g-step">
+      <h3><span class="g-n">6</span>Countermeasures and decision</h3>
+      <p class="g-step-lead">Generate alternatives that remove the root cause, compare them against criteria and write the decision and its rationale yourself.</p>
+      <div class="g-done"><b>Done when</b><ul data-step="6"><li>At least 2 alternatives generated</li><li>Criterion weights sum to 100%</li><li>Decision and rationale written</li></ul></div>
+      <p>The step opens with <b>containment</b> (8D discipline D3): the measure that protects the customer and the process today while the analysis continues, with its owner and the condition for removing it. Containment buys time; it does not solve the problem, and the decision can never be the containment itself.</p>
+      <p>Generate at least three alternatives using different thinking methods (first principles, lateral, systems, design…). Give the criteria weights that add up to 100 and score each alternative 0–5 in the <b>decision matrix</b>. The weighted total is calculated for you; if two alternatives are neck and neck, a sensitivity warning appears. The matrix does not decide: <em>Get a decision suggestion from the coach</em> gives you an assessment, and you write the final decision and how it removes the root cause.</p>
+      <p>The <b>Action Plan</b> follows the decision: give each action an owner, a due date, and impact and effort scores from 1 to 5. The app assigns a priority badge (quick win, strategic, small win, questionable); <em>Sort by priority</em> reorders the plan. The coach's action suggestions state which finding and root cause they address (such as B2, KN1).</p>
+      <details class="g-more">
+        <summary>Decision timing, second-order effects and the outside view</summary>
+        <p>The <b>Decision timing</b> card asks when the decision should be made. A decision that is cheap to reverse is <b>ASAP</b>: make it now or try it with a small test. One that is expensive to reverse is <b>ALAP</b>: analyze until the opportunity window closes. The <em>opportunity window</em> and <em>stop signal</em> fields set limits against endless analysis.</p>
+        <p>The <b>And then what?</b> field on the decision card asks about second-order effects, the new problems the solution may create. The <b>Outside view</b> asks how long similar initiatives actually took in your organization or industry; this field is deliberately left without AI, because only you know your organization's history.</p>
+        <p>When you choose a thinking method for an alternative, the bias it counters and five questions to put to the team open right below it.</p>
+      </details>
+      <details class="g-more">
+        <summary>Testing the decision: thinking check, devil's advocate, pre-mortem</summary>
+        <p>The <b>Pre-Decision Thinking Check</b> asks three questions: what am I assuming, what other explanation is possible, and who pays the price and when. The <b>Thinking bias scan</b> on the same card reads your case and shows which biases it bears traces of, quoting your own sentences.</p>
+        <p>The <b>Devil's Advocate</b> opens once the decision is written. <em>Refute my decision</em> produces 3–4 objections based on gaps specific to your case and states the evidence needed to refute each. You answer each objection one by one; an unanswered objection appears as a warning in the report.</p>
+        <p>The <b>Pre-Mortem</b> (Gary Klein) asks: "It is six months from now and the decision failed; what happened?" The coach produces failure scenarios, early warning signals and preventive measures; add the measures you like to the action plan in one click.</p>
+        <p>The <b>Similar cases</b> panel offers success and failure examples synthesized from industry patterns. No sources are given; use them as inspiration, not precedent. The <b>FMEA</b> (severity × occurrence × detection) and <b>force field analysis</b> (Lewin) in the advanced section make the solution's risks visible before you implement it.</p>
+      </details>
+    </section>
+
+    <section id="step-7" class="g-step">
+      <h3><span class="g-n">7</span>Tracking and retrospective</h3>
+      <p class="g-step-lead">Close the loop: track the progress of the actions and whether the KPI closes on the target.</p>
+      <div class="g-done"><b>Done when</b><ul data-step="7"><li>Action statuses marked</li><li>At least 1 KPI measurement entered</li><li>Retrospective written</li></ul></div>
+      <p>Mark actions as pending, in progress, done or overdue, and enter the KPI period by period. The measurements turn into a trend chart that shows the remaining gap to target. <b>If the trend does not close on the target, the root cause or the countermeasure is wrong</b>; go back to Step 5 and update the analysis.</p>
+      <p><b>Tripwires</b> let you agree on the response now rather than in a crisis: a measurable condition, a check date and a pre-agreed response. The app warns you when a check date has passed. The <b>retrospective</b> has four questions: was the root cause right, did the countermeasures work, was the process right or just the outcome, and what will we make standard.</p>
+    </section>
+
+    <section id="step-8" class="g-step">
+      <h3><span class="g-n">8</span>Case report</h3>
+      <p class="g-step-lead">All your inputs come together in one shareable report.</p>
+      <div class="g-done"><b>Done when</b><ul data-step="8"><li>There is content to report (problem statement and at least 1 root cause)</li><li>Traceability issues resolved</li></ul></div>
+      <p>The bar at the top has three views. The <b>Full report</b> shows every section with its charts. The <b>A3 summary</b> is a one-page Toyota A3 layout; print it on A3 landscape paper. The <b>Case map</b> draws the links from KPI to tracking and marks broken nodes; click a node to open its step.</p>
+      <p>Outputs: <em>Print / PDF</em> prints only the report, with all charts. <em>Download Word</em> produces an editable .docx and <em>Download HTML</em> a single-file page. <em>Share link</em> copies a read-only link; the case data is compressed into the link itself and never goes to a server, which is why the link is long. The recipient can continue with <em>Copy to my cases and edit</em>.</p>
+      <p><em>Strengthen the report</em> has two tools: the <b>Executive summary</b> writes a short summary for the top of the report; the <b>Consistency audit</b> finds contradictions and broken links between the steps, with citations (B1, KN2, A1…), and stays on screen only. Open <em>Report contents</em> to choose sections and enter your organization or unit name.</p>
+    </section>
+  </section>
+
+  <section id="ai">
+    <h2>The AI coach</h2>
+    <dl class="g-defs">
+      <div><dt>Coach</dt><dd>Opens from the toolbar. When you enter an empty step it runs by itself and produces candidate inputs and verification questions based on your problem definition and earlier steps. Each suggestion goes into the form with <em>Add to form</em>; <em>Suggest again</em> brings fresh ones and <em>+ More suggestions</em> adds candidates different from the earlier ones.</dd></div>
+      <div><dt>Verification badges</dt><dd>Drivers, analyses, findings and root causes added from the coach carry an orange ⚠ badge meaning they are AI suggestions that have not been verified. After checking them against data, click the badge to mark them verified. If unverified items remain, you get a warning when moving to the next step.</dd></div>
+      <div><dt>Mind Check</dt><dd>Sits in the toolbar in Steps 1–7. It shows the biases people fall into most often in that step, their antidotes and questions to ask yourself. The same content is added to the coach's prompts.</dd></div>
+      <div><dt>Questions to ask</dt><dd>Lists the questions for the step that you should ask yourself and your stakeholders; use it to prepare for meetings.</dd></div>
+      <div><dt>AI Assistant</dt><dd>The chat at the bottom of the page. <em>Evaluate my inputs in this step</em> and <em>Generate suggestions and the right questions</em> turn the most common requests into one click. The small <em>AI</em> buttons next to fields ask for help with that field.</dd></div>
+      <div><dt>The golden rule</dt><dd>AI output is a hypothesis. Verify what you add with your own data and leave out what does not fit your problem. To prevent made-up citations, similar cases and the bias scan never produce sources, names or links.</dd></div>
+    </dl>
+  </section>
+
+  <section id="settings">
+    <h2>Settings</h2>
+    <p><em>Settings</em> at the bottom of the sidebar opens a window with four tabs. Changes are saved immediately; Esc or a click outside the window closes it.</p>
+    <h3 id="set-coach">Coach</h3>
+    <ul>
+      <li><b>Coaching level:</b> <em>Teaching</em> gives no suggestions and asks Socratic questions; <em>Balanced</em> suggests hypotheses with verification questions; <em>Accelerating</em> produces complete drafts.</li>
+      <li><b>Automatic suggestions on entering a step:</b> turn it off and the coach runs only when you press its button.</li>
+      <li><b>Domain / industry context:</b> for example "retail logistics". The coach and assistant tailor their examples to it.</li>
+      <li><b>Response style:</b> length (short bullets, detailed explanations), tone (formal, friendly coach), criticality (gentle feedback, tough auditor).</li>
+    </ul>
+    <h3 id="set-connection">AI connection</h3>
+    <ul>
+      <li>In <b>Automatic</b> mode you do not need to enter anything; the site owner's key on the server is used and never reaches your browser.</li>
+      <li><b>Your own key:</b> MiniMax, OpenAI or Anthropic. The key is stored only in this browser and sent directly to the provider you choose.</li>
+      <li><b>Custom / Local:</b> any OpenAI-compatible endpoint: OpenRouter, a corporate gateway, Azure OpenAI, or Ollama and LM Studio on your computer. Preset profiles fill in the address and headers. Subscriptions such as Claude Pro/Max or ChatGPT Plus are not available to third-party apps; you need a credit- or key-based service.</li>
+      <li><b>Advanced generation settings</b> are collapsed: model name, reasoning effort, analysis depth (standard, broad, deep) and token budget, creativity (consistent 0.2, balanced 0.6, creative 0.9), temperature and top_p. A range of 0.3–0.7 is recommended for structured output; deep analysis takes noticeably longer.</li>
+    </ul>
+    <h3 id="set-principles">Organization principles</h3>
+    <p>Edit or delete the 20 default principles, or write your own organization's values. The list is used in root cause mapping, coach suggestions and the report. When you delete a principle, the mappings in root causes update automatically.</p>
+    <h3 id="set-data">Data and backup</h3>
+    <p>This tab shows when the cases were last saved and last backed up; the app reminds you when the backup is older than seven days. <em>Download backup</em> downloads all cases and principles as a single JSON file. <em>Choose file</em> adds a backup or a colleague's file; your existing cases are not deleted.</p>
+  </section>
+
+  <section id="thinking">
+    <h2>Thinking methods and the biases they counter</h2>
+    <p>Every sound thinking method is a counterweight to a particular thinking error. These errors are not a lack of intelligence or knowledge but a fact to be managed: the mind prefers what is fast and familiar over what is right. The app builds this pairing into the method choice in Step 6, the Mind Check and the bias scan.</p>
+    <div class="g-table"><table>
+      <thead><tr><th scope="col">Thinking method</th><th scope="col">Bias it counters</th><th scope="col">Sign of the bias</th></tr></thead>
+      <tbody>
+        <tr><td>Critical thinking</td><td>Confirmation bias</td><td>Data supporting the idea is collected; contradicting data is dismissed.</td></tr>
+        <tr><td>First-principles thinking</td><td>Status quo bias, sunk cost</td><td>The familiar is chosen over the better; "we have invested so much" becomes the defense.</td></tr>
+        <tr><td>Design thinking</td><td>Representativeness bias</td><td>Resemblance to a mental pattern replaces field observation.</td></tr>
+        <tr><td>Lateral thinking</td><td>Overconfidence bias</td><td>One solution is taken as right and no alternatives are generated.</td></tr>
+        <tr><td>Second-order thinking</td><td>Short-termism, outcome bias</td><td>A decision is judged by its outcome rather than its process.</td></tr>
+        <tr><td>Systems thinking</td><td>Availability bias, oversimplification</td><td>A memorable event is taken as common; a layered structure is reduced to one cause.</td></tr>
+        <tr><td>Algorithmic thinking</td><td>Anchoring, heuristic shortcuts</td><td>The first number or idea heard shapes every later judgment.</td></tr>
+      </tbody>
+    </table></div>
+    <h3>Three behaviors for leaders</h3>
+    <ul>
+      <li><b>Being able to say "I don't know".</b> It is not weakness but a trigger that opens up thinking; when the leader does it, the team starts thinking too.</li>
+      <li><b>Stating your own assumption.</b> "My current assumption is this, and it may be wrong" starts the discussion.</li>
+      <li><b>Making changing your mind normal.</b> Without it, people defend their positions rather than their ideas.</li>
+    </ul>
+    <h3>Decision hygiene: six principles of action</h3>
+    <dl class="g-defs is-compact">
+      <div><dt>Triage</dt><dd>If the benefit does not justify the cost, skip the full analysis: delegate, solve it quickly or wait on purpose. <span class="g-where">New case window</span></dd></div>
+      <div><dt>ASAP / ALAP</dt><dd>Make decisions that are cheap to reverse now; delay expensive ones with analysis until the opportunity window closes. <span class="g-where">Step 6, decision timing</span></dd></div>
+      <div><dt>Stop signal</dt><dd>Define in advance the sign that you have enough information; when it appears, move to action. <span class="g-where">Step 6</span></dd></div>
+      <div><dt>Second order</dt><dd>"And then what?" Think about the new problem the solution creates at the moment of decision. <span class="g-where">Step 6, decision card</span></dd></div>
+      <div><dt>Outside view</dt><dd>Correct your timing and impact expectations by looking at how similar initiatives actually turned out. <span class="g-where">Step 6, decision card</span></dd></div>
+      <div><dt>Tripwires</dt><dd>Agree on "if X happens, we do Z" in advance, with a calm head. <span class="g-where">Step 7</span></dd></div>
+    </dl>
+    <p class="g-note"><b>The simplest rule:</b> slow down the moment you notice you are thinking fast. The aim is not perfect thinking but catching the moment you think wrong, early.</p>
+  </section>
+
+  <section id="faq">
+    <h2>Frequently asked questions</h2>
+    <details class="g-faq"><summary>The coach does not produce suggestions.</summary><p>Make sure the problem statement in Step 1 is filled in and press <em>Try again</em> in the <em>Coach</em> panel of the toolbar. If you see a key error, the panel's <em>Open connection settings</em> button takes you straight to the right tab.</p></details>
+    <details class="g-faq"><summary>Will I lose my data?</summary><p>Your data is tied to this browser and is never sent to a server. If you clear browser data, use a private window or switch devices, you lose access to it. Take regular backups of important cases from the <a href="#set-data">Data and backup</a> tab.</p></details>
+    <details class="g-faq"><summary>How do I share with my team?</summary><p>There are three ways: export a PDF or Word file from Step 8; send a read-only link with <em>Share link</em>; or, to hand a case over, share the backup file and have the other person add it with <em>Choose file</em>. For confidential content, prefer a PDF to a link.</p></details>
+    <details class="g-faq"><summary>Charts are missing from the PDF.</summary><p>Report charts print regardless of the browser's "background graphics" setting. If they are missing, an old version may be cached; reload the page with Ctrl+F5 (Cmd+Shift+R on a Mac).</p></details>
+    <details class="g-faq"><summary>The quick solve was not enough.</summary><p><em>Promote to the full flow</em> on the quick solve screen moves the case into the eight steps; everything you entered carries over to the matching steps.</p></details>
+    <details class="g-faq"><summary>The countermeasure did not work. What now?</summary><p>Do not start over. If the trend in Step 7 does not close on the target, go back to Step 5 and review the root cause, generate new alternatives in Step 6 if needed, and record this in the retrospective.</p></details>
+    <details class="g-faq"><summary>I broke the example case.</summary><p>Example cases cannot be deleted. With the example open, <em>Reset example</em> at the bottom of the sidebar returns it to its original state.</p></details>
+    <details class="g-faq"><summary>The sidebar disappeared.</summary><p>It may be collapsed. Press the » button at the top of the thin strip on the left of the screen; on narrow screens use the menu button in the top bar.</p></details>
+  </section>
+
+  <footer class="g-foot"><span>ProblemLab user guide</span><span>Version 4, November 2026</span></footer>
+</main>
+</div>
+</body>
+</html>

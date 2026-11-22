@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kullanım rehberi · ProblemLab</title>
+<meta name="description" content="ProblemLab kullanım rehberi: ekranlar, sekiz adımlık akış, yapay zekâ rehberi, ayarlar ve sık sorulanlar.">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<script>
+  // Sayfa uygulamadaki temayı izler: bağlantı ?tema=koyu ile gelir, yoksa sistem tercihi.
+  (function () {
+    var q = new URLSearchParams(location.search).get('tema');
+    var dark = q ? q === 'koyu' : (window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches);
+    document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+  })();
+</script>
+<script type="module" src="/src/guide/rehber.js"></script>
+</head>
+<body class="g">
+<a class="g-skip" href="#icerik">İçeriğe geç</a>
+
+<header class="g-bar">
+  <a class="g-brand" href="/" aria-label="ProblemLab uygulamasını aç">
+    <svg width="28" height="28" viewBox="0 0 32 32" aria-hidden="true">
+      <rect width="32" height="32" rx="8" fill="#35506e"/>
+      <g transform="translate(4 4)">
+        <path d="M6.4 15.4H17.6L19.5 19C20.1 20.2 19.4 21.2 18.1 21.2H5.9C4.6 21.2 3.9 20.2 4.5 19L6.4 15.4Z" fill="#8fb0d4"/>
+        <path d="M9.6 3.4V9.1L4.5 19C3.9 20.2 4.6 21.2 5.9 21.2H18.1C19.4 21.2 20.1 20.2 19.5 19L14.4 9.1V3.4" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+        <path d="M8.1 3.4H15.9" stroke="#fff" stroke-width="1.9" stroke-linecap="round"/>
+      </g>
+    </svg>
+    <span>Problem<b>Lab</b></span>
+  </a>
+  <span class="g-bar-title">Kullanım rehberi</span>
+  <button type="button" class="g-btn g-toc-toggle" aria-expanded="false" aria-controls="g-toc">İçindekiler</button>
+  <a class="g-btn g-lang" href="/guide.html" hreflang="en" lang="en" data-lang-switch>English</a>
+  <button type="button" class="g-btn" data-print>Yazdır</button>
+  <a class="g-btn is-pri" href="/">Uygulamayı aç</a>
+</header>
+
+<div class="g-wrap">
+<nav id="g-toc" class="g-toc" aria-label="İçindekiler">
+  <ol>
+    <li><a href="#baslangic">İlk on dakika</a></li>
+    <li><a href="#ilkeler">Yöntemin ilkeleri</a></li>
+    <li><a href="#ekran">Ekran düzeni</a></li>
+    <li><a href="#pano">Vaka panosu</a></li>
+    <li><a href="#adimlar">Sekiz adım</a>
+      <ol class="g-toc-steps">
+        <li><a href="#triyaj">Triyaj ve hızlı çözüm</a></li>
+        <li><a href="#adim-1">1. Problem tanımı</a></li>
+        <li><a href="#adim-2">2. İş sürücüsü haritalama</a></li>
+        <li><a href="#adim-3">3. İş sürücüsü analizi</a></li>
+        <li><a href="#adim-4">4. Problem bulguları</a></li>
+        <li><a href="#adim-5">5. Kök neden analizi</a></li>
+        <li><a href="#adim-6">6. Karşı önlemler ve karar</a></li>
+        <li><a href="#adim-7">7. İzleme ve retrospektif</a></li>
+        <li><a href="#adim-8">8. Çalışma raporu</a></li>
+      </ol>
+    </li>
+    <li><a href="#yz">Yapay zekâ rehberi</a></li>
+    <li><a href="#ayarlar">Ayarlar</a></li>
+    <li><a href="#dusunme">Düşünme yöntemleri</a></li>
+    <li><a href="#sss">Sık sorulanlar</a></li>
+  </ol>
+</nav>
+
+<main id="icerik" class="g-main">
+  <header class="g-hero">
+    <h1>Kullanım rehberi</h1>
+    <p class="g-lead">ProblemLab bir iş problemini sekiz adımda, ölçülmüş sapmadan kalıcı çözüme kadar götürmenizi sağlar. Bu rehber ekranları, adımları ve yapay zekâ rehberini nasıl kullanacağınızı anlatır.</p>
+    <p class="g-meta">Sürüm 4, Kasım 2026</p>
+  </header>
+
+  <section id="baslangic">
+    <h2>İlk on dakika</h2>
+    <ol class="g-start">
+      <li><b>Örnek çalışmayı gezin.</b> Kenar çubuğundaki <em>Çalışmalar</em> listesinden <em>Örnek Çalışma</em>yı açın ve adımlar arasında dolaşın. Dolu bir vakanın her adımda neye benzediğini görürsünüz. <em>Örnek Çalışma 2 — GDA Stok Uyumu</em> ileri araçların tamamını içerir.</li>
+      <li><b>Kendi çalışmanızı açın.</b> <em>Yeni</em> düğmesine basın, isterseniz üç soruluk triyajı yanıtlayın, sonra bir şablon ya da <em>Hızlı çözüm</em> seçin.</li>
+      <li><b>Problemi tek cümleyle yazın.</b> Adım 1'de ne olduğunu, nerede ve ne kadar olduğunu yazın; hedef ve gerçekleşen değeri girin. Çözüm ve neden yazmayın.</li>
+      <li><b>Rehberden öneri alın ve doğrulayın.</b> Araç şeridindeki <em>Rehber</em> probleminize göre aday girdiler hazırlar. Uyanları <em>Forma ekle</em> ile alın; her öneri doğrulanana kadar hipotezdir.</li>
+      <li><b>Durum çipini izleyin.</b> Adım başlığındaki çip kaç ölçütün eksik olduğunu söyler; tıklayınca liste açılır. Ölçütler tamam olunca sonraki adıma geçin.</li>
+    </ol>
+  </section>
+
+  <section id="ilkeler">
+    <h2>Yöntemin ilkeleri</h2>
+    <p>Araç alan bağımsızdır: lojistik, pazarlama, teknoloji, operasyon, İK, finans. Amaç formu doldurmak değil, doğru düşünme tekniklerini kendi probleminize uygulayarak öğrenmektir.</p>
+    <dl class="g-principles">
+      <div><dt>Problem, bulgu ve kök neden ayrı şeylerdir.</dt><dd>Problem ölçülmüş bir sapmadır; bulgu veriyle kanıtlanmış alt sapmadır; kök neden bunların altındaki sistemik sebeptir.</dd></div>
+      <div><dt>Önce tanım, sonra analiz, en son çözüm.</dt><dd>1–4. adımlarda çözüm konuşulmaz; alternatifler kök neden bulunduktan sonra üretilir.</dd></div>
+      <div><dt>Kök nedeni önce kendimizde ararız.</dt><dd>Analiz dış paydaşı suçlamak yerine kendi süreç, ölçüm ve yetkinlik boşluklarımıza odaklanır.</dd></div>
+      <div><dt>Yapay zekâ önerir, siz doğrularsınız.</dt><dd>Rehberin tüm önerileri hipotezdir; işi yapanlarla ve veriyle doğrulanmalıdır.</dd></div>
+      <div><dt>Döngü kararla bitmez.</dt><dd>Aksiyonlar sahiplenilir, KPI izlenir; hedefe kapanmıyorsa kök neden analizine dönülür ve öğrenilenler standarda bağlanır (PDCA).</dd></div>
+    </dl>
+  </section>
+
+  <section id="ekran">
+    <h2>Ekran düzeni</h2>
+    <figure class="g-map">
+      <div class="g-map-app" aria-hidden="true">
+        <div class="g-map-side"><i>1</i><span class="w60"></span><span class="w80"></span><span class="w70"></span><span class="gap"></span><span class="w50 is-on"></span><span class="w80"></span><span class="w70"></span><span class="w60"></span></div>
+        <div class="g-map-main">
+          <div class="g-map-head"><i>2</i><span class="w30"></span><span class="w50 is-big"></span><span class="chip"></span></div>
+          <div class="g-map-tool"><i>3</i><span class="pill"></span><span class="pill"></span><span class="pill"></span></div>
+          <div class="g-map-form"><i>4</i><span class="field"></span><span class="field is-short"></span><span class="field"></span></div>
+          <div class="g-map-chat"><i>5</i><span class="w70"></span></div>
+        </div>
+      </div>
+      <figcaption>Bir adım sayfasının bölümleri. Numaralar aşağıdaki listeye karşılık gelir.</figcaption>
+    </figure>
+    <ol class="g-keys">
+      <li><b>Kenar çubuğu.</b> Çalışmalar listesi (aç, yeniden adlandır, sil, geri al), <em>Pano</em> ve <em>Yeni</em> düğmeleri, ilerleme ve olgunluk göstergesi, sekiz adımın listesi. En altta dil (TR/EN), tema, <em>Ayarlar</em>, <em>Kullanım rehberi</em> ve <em>Tanıtım</em> bağlantıları durur. Başlıktaki « düğmesi çubuğu daraltır; yerinde adım numaralarından oluşan ince bir şerit kalır ve tercih hatırlanır. Dar ekranlarda çubuk menü düğmesiyle açılır.</li>
+      <li><b>Adım başlığı.</b> Adım numarası, başlık ve durum çipi. Çip ölçütler eksikse kaç tanesinin eksik olduğunu, tamamsa <em>✓ Ölçütler tamam</em> yazar. Tıklayınca ölçüt listesi açılır.</li>
+      <li><b>Araç şeridi.</b> <em>Rehber</em>, <em>Zihin Kontrolü</em> ve <em>Sorulacak sorular</em>. Aynı anda tek panel açık kalır; rehber öneri hazırlarken kendiliğinden açılır.</li>
+      <li><b>Adım formu.</b> O adımın alanları. Temel alanlar üstte, ileri analiz araçları altta açılır kartlarda durur. Uzun metin alanları alt kenarından tutularak büyütülebilir.</li>
+      <li><b>YZ Asistan.</b> Sayfanın altında, o adımın uzmanı rolünde serbest sohbet.</li>
+    </ol>
+    <h3>Tanıtım, dil ve kayıt</h3>
+    <ul>
+      <li><b>Tanıtım ekranı</b> her yeni sekmede bir kez görünür. <em>Bir daha gösterme</em> ile kapatabilir, kenar çubuğundaki <em>Tanıtım</em> bağlantısıyla dilediğiniz zaman geri açabilirsiniz.</li>
+      <li><b>Dil</b> tek tıkla Türkçe ile İngilizce arasında değişir. Girdileriniz olduğu gibi kalır; örnek vakalara dokunmadıysanız onlar da çevrilir. İngilizce modda yapay zekâ da İngilizce yanıt verir.</li>
+      <li><b>Kayıt</b> otomatiktir ve yalnızca bu tarayıcıda tutulur. Sayfayı kapatıp açınca kaldığınız yerden devam edersiniz. Yedek için <a href="#ayar-veri">Ayarlar › Veri ve yedek</a> sekmesini kullanın.</li>
+    </ul>
+  </section>
+
+  <section id="pano">
+    <h2>Vaka panosu</h2>
+    <p>Kenar çubuğundaki <em>Pano</em> tüm çalışmalarınızı tek ekranda gösterir. Kendi çalışmalarınız örneklerden önce listelenir. Her kartta olgunluk durumu, sekiz adımın ilerleme çizgisi, KPI farkı ve aksiyon, kök neden, karar ve güven özetleri bulunur.</p>
+    <p>Kartın düğmesi sıradaki işi söyler ve sizi doğrudan o adıma götürür: boş çalışmada <em>Problemi tanımlayarak başla</em>, eksik ölçütü olan adımda <em>Devam et</em>, geciken aksiyon varsa <em>Geciken aksiyonları güncelle</em>, her şey tamamsa <em>Raporu aç</em>.</p>
+    <p>Üst satırda geciken aksiyon sayısı görünüyorsa üzerine tıklayın: aksiyonlar çalışmaya göre gruplanmış olarak, sorumlusu ve kaç gün geciktiğiyle listelenir.</p>
+  </section>
+
+  <section id="adimlar">
+    <h2>Sekiz adım</h2>
+    <p>Her adımın başlığındaki durum çipi aşağıdaki <em>Tamam sayılması için</em> ölçütlerini denetler. Ölçütler alan doluluğunu değil yöntemin asgari şartlarını ölçer; kenar çubuğundaki olgunluk göstergesi ise kanıt, doğrulama ve KPI teyidine bakar.</p>
+
+    <section id="triyaj" class="g-step">
+      <h3>Başlamadan: triyaj ve hızlı çözüm</h3>
+      <p>Her problem aynı derinliği hak etmez. <em>Yeni çalışma</em> penceresindeki triyaj üç soru sorar: kökten çözüm için gereken süre ve kaynak, sağlayacağı fayda ve zaman kısıtı. Yanıtlara göre tam akış, hızlı çözüm, delege etme ya da bilinçli bekletme önerilir.</p>
+      <p><b>Hızlı çözüm</b> 15–20 dakikalık sorunlar için tek ekrandır: kısa tanım, sorunu süren etken, üç "neden", önlem, sorumlu ve termin. Sorun beklediğinizden derin çıkarsa <em>Tam akışa terfi ettir</em> düğmesi çalışmayı sekiz adıma taşır; tanım Adım 1'e, etken Adım 2'ye, nedenler Adım 5'e, önlem Adım 7'ye kayıpsız aktarılır.</p>
+    </section>
+
+    <section id="adim-1" class="g-step">
+      <h3><span class="g-n">1</span>Problem tanımı</h3>
+      <p class="g-step-lead">"Ne oldu?" sorusunun ölçülebilir cevabı: çözüm, neden ve suçlama içermeyen tek bir ifade.</p>
+      <div class="g-done"><b>Tamam sayılması için</b><ul data-step="1"><li>Problem ifadesi yazıldı</li><li>Hedef ve gerçekleşen girildi</li><li>KPI yönü seçildi</li></ul></div>
+      <p>Boyutları (yer veya birim, dönem, kırılım) ve KPI farkını girin. İfadenin altındaki kalite çipleri anlık geri bildirim verir; Rehber panelindeki <em>İfademi netleştir</em> rehbere ifadenizi yönteme uygun biçimde yeniden yazdırır. Problem ifadesi yazılmadan sonraki adımlara geçilemez.</p>
+      <details class="g-more">
+        <summary>İleri araçlar: VAR/YOK, değişiklik analizi, referanslar</summary>
+        <p><b>VAR / YOK belirtimi</b> (Kepner-Tregoe) problemin sınırlarını çizer: nerede, ne zaman, hangi kırılımda var; nerede olabilirdi ama yok. Gerçek kök neden hem VAR'ı hem YOK'u açıklamak zorundadır; Adım 5'te adaylar bu ölçütle sınanır.</p>
+        <p><b>Değişiklik analizi</b> sapma problemlerinin klasik sorusunu sorar: sapma başladığında ne değişti?</p>
+        <p><b>Referanslar</b> kartına rapor, veri, not, link ya da dosya (.pdf, .docx, .xlsx, .csv, .txt) ekleyebilirsiniz. Rehber tüm adımlarda bunlardan yararlanır ve R1, R2 biçiminde atıf yapar. <em>✎ Aç</em> ile referansı okuyabilir, başlığını ve metnini düzenleyebilir, ilgisiz bölümleri silebilirsiniz; uzun metinlerin özeti düzenlemeden sonra yenilenir.</p>
+      </details>
+    </section>
+
+    <section id="adim-2" class="g-step">
+      <h3><span class="g-n">2</span>İş sürücüsü haritalama</h3>
+      <p class="g-step-lead">Sonucu sürükleyen ana etkenleri birbirini dışlayan ve bütünü kapsayan (MECE) biçimde listeleyin.</p>
+      <div class="g-done"><b>Tamam sayılması için</b><ul data-step="2"><li>En az 2 iş sürücüsü tanımlandı</li><li>YZ önerileri doğrulandı</li></ul></div>
+      <p>Rehber probleminize göre aday iş sürücüleri önerir; uyanları <em>Forma ekle</em> ile alıp kendi tespitlerinizle düzenleyin. Şüpheleri masa başında değil, işi yapanlarla ve yerinde gözlemle doğrulayın.</p>
+    </section>
+
+    <section id="adim-3" class="g-step">
+      <h3><span class="g-n">3</span>İş sürücüsü analizi</h3>
+      <p class="g-step-lead">Etkisi en büyük sürücüleri alt bileşenlerine ayırın ve sorunun hangisinde olduğunu süreç metrikleriyle bulun.</p>
+      <div class="g-done"><b>Tamam sayılması için</b><ul data-step="3"><li>En az 1 alt bileşen analizi yapıldı</li></ul></div>
+      <p>Sorunlu süreç adımları için <b>SIPOC</b> satırlarını doldurun: tedarikçi, girdi, süreç, çıktı, müşteri. Girdi kalitesindeki bozukluklar en çok burada görünür olur.</p>
+    </section>
+
+    <section id="adim-4" class="g-step">
+      <h3><span class="g-n">4</span>Problem bulguları</h3>
+      <p class="g-step-lead">Varsayımları bırakın: her bulgu ölçülmüş, veriyle kanıtlanmış belirli bir sapmadır.</p>
+      <div class="g-done"><b>Tamam sayılması için</b><ul data-step="4"><li>En az 1 ölçülmüş bulgu var</li><li>Her bulgunun kanıt kaynağı var</li><li>Sapmaya katkılar girildi (Pareto)</li></ul></div>
+      <p>Rehberin önerdiği bulgu hipotezlerini kendi verinizle doğrulayıp sayıları kendiniz girin. Her bulguya <em>sapmaya katkı</em> değeri girerseniz uygulama Pareto grafiği çizer; kök neden analizine en büyük katkılı bulgudan başlarsınız. Bu adımda çözüm önerilmez.</p>
+    </section>
+
+    <section id="adim-5" class="g-step">
+      <h3><span class="g-n">5</span>Kök neden analizi</h3>
+      <p class="g-step-lead">Belirtiden sistemik nedene inin; zincir kişide değil süreç, sistem ya da yetkinlik eksiğinde bitmeli.</p>
+      <div class="g-done"><b>Tamam sayılması için</b><ul data-step="5"><li>En az 1 kök neden yazıldı</li><li>Kök nedenler bulgulara bağlandı</li><li>En az biri veriyle destekleniyor/doğrulandı</li></ul></div>
+      <p>En kritik bulgudan başlayıp <b>5 Neden</b> zinciri kurun. <b>Balık kılçığı</b> kategorileri (insan, metot, sistem, girdi, ölçüm, çevre) olası nedenleri düzenler. Her kök nedeni ilgili kurum prensipleriyle eşleştirin, yetkinlik gelişim alanını yazın ve doğrulama durumunu işleyin: hipotez, veriyle destekleniyor, test edildi, doğrulandı.</p>
+      <details class="g-more">
+        <summary>İleri araçlar: alternatif dallar, test planı</summary>
+        <p>Gerekirse <b>alternatif neden dalları</b> açın; örneğin "operatör hataları neden yüksek?" ayrı bir zincir olarak iner. Veriyle desteklenmeyen dal, elendiği belgelenerek kapanır.</p>
+        <p>Kök neden Adım 1'deki VAR/YOK desenini açıklamalı; test planı ve beklenen KPI etkisi yazılmalıdır.</p>
+      </details>
+    </section>
+
+    <section id="adim-6" class="g-step">
+      <h3><span class="g-n">6</span>Karşı önlemler ve karar</h3>
+      <p class="g-step-lead">Kök nedeni gideren alternatifler üretin, ölçütlerle karşılaştırın, kararı gerekçesiyle siz yazın.</p>
+      <div class="g-done"><b>Tamam sayılması için</b><ul data-step="6"><li>En az 2 alternatif üretildi</li><li>Kriter ağırlıkları %100</li><li>Karar ve gerekçesi yazıldı</li></ul></div>
+      <p>Adım <b>geçici önlemle</b> (8D'nin D3 disiplini) açılır: analiz sürerken müşteriyi ve süreci bugün koruyan tedbir, sorumlusu ve kaldırılma koşulu. Geçici önlem zaman kazandırır, problemi çözmez; karar asla geçici önlemin kendisi olamaz.</p>
+      <p>Farklı düşünme yöntemleriyle (ilk ilkeler, yanal, sistem, tasarım…) en az üç alternatif üretin. Kriterlere toplamı 100 olacak ağırlık verin ve <b>karar matrisinde</b> her alternatifi 0–5 puanlayın. Ağırlıklı toplam kendiliğinden hesaplanır; iki alternatif başa başsa duyarlılık uyarısı çıkar. Matris karar vermez: <em>Rehberden karar önerisi al</em> ile değerlendirme alabilir, son kararı ve kök nedeni nasıl giderdiğini kendiniz yazarsınız.</p>
+      <p>Kararın ardından <b>Aksiyon planı</b> gelir: her aksiyona sorumlu, termin, 1–5 arası etki ve efor puanı verin. Uygulama öncelik rozeti üretir (hızlı kazanım, stratejik, ara kazanım, sorgulanmalı); <em>Önceliğe göre sırala</em> planı yeniden dizer. Rehberin aksiyon önerileri hangi bulguyu ve kök nedeni adreslediklerini (B2, KN1 gibi) belirtir.</p>
+      <details class="g-more">
+        <summary>Karar zamanlaması, ikinci basamak etkileri ve dış görünüm</summary>
+        <p><b>Karar zamanlaması</b> kartı kararın doğru zamanını sorar. Geri alması ucuz karar <b>ASAP</b>: hemen verin ya da küçük bir testle deneyin. Geri alması pahalı karar <b>ALAP</b>: fırsat penceresi kapanana dek analiz edin. <em>Fırsat penceresi</em> ve <em>durma işareti</em> alanları sonsuz analiz tuzağına karşı sınır çizer.</p>
+        <p>Karar kartındaki <b>Ve sonra ne olacak?</b> alanı ikinci basamak etkilerini, yani çözümün doğurabileceği yeni problemleri sorar. <b>Dış görünüm</b> benzer girişimlerin kurumda ya da sektörde gerçekte ne kadar sürdüğünü sorar; bu alan bilerek yapay zekâsız bırakılmıştır, çünkü kurum geçmişinizi yalnızca siz bilirsiniz.</p>
+        <p>Bir alternatife düşünme yöntemi seçtiğinizde, o yöntemin hangi yanılgıya karşı çalıştığı ve ekibe yöneltebileceğiniz beş soru hemen altında açılır.</p>
+      </details>
+      <details class="g-more">
+        <summary>Kararı sınamak: düşünme kontrolü, şeytanın avukatı, pre-mortem</summary>
+        <p><b>Karar öncesi düşünme kontrolü</b> üç soru sorar: neyi varsayıyorum, başka hangi açıklama mümkün, bedelini kim ve ne zaman ödeyecek. Aynı karttaki <b>Düşünme yanılgısı taraması</b> çalışmanızı okuyup hangi yanılgının izini taşıdığını kendi cümlelerinizden alıntıyla gösterir.</p>
+        <p><b>Şeytanın avukatı</b> karar yazıldıktan sonra açılır. <em>Kararımı çürüt</em> düğmesi vakanıza özgü boşluklara dayanan 3–4 itiraz üretir ve her biri için çürütmek gereken kanıtı yazar. Her itiraza tek tek yanıt verirsiniz; yanıtsız itiraz raporda uyarı olarak görünür.</p>
+        <p><b>Pre-mortem</b> (Gary Klein) "altı ay sonrasındayız, karar başarısız oldu; ne oldu?" diye sorar. Rehber başarısızlık senaryoları, erken uyarı sinyalleri ve önleyici tedbirler üretir; beğendiğiniz tedbiri tek tıkla aksiyon planına eklersiniz.</p>
+        <p><b>Benzer vakalar</b> paneli sektör kalıplarından sentezlenmiş başarı ve başarısızlık örnekleri sunar. Kaynak gösterilmez; emsal değil ilham olarak kullanın. İleri analizdeki <b>FMEA</b> (şiddet × olasılık × tespit) ve <b>kuvvet alanı analizi</b> (Lewin) çözümün risklerini uygulamadan önce görünür kılar.</p>
+      </details>
+    </section>
+
+    <section id="adim-7" class="g-step">
+      <h3><span class="g-n">7</span>İzleme ve retrospektif</h3>
+      <p class="g-step-lead">Döngüyü kapatın: aksiyonların ilerlemesini ve KPI'ın hedefe kapanışını izleyin.</p>
+      <div class="g-done"><b>Tamam sayılması için</b><ul data-step="7"><li>Aksiyon durumları işaretlendi</li><li>En az 1 KPI ölçümü girildi</li><li>Retrospektif yazıldı</li></ul></div>
+      <p>Aksiyonları bekliyor, devam ediyor, tamamlandı ya da gecikti olarak işaretleyin; KPI'ı dönem dönem girin. Ölçümler trend grafiğine dönüşür ve hedefe kalan fark yazılır. <b>Trend hedefe kapanmıyorsa kök neden ya da karşı önlem yanlıştır</b>; Adım 5'e dönüp analizi güncelleyin.</p>
+      <p><b>Tetik çizgileri</b> tepkiyi kriz anında değil şimdi kararlaştırmanızı sağlar: ölçülebilir bir koşul, kontrol tarihi ve önceden anlaşılmış tepki. Tarihi geçen kontrol için uygulama uyarır. <b>Retrospektifte</b> dört soru vardır: kök neden doğru muydu, önlemler işe yaradı mı, süreç mi doğruydu yoksa yalnızca sonuç mu iyiydi, neyi standarda bağlayacağız.</p>
+    </section>
+
+    <section id="adim-8" class="g-step">
+      <h3><span class="g-n">8</span>Çalışma raporu</h3>
+      <p class="g-step-lead">Tüm girdileriniz tek bir paylaşılabilir raporda derlenir.</p>
+      <div class="g-done"><b>Tamam sayılması için</b><ul data-step="8"><li>Raporlanacak içerik var (problem ifadesi ve en az 1 kök neden)</li><li>İzlenebilirlik sorunları giderildi</li></ul></div>
+      <p>Üstteki şeritte üç görünüm vardır. <b>Tam rapor</b> tüm bölümleri grafikleriyle gösterir. <b>A3 özeti</b> tek sayfalık Toyota A3 düzenidir; A3 yatay kâğıda yazdırın. <b>Vaka haritası</b> KPI'dan izlemeye kadar bağlantıları çizer, kopuk düğümleri işaretler; düğüme tıklayınca ilgili adım açılır.</p>
+      <p>Çıktılar: <em>Yazdır / PDF</em> yalnızca raporu basar ve grafikleri eksiksiz taşır. <em>Word indir</em> düzenlenebilir bir .docx, <em>HTML indir</em> tek dosyalık bir sayfa üretir. <em>Paylaşım linki</em> salt-okunur bir link kopyalar; çalışmanın verisi sıkıştırılıp linkin içine gömülür ve hiçbir sunucuya gitmez, bu yüzden link uzundur. Alıcı isterse <em>Çalışmalarıma kopyala</em> ile devam eder.</p>
+      <p><em>Raporu güçlendir</em> bölümünde iki araç vardır: <b>Yönetici özeti</b> raporun başına kısa bir özet yazar; <b>Tutarlılık denetimi</b> adımlar arasındaki çelişkileri ve kopuk halkaları atıflarla (B1, KN2, A1…) bulur ve yalnızca ekranda kalır. <em>Rapor içeriği</em> açıldığında bölümleri seçer, kurum ya da birim adını girersiniz.</p>
+    </section>
+  </section>
+
+  <section id="yz">
+    <h2>Yapay zekâ rehberi</h2>
+    <dl class="g-defs">
+      <div><dt>Rehber</dt><dd>Araç şeridinden açılır. Boş bir adıma girdiğinizde kendiliğinden çalışır; problem tanımınıza ve önceki adımlarınıza göre aday girdiler ve doğrulama soruları üretir. Her öneri <em>Forma ekle</em> ile alana işlenir; <em>Yeniden öner</em> taze, <em>+ Daha fazla öneri</em> öncekilerden farklı adaylar getirir.</dd></div>
+      <div><dt>Doğrulama rozetleri</dt><dd>Rehberden eklenen sürücü, analiz, bulgu ve kök nedenler <em>⚠ YZ önerisi — doğrulanmadı</em> rozetiyle işaretlenir. Veriyle doğruladıktan sonra rozete tıklayıp <em>✓ Doğrulandı</em> yapın; doğrulanmamış kayıt varken sonraki adıma geçerken uyarı alırsınız.</dd></div>
+      <div><dt>Zihin Kontrolü</dt><dd>1–7. adımlarda araç şeridinde durur. O adımda en sık düşülen yanılgıları, panzehirlerini ve kendinize soracağınız soruları gösterir. Aynı bilgi rehberin istemlerine de eklenir.</dd></div>
+      <div><dt>Sorulacak sorular</dt><dd>Adımın kendinize ve paydaşlarınıza sormanız gereken sorularını listeler; toplantı öncesi hazırlık için kullanın.</dd></div>
+      <div><dt>YZ Asistan</dt><dd>Sayfanın altındaki sohbet. <em>Bu adımdaki girdilerimi değerlendir</em> ve <em>Öneri ve doğru sorular üret</em> en sık istekleri tek tıka indirir. Alanların yanındaki küçük <em>YZ</em> düğmeleri o alana özel yardım ister.</dd></div>
+      <div><dt>Altın kural</dt><dd>Yapay zekâ çıktıları hipotezdir. Eklediklerinizi kendi verinizle doğrulayın, probleminize uymayanları eklemeyin. Benzer vakalar ve yanılgı taraması uydurma atıfa karşı kaynak, isim ve link üretmez.</dd></div>
+    </dl>
+  </section>
+
+  <section id="ayarlar">
+    <h2>Ayarlar</h2>
+    <p>Kenar çubuğunun altındaki <em>Ayarlar</em> dört sekmeli bir pencere açar. Değişiklikler anında kaydedilir; Esc ya da pencere dışına tıklama kapatır.</p>
+    <h3 id="ayar-rehber">Rehber</h3>
+    <ul>
+      <li><b>Rehberlik seviyesi:</b> <em>Öğreten</em> öneri vermez, Sokratik sorular sorar; <em>Dengeli</em> hipotez ve doğrulama soruları önerir; <em>Hızlandıran</em> eksiksiz taslaklar üretir.</li>
+      <li><b>Adıma girince otomatik öneri:</b> kapatırsanız rehber yalnızca düğmeyle çalışır.</li>
+      <li><b>Alan / sektör bağlamı:</b> örneğin "perakende lojistiği". Rehber ve asistan örneklerini buna uyarlar.</li>
+      <li><b>Yanıt üslubu:</b> uzunluk (kısa madde, detaylı), ton (resmi, samimi koç), eleştirellik (nazik, sert denetçi).</li>
+    </ul>
+    <h3 id="ayar-baglanti">Yapay zekâ bağlantısı</h3>
+    <ul>
+      <li><b>Otomatik</b> modda hiçbir şey girmeniz gerekmez; site sahibinin sunucudaki anahtarı kullanılır ve anahtar tarayıcıya inmez.</li>
+      <li><b>Kendi anahtarınız:</b> MiniMax, OpenAI ya da Anthropic. Anahtar yalnızca bu tarayıcıda saklanır ve doğrudan seçtiğiniz sağlayıcıya gönderilir.</li>
+      <li><b>Özel / yerel:</b> OpenAI uyumlu her uç nokta: OpenRouter, kurumsal ağ geçidi, Azure OpenAI ya da bilgisayarınızdaki Ollama ve LM Studio. Hazır profiller adres ve başlıkları doldurur. Claude Pro/Max ya da ChatGPT Plus gibi abonelikler üçüncü taraf uygulamalara açılmaz; kredi ya da anahtar tabanlı bir servis gerekir.</li>
+      <li><b>Gelişmiş üretim ayarları</b> katlanmış durur: model adı, düşünme eforu, analiz derinliği (standart, geniş, derin) ve token bütçesi, yaratıcılık (tutarlı 0,2, dengeli 0,6, yaratıcı 0,9), sıcaklık ve top_p. Yapılandırılmış çıktılar için 0,3–0,7 aralığı önerilir; derin analiz belirgin biçimde uzun sürer.</li>
+    </ul>
+    <h3 id="ayar-prensip">Kurum prensipleri</h3>
+    <p>Varsayılan 20 prensibi düzenleyebilir, silebilir ya da kendi kurum değerlerinizi yazabilirsiniz. Liste kök neden eşleştirmesinde, rehber önerilerinde ve raporda kullanılır. Bir prensibi silince kök nedenlerdeki eşleştirmeler kendiliğinden güncellenir.</p>
+    <h3 id="ayar-veri">Veri ve yedek</h3>
+    <p>Son kayıt ve son yedek zamanı burada görünür; yedek yedi günden eskiyse uygulama hatırlatır. <em>Yedeği indir</em> tüm çalışmaları ve prensipleri tek bir JSON dosyası olarak indirir. <em>Dosya seç</em> bir yedeği ya da meslektaşınızın dosyasını ekler; mevcut çalışmalarınız silinmez.</p>
+  </section>
+
+  <section id="dusunme">
+    <h2>Düşünme yöntemleri ve karşıt yanılgılar</h2>
+    <p>Her sağlıklı düşünme yöntemi belirli bir düşünce hatasına karşı bir denge mekanizmasıdır. Bu hatalar zekâ ya da bilgi eksikliği değil, yönetilmesi gereken bir gerçektir: zihin doğruyu değil hızlıyı ve tanıdık olanı seçer. Uygulama bu eşleşmeyi Adım 6'daki yöntem seçimine, Zihin Kontrolü'ne ve yanılgı taramasına gömer.</p>
+    <div class="g-table"><table>
+      <thead><tr><th scope="col">Düşünme yöntemi</th><th scope="col">Karşı çalıştığı yanılgı</th><th scope="col">Yanılgının belirtisi</th></tr></thead>
+      <tbody>
+        <tr><td>Eleştirel düşünce</td><td>Onaylama yanlılığı</td><td>Fikri destekleyen veri toplanır, çelişen veri değersizleştirilir.</td></tr>
+        <tr><td>İlk ilkeler düşüncesi</td><td>Statüko yanlılığı, batık maliyet</td><td>Daha iyi değil daha tanıdık seçilir; "bu kadar yatırım yaptık" savunması.</td></tr>
+        <tr><td>Tasarım odaklı düşünce</td><td>Temsil yanlılığı</td><td>Saha gözlemi yerine zihindeki kalıba benzerlik esas alınır.</td></tr>
+        <tr><td>Yanal düşünce</td><td>Aşırı güven yanlılığı</td><td>Tek çözüm doğru kabul edilir, alternatif üretilmez.</td></tr>
+        <tr><td>İkinci düzey düşünce</td><td>Kısa vadecilik, sonuç yanlılığı</td><td>Kararın kalitesi sürecine değil sonucuna bakılarak ölçülür.</td></tr>
+        <tr><td>Sistem düşüncesi</td><td>Mevcudiyet yanlılığı, aşırı basitleştirme</td><td>Akılda kalan olay yaygın sanılır; çok katmanlı yapı tek nedene indirgenir.</td></tr>
+        <tr><td>Algoritmik düşünce</td><td>Çapa etkisi, sezgisel kısayollar</td><td>İlk duyulan sayı ya da fikir sonraki tüm değerlendirmeyi belirler.</td></tr>
+      </tbody>
+    </table></div>
+    <h3>Liderler için üç davranış</h3>
+    <ul>
+      <li><b>"Bilmiyorum" diyebilmek.</b> Zayıflık değil, düşünmeyi açan bir tetikleyicidir; lider bunu yaptığında ekip de düşünmeye başlar.</li>
+      <li><b>Kendi varsayımını açık etmek.</b> "Şu anki varsayımım bu, yanlış olabilir" cümlesi tartışmayı başlatır.</li>
+      <li><b>Fikir değiştirmeyi normalleştirmek.</b> Bu yapılmadığında insanlar fikirlerini değil pozisyonlarını savunur.</li>
+    </ul>
+    <h3>Karar hijyeni: altı eylem ilkesi</h3>
+    <dl class="g-defs is-compact">
+      <div><dt>Triyaj</dt><dd>Fayda maliyeti karşılamıyorsa tam analiz yapmayın: delege edin, hızlı çözün ya da bilinçli bekletin. <span class="g-where">Yeni çalışma penceresi</span></dd></div>
+      <div><dt>ASAP / ALAP</dt><dd>Geri alması ucuz kararı hemen verin; pahalı kararı fırsat penceresi kapanana dek analizle geciktirin. <span class="g-where">Adım 6, karar zamanlaması</span></dd></div>
+      <div><dt>Durma işareti</dt><dd>Yeterli bilgiye ulaştığınızı gösteren işareti önceden tanımlayın; gerçekleşince uygulamaya geçin. <span class="g-where">Adım 6</span></dd></div>
+      <div><dt>İkinci basamak</dt><dd>"Ve sonra ne olacak?" Çözümün doğuracağı yeni problemi karar anında düşünün. <span class="g-where">Adım 6, karar kartı</span></dd></div>
+      <div><dt>Dış görünüm</dt><dd>Benzer girişimlerin gerçek sonuçlarına bakarak termin ve etki beklentinizi düzeltin. <span class="g-where">Adım 6, karar kartı</span></dd></div>
+      <div><dt>Tetik çizgileri</dt><dd>"X olursa Z yaparız" tepkisini sakin kafayla önceden kararlaştırın. <span class="g-where">Adım 7</span></dd></div>
+    </dl>
+    <p class="g-note"><b>En basit kural:</b> hızlı düşündüğünüzü fark ettiğiniz an yavaşlayın. Amaç mükemmel düşünmek değil, yanlış düşündüğünüz anı erken yakalamaktır.</p>
+  </section>
+
+  <section id="sss">
+    <h2>Sık sorulanlar</h2>
+    <details class="g-faq"><summary>Rehber öneri üretmiyor.</summary><p>Adım 1'de problem ifadesinin dolu olduğundan emin olun ve araç şeridindeki <em>Rehber</em> panelinde <em>Tekrar dene</em>ye basın. Anahtar hatası görürseniz paneldeki <em>Bağlantı ayarlarını aç</em> düğmesi sizi doğrudan ilgili sekmeye götürür.</p></details>
+    <details class="g-faq"><summary>Verilerim kaybolur mu?</summary><p>Veriler bu tarayıcıya bağlıdır ve hiçbir sunucuya gönderilmez. Tarayıcı verilerini temizlerseniz, gizli sekme kullanırsanız ya da cihaz değiştirirseniz erişemezsiniz. Önemli çalışmalar için <a href="#ayar-veri">Veri ve yedek</a> sekmesinden düzenli yedek alın.</p></details>
+    <details class="g-faq"><summary>Ekiple nasıl paylaşırım?</summary><p>Üç yol var: Adım 8'den PDF ya da Word çıktısı alın; <em>Paylaşım linki</em> ile salt-okunur link gönderin; ya da çalışmayı devretmek için yedek dosyasını paylaşın ve karşı taraf <em>Dosya seç</em> ile eklesin. Gizli içerikte link yerine PDF tercih edin.</p></details>
+    <details class="g-faq"><summary>PDF'te grafikler görünmüyor.</summary><p>Rapor grafikleri tarayıcının "arka plan grafikleri" ayarından bağımsız basılır. Görünmüyorsa eski bir sürüm önbellekte kalmış olabilir; sayfayı Ctrl+F5 (Mac'te Cmd+Shift+R) ile yenileyin.</p></details>
+    <details class="g-faq"><summary>Hızlı çözüm yetersiz kaldı.</summary><p>Hızlı çözüm ekranındaki <em>Tam akışa terfi ettir</em> düğmesi çalışmayı sekiz adıma taşır; girdikleriniz ilgili adımlara aynen aktarılır.</p></details>
+    <details class="g-faq"><summary>Karşı önlem işe yaramadı, ne yapmalıyım?</summary><p>Çalışmayı baştan açmayın. Adım 7'deki trend hedefe kapanmıyorsa Adım 5'e dönüp kök nedeni gözden geçirin, gerekirse Adım 6'da yeni alternatif üretin ve bu tespiti retrospektife yazın.</p></details>
+    <details class="g-faq"><summary>Örnek çalışmayı bozdum.</summary><p>Örnek çalışmalar silinmez. Örnek açıkken kenar çubuğunun altındaki <em>Örneği sıfırla</em> onu ilk hâline döndürür.</p></details>
+    <details class="g-faq"><summary>Kenar çubuğu kayboldu.</summary><p>Daraltılmış olabilir. Ekranın solundaki ince şeritte en üstteki » düğmesine basın; dar ekranlarda üst çubuktaki menü düğmesini kullanın.</p></details>
+  </section>
+
+  <footer class="g-foot"><span>ProblemLab kullanım rehberi</span><span>Sürüm 4, Kasım 2026</span></footer>
+</main>
+</div>
+</body>
+</html>
